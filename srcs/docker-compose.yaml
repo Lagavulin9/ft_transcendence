@@ -21,6 +21,7 @@ services:
     depends_on:
       - Postgres
     networks:
+      - Nginx-Nest.js
       - Next.js-Nest.js
       - Nest.js-Postgres
     env_file:
@@ -34,16 +35,37 @@ services:
     depends_on:
       - Postgres
       - Nest.js
-    ports:
-      - 443:443
     restart: on-failure
     networks:
       - Next.js-Nest.js
+      - Nginx-Next.js
     env_file:
       - .env
-      
+
+  Nginx:
+    container_name: "Nginx"
+    build:
+      context: ./requirements/Nginx
+      dockerfile: dockerfile
+    restart: on-failure
+    networks:
+      - Nginx-Nest.js
+      - Nginx-Next.js
+    depends_on:
+      - Nest.js
+      - Next.js
+    ports:
+      - 80:80
+      - 443:443
+    env_file:
+      - .env
+
 networks:
   Next.js-Nest.js:
     driver: bridge
   Nest.js-Postgres:
+    driver: bridge
+  Nginx-Nest.js:
+    driver: bridge
+  Nginx-Next.js:
     driver: bridge
