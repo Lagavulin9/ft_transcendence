@@ -1,0 +1,49 @@
+version: '3'
+
+services:
+  Postgres:
+    container_name: "Postgres"
+    build:
+      context: ./requirements/Postgres
+      dockerfile: dockerfile
+    restart: on-failure
+    networks:
+      - Nest.js-Postgres
+    env_file:
+      - .env
+
+  Nest.js:
+    container_name: "Nest.js"
+    build:
+      context: ./requirements/Nest.js
+      dockerfile: dockerfile
+    restart: on-failure
+    depends_on:
+      - Postgres
+    networks:
+      - Next.js-Nest.js
+      - Nest.js-Postgres
+    env_file:
+      - .env
+
+  Next.js:
+    container_name: "Next.js"
+    build:
+      context: ./requirements/Next.js
+      dockerfile: dockerfile
+    depends_on:
+      - Postgres
+      - Nest.js
+    ports:
+      - 443:443
+    restart: on-failure
+    networks:
+      - Next.js-Nest.js
+    env_file:
+      - .env
+      
+networks:
+  Next.js-Nest.js:
+    driver: bridge
+  Nest.js-Postgres:
+    driver: bridge
