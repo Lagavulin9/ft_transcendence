@@ -1,69 +1,69 @@
 version: '3'
 
 services:
-  Postgres:
-    container_name: "Postgres"
+  postgres:
+    container_name: "postgres"
     image: postgres:15-alpine 
     restart: on-failure
     networks:
-      - Nest.js-Postgres
+      - nest.js-Postgres
     env_file:
       - .env
 
-  Nest.js:
-    container_name: "Nest.js"
+  nest.js:
+    container_name: "nest.js"
     build:
-      context: ./requirements/Nest.js
+      context: ./requirements/nest.js
       dockerfile: dockerfile
     restart: on-failure
     depends_on:
-      - Postgres
+      - postgres
     networks:
-      - Nginx-Nest.js
-      - Next.js-Nest.js
-      - Nest.js-Postgres
+      - nginx-nest.js
+      - next.js-nest.js
+      - nest.js-Postgres
     env_file:
       - .env
 
-  Next.js:
-    container_name: "Next.js"
-    build:
-      context: ./requirements/Next.js
-      dockerfile: dockerfile
-    depends_on:
-      - Postgres
-      - Nest.js
-    restart: on-failure
-    networks:
-      - Next.js-Nest.js
-      - Nginx-Next.js
-    env_file:
-      - .env
+  # next.js:
+  #   container_name: "next.js"
+  #   build:
+  #     context: ./requirements/next.js
+  #     dockerfile: dockerfile
+  #   depends_on:
+  #     - Postgres
+  #     - nest.js
+  #   restart: on-failure
+  #   networks:
+  #     - next.js-nest.js
+  #     - nginx-next.js
+  #   env_file:
+  #     - .env
 
-  Nginx:
-    container_name: "Nginx"
+  nginx:
+    container_name: "nginx"
     image: nginx:1.25.0-alpine
     restart: on-failure
     networks:
-      - Nginx-Nest.js
-      - Nginx-Next.js
+      - nginx-nest.js
+      - nginx-next.js
     depends_on:
-      - Nest.js
-      - Next.js
+      - nest.js
+      # - next.js
     ports:
       - 80:80
       - 443:443
     volumes:
-      - ./requirements/Nginx/conf/nginx.conf:/etc/nginx/nginx.conf
+      - ./requirements/nginx/conf/nginx.conf:/etc/nginx/nginx.conf
     env_file:
       - .env
 
 networks:
-  Next.js-Nest.js:
+  next.js-nest.js:
     driver: bridge
-  Nest.js-Postgres:
+  nest.js-Postgres:
     driver: bridge
-  Nginx-Nest.js:
+  nginx-nest.js:
     driver: bridge
-  Nginx-Next.js:
+  nginx-next.js:
     driver: bridge

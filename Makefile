@@ -2,8 +2,7 @@ NAME = ft_transcendence
 SRC_DIR = ./srcs
 DOCKER_COMPOSE_FILE = $(SRC_DIR)/docker-compose.yaml
 DOCKER_COMPOSE = sudo docker-compose -f $(DOCKER_COMPOSE_FILE)
-IMAGES = alpine:3.16.5 \
-		postgres:15-alpine
+IMAGES := node:20-alpine3.16 postgres:15-alpine nginx:1.25.0-alpine
 
 $(NAME) : all
 
@@ -16,13 +15,11 @@ clean : stop
 	docker network rm $$(docker network ls -q) ||\
 	echo "clean up"
 
-re : clean
-	docker pull $(IMAGES)
+re : clean pull-images
 	$(DOCKER_COMPOSE) build --no-cache
 	$(DOCKER_COMPOSE) up -d
 
-up :
-	docker pull $(IMAGES)
+up : pull-images
 	$(DOCKER_COMPOSE) up -d --build
 
 down :
@@ -37,4 +34,9 @@ restart :
 stop :
 	$(DOCKER_COMPOSE) stop
 
-.PHONY: all clean re up down start restart stop
+pull-images :
+	@for image in $(IMAGES); do\
+		docker pull $$image; \
+	done
+
+.PHONY: all clean re up down start restart stop pull-images
