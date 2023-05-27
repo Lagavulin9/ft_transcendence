@@ -25,17 +25,19 @@ services:
     env_file:
       - .env
 
-  # nextjs:
-  #   container_name: "nextjs"
-  #   build:
-  #     context: ./requirements/next.js
-  #     dockerfile: dockerfile
-  #   restart: on-failure
-  #   networks:
-  #     - nextjs-nestjs
-  #     - nginx-nextjs
-  #   env_file:
-  #     - .env
+  nextjs:
+    container_name: "nextjs"
+    build:
+      context: ./requirements/next.js
+      dockerfile: dockerfile
+    restart: on-failure
+    networks:
+      - nextjs-nestjs
+      - nginx-nextjs
+    env_file:
+      - .env
+    ports:
+      - 3000:3000
 
   nginx:
     container_name: "nginx"
@@ -46,7 +48,7 @@ services:
       - nginx-nextjs
     depends_on:
       - nestjs
-      # - nextjs
+      - nextjs
     ports:
       - 80:80
     volumes:
