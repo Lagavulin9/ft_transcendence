@@ -6,12 +6,12 @@ services:
     image: postgres:15-alpine 
     restart: on-failure
     networks:
-      - nest.js-Postgres
+      - nestjs-postgres
     env_file:
       - .env
 
-  nest.js:
-    container_name: "nest.js"
+  nestjs:
+    container_name: "nestjs"
     build:
       context: ./requirements/nest.js
       dockerfile: dockerfile
@@ -19,24 +19,21 @@ services:
     depends_on:
       - postgres
     networks:
-      - nginx-nest.js
-      - next.js-nest.js
-      - nest.js-Postgres
+      - nginx-nestjs
+      - nextjs-nestjs
+      - nestjs-postgres
     env_file:
       - .env
 
-  # next.js:
-  #   container_name: "next.js"
+  # nextjs:
+  #   container_name: "nextjs"
   #   build:
   #     context: ./requirements/next.js
   #     dockerfile: dockerfile
-  #   depends_on:
-  #     - Postgres
-  #     - nest.js
   #   restart: on-failure
   #   networks:
-  #     - next.js-nest.js
-  #     - nginx-next.js
+  #     - nextjs-nestjs
+  #     - nginx-nextjs
   #   env_file:
   #     - .env
 
@@ -45,25 +42,24 @@ services:
     image: nginx:1.25.0-alpine
     restart: on-failure
     networks:
-      - nginx-nest.js
-      - nginx-next.js
+      - nginx-nestjs
+      - nginx-nextjs
     depends_on:
-      - nest.js
-      # - next.js
+      - nestjs
+      # - nextjs
     ports:
       - 80:80
-      - 443:443
     volumes:
-      - ./requirements/nginx/conf/nginx.conf:/etc/nginx/nginx.conf
+      - ./requirements/nginx/nginx.conf:/etc/nginx/nginx.conf
     env_file:
       - .env
 
 networks:
-  next.js-nest.js:
+  nextjs-nestjs:
     driver: bridge
-  nest.js-Postgres:
+  nestjs-postgres:
     driver: bridge
-  nginx-nest.js:
+  nginx-nestjs:
     driver: bridge
-  nginx-next.js:
+  nginx-nextjs:
     driver: bridge
