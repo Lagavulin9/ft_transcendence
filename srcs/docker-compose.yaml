@@ -6,8 +6,7 @@ services:
     image: postgres:15-alpine 
     restart: on-failure
     networks:
-      - nestjs-postgres
-      - pgadmin-postgres
+      - docker-network
     env_file:
       - .env
 
@@ -18,7 +17,7 @@ services:
     depends_on:
       - postgres
     networks:
-      - pgadmin-postgres
+      - docker-network
     ports:
       - 5050:80
     env_file:
@@ -33,7 +32,7 @@ services:
     depends_on:
       - postgres
     networks:
-      - nginx-nestjs
+      - docker-network
     env_file:
       - .env
 
@@ -44,7 +43,7 @@ services:
       dockerfile: dockerfile
     restart: on-failure
     networks:
-      - nginx-nextjs
+      - docker-network
     env_file:
       - .env
 
@@ -53,8 +52,7 @@ services:
     image: nginx:1.25.0-alpine
     restart: on-failure
     networks:
-      - nginx-nestjs
-      - nginx-nextjs
+      - docker-network
     depends_on:
       - nestjs
       - nextjs
@@ -66,11 +64,5 @@ services:
       - .env
 
 networks:
-  nestjs-postgres:
-    driver: bridge
-  pgadmin-postgres:
-    driver: bridge
-  nginx-nestjs:
-    driver: bridge
-  nginx-nextjs:
+  docker-network:
     driver: bridge
