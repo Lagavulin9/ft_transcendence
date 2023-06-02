@@ -26,9 +26,13 @@ services:
   nestjs:
     container_name: "nestjs"
     build:
-      context: ./requirements/nest.js
+      context: ./requirements/nestjs
       dockerfile: dockerfile
     restart: on-failure
+    volumes:
+      - type: bind
+        source: ./requirements/nestjs/nest-app
+        target: /app
     depends_on:
       - postgres
     networks:
@@ -39,7 +43,7 @@ services:
   nextjs:
     container_name: "nextjs"
     build:
-      context: ./requirements/next.js
+      context: ./requirements/nextjs
       dockerfile: dockerfile
     restart: on-failure
     networks:
