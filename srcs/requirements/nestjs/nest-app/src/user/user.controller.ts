@@ -18,7 +18,7 @@ export class UserController{
 	}
 
 	@Get()
-	getUserByNick(@Query('nickname') nickname:string):Promise<User> {
+	getUserByNick(@Query('nickname') nickname:string):Promise<getUserDto> {
 		return this.userService.getUserByNick(nickname);
 	}
 

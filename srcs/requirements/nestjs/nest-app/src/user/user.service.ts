@@ -28,12 +28,14 @@ export class UserService{
 		return getuserdto;
 	}
 
-	async getUserByNick(nickname:string): Promise<User> {
+	async getUserByNick(nickname:string): Promise<getUserDto> {
 		const found = await this.userRepository.findOne({where:{nickname:nickname}});
 		if (!found){
 			throw new NotFoundException(`Could not find nickname:${nickname}`)
 		}
-		return found;
+		const getuserdto = plainToInstance(getUserDto, found);
+		getuserdto.gameLog = await this.getUserGameLogs(found.uid);
+		return getuserdto;
 	}
 
 	async saveUser(user:createUserDto): Promise<void> {
