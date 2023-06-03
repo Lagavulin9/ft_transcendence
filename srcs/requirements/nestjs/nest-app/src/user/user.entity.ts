@@ -5,7 +5,7 @@ export class User{
 	@PrimaryGeneratedColumn('identity')
 	uid: number;
 
-	@Column()
+	@Column({unique:true})
 	nickname: string;
 
 	@Column()
@@ -17,12 +17,12 @@ export class User{
 	@Column()
 	avatarIndex: number;
 
-	@Column()
+	@Column({default:0})
 	totalWin: number;
 
-	@Column()
+	@Column({default:0})
 	totalLose: number;
 
-	@Column()
+	@Column({default:1})
 	level: number;
 }

@@ -1,7 +1,6 @@
 import { Controller, Get, Post, Body, Param, ParseIntPipe, UsePipes, ValidationPipe, Query } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { createUserDto } from "src/dto/createUser.dto";
-import { User } from './user.entity'
 import { JoiValidationPipe } from "../validation.pipe";
 import { getUserDto } from "src/dto/getUser.dto";
 import { createUserSchema } from "src/schema/createUser.schema";
@@ -24,8 +23,8 @@ export class UserController{
 
 	@Post()
 	@UsePipes(new JoiValidationPipe(createUserSchema))
-	saveUser(@Body(new ValidationPipe) user:createUserDto):Promise<void> {
-		return this.userService.saveUser(user);
+	createUser(@Body(new ValidationPipe) user:createUserDto):Promise<void> {
+	return this.userService.createUser(user);
 	}
 
 	@Post('/log')

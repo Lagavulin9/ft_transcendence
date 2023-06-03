@@ -1,12 +1,8 @@
 import * as Joi from "joi"
 
 export const createUserSchema = Joi.object({
-	uid: Joi.number().required(),
 	nickname: Joi.string().required(), // Defalut: Intra NickName
-	isOTP: Joi.boolean().default(0),
-	isAvatar: Joi.boolean().default(0),
+	isOTP: Joi.boolean().default(false),
+	isAvatar: Joi.boolean().default(false),
 	avatarIndex: Joi.number().default(0), // Defalut: 0
-	totalWin: Joi.number().default(0), // Defalut: 0
-	totalLose: Joi.number().default(0), // Defalut: 0
-	level: Joi.number().default(1), // Win의 10당 레벨 +1
 });

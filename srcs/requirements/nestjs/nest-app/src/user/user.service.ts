@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from './user.entity'
 import { Repository } from "typeorm";
@@ -7,7 +7,6 @@ import { getUserDto } from "src/dto/getUser.dto";
 import { plainToInstance } from "class-transformer";
 import { LogDto, GameLogDto } from "src/dto/log.dto";
 import { Log } from "src/user/log.entity";
-
 
 @Injectable()
 export class UserService{
@@ -38,14 +37,14 @@ export class UserService{
 		return getuserdto;
 	}
 
-	async saveUser(user:createUserDto): Promise<void> {
+	async createUser(user:createUserDto): Promise<void> {
 		const newUser = this.userRepository.create(user);
-		await this.userRepository.save(newUser);
+		await this.userRepository.save(newUser).catch(err=>{throw new HttpException(JSON.stringify(err.detail), HttpStatus.CONFLICT)});
+		throw new HttpException("Accepted", HttpStatus.ACCEPTED);
 	}
 
 	async getUserGameLogs(uid:number): Promise<GameLogDto[]>{
 		const gamelog = await this.logRepository.find({where:{fromId:uid}});
-		console.log(gamelog)
 		const gamelogdto = plainToInstance(GameLogDto, gamelog)
 		return gamelogdto;
 	}
@@ -55,5 +54,6 @@ export class UserService{
 		newLog.fromScore = log.score[0];
 		newLog.toScore = log.score[1];
 		await this.logRepository.save(newLog);
+		throw new HttpException("Accepted", HttpStatus.ACCEPTED);
 	}
 }
