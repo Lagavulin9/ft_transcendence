@@ -2,7 +2,11 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from './user.entity'
 import { Repository } from "typeorm";
-import { UserDto } from "src/dto/user.dto";
+import { createUserDto } from "src/dto/createUser.dto";
+import { getUserDto } from "src/dto/getUser.dto";
+import { plainToInstance } from "class-transformer";
+import { LogDto, GameLogDto } from "src/dto/log.dto";
+import { Log } from "src/user/log.entity";
 
 
 @Injectable()
@@ -10,14 +14,18 @@ export class UserService{
 	constructor(
 		@InjectRepository(User)
 		private userRepository:Repository<User>,
+		@InjectRepository(Log)
+		private logRepository:Repository<Log>
 	){}
 
-	async getUserByID(uid:number): Promise<User> {
+	async getUserByID(uid:number): Promise<getUserDto> {
 		const found = await this.userRepository.findOne({where:{uid:uid}});
 		if (!found){
 			throw new NotFoundException(`Could not find uid:${uid}`);
 		}
-		return found;
+		const getuserdto = plainToInstance(getUserDto, found);
+		getuserdto.gameLog = await this.getUserGameLogs(uid);
+		return getuserdto;
 	}
 
 	async getUserByNick(nickname:string): Promise<User> {
@@ -28,8 +36,22 @@ export class UserService{
 		return found;
 	}
 
-	async saveUser(user:UserDto): Promise<void> {
+	async saveUser(user:createUserDto): Promise<void> {
 		const newUser = this.userRepository.create(user);
 		await this.userRepository.save(newUser);
+	}
+
+	async getUserGameLogs(uid:number): Promise<GameLogDto[]>{
+		const gamelog = await this.logRepository.find({where:{fromId:uid}});
+		console.log(gamelog)
+		const gamelogdto = plainToInstance(GameLogDto, gamelog)
+		return gamelogdto;
+	}
+
+	async saveGameLog(log:LogDto): Promise<void>{
+		const newLog = this.logRepository.create(log);
+		newLog.fromScore = log.score[0];
+		newLog.toScore = log.score[1];
+		await this.logRepository.save(newLog);
 	}
 }
