@@ -1,21 +1,11 @@
-import { User } from "src/user/user.entity";
-import { Column, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { User } from "src/user/user.entity"
 
-@Entity()
-export class Chatroom{
-	@PrimaryGeneratedColumn('identity')
-	roomId: number
-	@Column({unique:true})
+export class Chat{
+	roomId:number
 	roomName: string
-	@Column({default:0})
-	roomType: number
-	@ManyToOne(()=>User)
 	roomOwner: User
-	@ManyToOne(()=>User, {nullable:true})
 	roomAlba: User
-	@ManyToMany(()=>User)
-	@JoinTable()
-	invitedUsers: User[]
-	@Column({default:null})
-	password: string
+	participants: User[]
+	roomType: number
+	password?: string
 }

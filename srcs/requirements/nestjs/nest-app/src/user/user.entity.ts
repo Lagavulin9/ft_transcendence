@@ -1,4 +1,3 @@
-import { Chatroom } from "src/chat/chat.entity";
 import { Column, Entity, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()

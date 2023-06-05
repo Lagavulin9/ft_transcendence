@@ -5,7 +5,7 @@ export class resChatDto{
 	roomName: string
 	roomOwner: User
 	roomAlba: User
-	inViteUsers: User[]
+	participants: User[]
 	roomType: number // 0: public, 1: private, 2: protected
 	password?: string
 }
