@@ -1,6 +1,7 @@
 import { TypeOrmModuleOptions } from "@nestjs/typeorm";
 import { User } from '../user/user.entity'
 import { Log } from "src/user/log.entity";
+import { FriendList } from "src/friend/friend.entity";
 
 export const typeORMConfig: TypeOrmModuleOptions = {
 	type:'postgres',
@@ -9,6 +10,9 @@ export const typeORMConfig: TypeOrmModuleOptions = {
 	username: 'postgres',
 	password: process.env.POSTGRES_PASSWORD,
 	database: 'postgres',
-	entities: [ User, Log ],
+	entities: [ User, Log, FriendList ],
 	synchronize: true,
+	extra:{
+		"isArray": true
+	}
 }

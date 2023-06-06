@@ -5,11 +5,13 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeORMConfig } from './config/typeorm.config';
 import { UserModule } from './user/user.module';
+import { FriendModule } from './friend/friend.module';
 
 @Module({
   imports: [ConfigModule.forRoot({isGlobal: true}),
             TypeOrmModule.forRoot(typeORMConfig),
-            UserModule
+            UserModule,
+            FriendModule
           ],
   controllers: [AppController],
   providers: [AppService],

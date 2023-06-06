@@ -2,7 +2,7 @@ import { GameLogDto } from "./log.dto"
 
 export class getUserDto{
 	uid: number
-	nickName: string // Defalut: Intra nickName
+	nickname: string // Defalut: Intra nickname
 	isOTP: boolean
 	isAvatar: boolean
 	avatarIndex: number // Defalut: 0

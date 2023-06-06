@@ -4,9 +4,11 @@ import { User } from './user.entity'
 import { Repository } from "typeorm";
 import { createUserDto } from "src/dto/createUser.dto";
 import { getUserDto } from "src/dto/getUser.dto";
-import { plainToInstance } from "class-transformer";
+import { plainToClass, plainToInstance } from "class-transformer";
 import { LogDto, GameLogDto } from "src/dto/log.dto";
 import { Log } from "src/user/log.entity";
+import { FriendList } from "src/friend/friend.entity";
+import { friendUserDto, resFriendListDto } from "src/dto/friend.dto";
 
 @Injectable()
 export class UserService{
@@ -14,7 +16,9 @@ export class UserService{
 		@InjectRepository(User)
 		private userRepository:Repository<User>,
 		@InjectRepository(Log)
-		private logRepository:Repository<Log>
+		private logRepository:Repository<Log>,
+		@InjectRepository(FriendList)
+		private friendRepository:Repository<FriendList>
 	){}
 
 	async getUserByID(uid:number): Promise<getUserDto> {
@@ -40,6 +44,9 @@ export class UserService{
 	async createUser(user:createUserDto): Promise<void> {
 		const newUser = this.userRepository.create(user);
 		await this.userRepository.save(newUser).catch(err=>{throw new HttpException(JSON.stringify(err.detail), HttpStatus.CONFLICT)});
+		const newFriendList = new FriendList();
+		newFriendList.uid = newUser.uid;
+		await this.friendRepository.save(newFriendList);
 		throw new HttpException("Accepted", HttpStatus.ACCEPTED);
 	}
 
