@@ -11,6 +11,7 @@ import { Log } from "src/user/log.entity";
 @Module({
 	imports:[TypeOrmModule.forFeature([User, Log, FriendList]), UserModule],
 	controllers:[FriendController],
-	providers:[FriendService, UserService]
+	providers:[FriendService, UserService],
+	exports:[FriendService]
 })
 export class FriendModule{}
