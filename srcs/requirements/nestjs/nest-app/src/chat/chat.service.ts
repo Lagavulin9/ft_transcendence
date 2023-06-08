@@ -9,6 +9,7 @@ import { Socket } from "socket.io";
 import { plainToInstance } from "class-transformer";
 import { UserService } from "src/user/user.service";
 import { FriendService } from "src/friend/friend.service";
+import { ReqSocketDto } from "src/dto/reqSocket.dto";
 
 @Injectable()
 export class ChatService{
@@ -42,7 +43,7 @@ export class ChatService{
 		throw new NotFoundException(`Chatroom ID not found: ${roomName}`)
 	}
 
-	sendMessage(req:{client:Socket, roomName:string, msg:string}):boolean{
+	sendMessage(req:ReqSocketDto):boolean{
 		const chatroom = this.ChatRooms.find(Chat=>Chat.roomName == req.roomName);
 		if (!chatroom){
 			req.client.emit('error', 400); //나중에 뉴메릭 수정
@@ -57,7 +58,7 @@ export class ChatService{
 		return true
 	}
 
-	async sendDirectMessage(req:{client:Socket, target:string, msg:string}){
+	async sendDirectMessage(req:ReqSocketDto){
 		const speaker = this.Clients.getKey(req.client);
 		const target = await this.userService.getUserByNick(req.target);
 		const friendList = await this.friendService.getFriendList(target.uid);
@@ -90,7 +91,7 @@ export class ChatService{
 		throw new HttpException("Accepted", HttpStatus.ACCEPTED);
 	}
 
-	async joinChatroom(req:{client:Socket, roomName:string, password?:string}):Promise<boolean>{
+	async joinChatroom(req:ReqSocketDto):Promise<boolean>{
 		const chatroom = this.ChatRooms.find(Chat=>Chat.roomName == req.roomName);
 		if (!chatroom){
 			req.client.emit('error', 400); //나중에 뉴메릭 수정
@@ -112,7 +113,7 @@ export class ChatService{
 		return true;
 	}
 
-	leaveChatroom(req:{client:Socket, roomName:string}):boolean{
+	leaveChatroom(req:ReqSocketDto):boolean{
 		const chatroom = this.ChatRooms.find(Chat=>Chat.roomName == req.roomName);
 		if (!chatroom){
 			req.client.emit('error', 400); //나중에 뉴메릭 수정
@@ -136,7 +137,7 @@ export class ChatService{
 		}
 	}
 
-	kickClient(req:{client:Socket, roomName:string, target:string}):boolean{
+	kickClient(req:ReqSocketDto):boolean{
 		if (this.validateReq(req) == false){
 			return false;
 		}
@@ -148,7 +149,7 @@ export class ChatService{
 		return true;
 	}
 
-	banClient(req:{client:Socket, roomName:string, target:string}):boolean{
+	banClient(req:ReqSocketDto):boolean{
 		if (this.validateReq(req) == false){
 			return false;
 		}
@@ -161,7 +162,7 @@ export class ChatService{
 		return true;
 	}
 
-	muteClient(req:{client:Socket, roomName:string, target:string}):boolean{
+	muteClient(req:ReqSocketDto):boolean{
 		if (this.validateReq(req) == false){
 			return false;
 		}
@@ -171,10 +172,14 @@ export class ChatService{
 		targetSocket.leave(req.roomName);
 		targetSocket.emit('notice', `You've been muted by admin`);
 		chatroom.muted.push(target);
+		setTimeout(()=>{
+			chatroom.muted = chatroom.muted.filter(user=>user!=target)
+			targetSocket.emit('notice', `You are unmuted`);
+		}, 1000 * 60)
 		return true;
 	}
 
-	validateReq(req:{client:Socket, roomName:string, target:string}):boolean{
+	validateReq(req:ReqSocketDto):boolean{
 		const chatroom = this.ChatRooms.find(Chat=>Chat.roomName == req.roomName);
 		//채팅방이 존재하지 않는 경우
 		if (!chatroom){
