@@ -19,7 +19,7 @@ export class ChatService{
 		private userService:UserService,
 		private friendService:FriendService
 		){}
-	private Clients:BidirectionalMap<User, Socket>
+	public Clients:BidirectionalMap<User, Socket>
 	private ChatRooms:Chat[] = []
 	private RoomIndex:number = 0
 
