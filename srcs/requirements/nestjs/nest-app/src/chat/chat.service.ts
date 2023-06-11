@@ -14,8 +14,6 @@ import { ReqSocketDto } from "src/dto/reqSocket.dto";
 @Injectable()
 export class ChatService{
 	constructor(
-		@InjectRepository(User)
-		private userRepositiry:Repository<User>,
 		private userService:UserService,
 		private friendService:FriendService
 		){}
@@ -70,7 +68,7 @@ export class ChatService{
 
 	async createChatroom(reqchatdto:reqChatDto): Promise<void>{
 		const newChat = new Chat();
-		newChat.roomOwner = await this.userRepositiry.findOne({where:{uid:reqchatdto.roomOwner}});
+		newChat.roomOwner = await this.userService.getUserByID(reqchatdto.roomOwner);
 		if (!newChat.roomOwner){
 			throw new NotFoundException(`Could not find uid:${reqchatdto.roomOwner}`);
 		}
