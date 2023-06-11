@@ -1,4 +1,4 @@
-import { Module, forwardRef } from "@nestjs/common";
+import { Module} from "@nestjs/common";
 import { socketGateway } from "./gateway";
 import { ChatModule } from "src/chat/chat.module";
 import { TypeOrmModule } from "@nestjs/typeorm";

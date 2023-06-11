@@ -4,11 +4,10 @@ import { User } from './user.entity'
 import { Repository } from "typeorm";
 import { createUserDto } from "src/dto/createUser.dto";
 import { getUserDto } from "src/dto/getUser.dto";
-import { plainToClass, plainToInstance } from "class-transformer";
+import {  plainToInstance } from "class-transformer";
 import { LogDto, GameLogDto } from "src/dto/log.dto";
 import { Log } from "src/user/log.entity";
 import { FriendList } from "src/friend/friend.entity";
-import { friendUserDto, resFriendListDto } from "src/dto/friend.dto";
 
 @Injectable()
 export class UserService{

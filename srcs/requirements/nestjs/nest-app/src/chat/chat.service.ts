@@ -1,6 +1,4 @@
 import { HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
 import { resChatDto } from "src/dto/resChat.dto";
 import { reqChatDto } from "src/dto/reqChat.dto";
 import { User } from "src/user/user.entity";

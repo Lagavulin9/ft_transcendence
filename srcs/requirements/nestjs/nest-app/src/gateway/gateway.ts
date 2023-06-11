@@ -1,5 +1,5 @@
-import { Body, Inject, OnModuleInit } from "@nestjs/common";
-import { MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
+import { OnModuleInit } from "@nestjs/common";
+import { SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { ChatService } from "src/chat/chat.service";
 import { ReqSocketDto } from "src/dto/reqSocket.dto";
