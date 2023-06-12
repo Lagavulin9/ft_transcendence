@@ -15,16 +15,26 @@ export class ChatService{
 		private userService:UserService,
 		private friendService:FriendService
 		){}
-	private Clients:BidirectionalMap<User, Socket> = new BidirectionalMap()
-	private ChatRooms:Chat[] = []
-	private RoomIndex:number = 0
+	private Clients:BidirectionalMap<User, Socket> = new BidirectionalMap();
+	private ChatRooms:Map<string, Chat> = new Map();
+	private RoomIndex:number = 0;
 
 	getAllChatroom():Chat[]{
-		return this.ChatRooms;
+		const chatArray = []
+		for (const [roomName, chatroom] of this.ChatRooms){
+			chatArray.push(chatroom);
+		}
+		return chatArray;
 	}
 
 	getChatById(roomId:number): resChatDto{
-		const found = this.ChatRooms.find(chat=>chat.roomId == roomId)
+		let found: Chat|undefined;
+		for (const iter of this.ChatRooms.values()){
+			if (iter.roomId == roomId){
+				found = iter;
+				break;
+			}
+		}
 		if (found){
 			return plainToInstance(resChatDto, found);
 		}
@@ -32,7 +42,7 @@ export class ChatService{
 	}
 
 	getChatByName(roomName:string): resChatDto{
-		const found = this.ChatRooms.find(chat=>chat.roomName == roomName)
+		const found = this.ChatRooms.get(roomName);
 		if (found){
 			return plainToInstance(resChatDto, found);
 		}
@@ -56,7 +66,7 @@ export class ChatService{
 			return false;
 		}
 		let roomName:string;
-		for (const chatroom of this.ChatRooms){
+		for (const chatroom of this.ChatRooms.values()){
 			const found = chatroom.participants.find(u=>u == user)
 			if (found){
 				roomName = chatroom.roomName;
@@ -64,7 +74,7 @@ export class ChatService{
 				chatroom.roomAlba = chatroom.roomAlba.filter(u=>u != user);
 				//방에 아무도 없는경우 채팅방 삭제
 				if (chatroom.participants.length == 0){
-					this.ChatRooms = this.ChatRooms.filter(c=>c!=chatroom);
+					this.ChatRooms.delete(roomName);
 				}
 				//주딱이면 다른놈이 왕위계승
 				else if (user == chatroom.roomOwner){
@@ -91,7 +101,7 @@ export class ChatService{
 
 	joinChatroom(client:Socket, req:ReqSocketDto):Chat|undefined{
 		const user = this.Clients.getKey(client);
-		let chatroom = this.ChatRooms.find(room=>room.roomName == req.roomName);
+		let chatroom = this.ChatRooms.get(req.roomName);
 		if (!chatroom){
 			//create new one
 			const newChat = new Chat();
@@ -104,7 +114,7 @@ export class ChatService{
 			newChat.participants = [];
 			newChat.banned = [];
 			newChat.muted = [];
-			this.ChatRooms.push(newChat);
+			this.ChatRooms.set(req.roomName, newChat);
 			chatroom = newChat;
 			client.emit('notice', 'You are owner of this channel');
 		}
@@ -127,7 +137,7 @@ export class ChatService{
 
 	leaveChatroom(client:Socket, req:ReqSocketDto):boolean{
 		const user = this.Clients.getKey(client);
-		const chatroom = this.ChatRooms.find(room=>room.roomName == req.roomName);
+		const chatroom = this.ChatRooms.get(req.roomName);
 		if (!user || !chatroom){
 			client.emit('error', 'failed');
 			return false;
@@ -139,7 +149,7 @@ export class ChatService{
 		chatroom.roomAlba = chatroom.roomAlba.filter(u=>u != user);
 		//방에 아무도 없는경우 채팅방 삭제
 		if (chatroom.participants.length == 0){
-			this.ChatRooms = this.ChatRooms.filter(c=>c!=chatroom);
+			this.ChatRooms.delete(chatroom.roomName);
 			return true;
 		}
 		//주딱이면 다른놈이 왕위계승
@@ -162,7 +172,7 @@ export class ChatService{
 
 	sendMessage(client:Socket, req:ReqSocketDto):boolean{
 		const user = this.Clients.getKey(client);
-		const chatroom = this.ChatRooms.find(chat=>chat.roomName==req.roomName);
+		const chatroom = this.ChatRooms.get(req.roomName);
 		if (!chatroom || chatroom.muted.find(u=>u==user)){
 			return false;
 		}
@@ -185,7 +195,7 @@ export class ChatService{
 		if (!this.validateRequest(client, req)){
 			return false;
 		}
-		const chatroom = this.ChatRooms.find(chat=>chat.roomName==req.roomName);
+		const chatroom = this.ChatRooms.get(req.roomName);
 		const target = chatroom.participants.find(u=>u.nickname==req.target);
 		const targetSocket = this.Clients.getValue(target);
 		chatroom.participants = chatroom.participants.filter(u=>u!=target);
@@ -199,7 +209,7 @@ export class ChatService{
 		if (!this.validateRequest(client, req)){
 			return false
 		}
-		const chatroom = this.ChatRooms.find(chat=>chat.roomName==req.roomName);
+		const chatroom = this.ChatRooms.get(req.roomName);
 		const target = chatroom.participants.find(u=>u.nickname==req.target);
 		const targetSocket = this.Clients.getValue(target);
 		chatroom.participants = chatroom.participants.filter(u=>u!=target);
@@ -214,7 +224,7 @@ export class ChatService{
 		if (!this.validateRequest(client, req)){
 			return false
 		}
-		const chatroom = this.ChatRooms.find(chat=>chat.roomName==req.roomName);
+		const chatroom = this.ChatRooms.get(req.roomName);
 		const target = chatroom.participants.find(u=>u.nickname==req.target);
 		const targetSocket = this.Clients.getValue(target);
 		chatroom.participants = chatroom.participants.filter(u=>u!=target);
@@ -228,7 +238,7 @@ export class ChatService{
 
 	validateRequest(client:Socket, req:ReqSocketDto):boolean{
 		const user = this.Clients.getKey(client);
-		const chatroom = this.ChatRooms.find(chat=>chat.roomName==req.roomName);
+		const chatroom = this.ChatRooms.get(req.roomName);
 		//채팅방이 없음
 		if (!chatroom){
 			client.emit('error', `You are not in chatting room`);
