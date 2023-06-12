@@ -1,14 +1,18 @@
 import { OnModuleInit } from "@nestjs/common";
 import { SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
+import { subscribe } from "diagnostics_channel";
 import { Server, Socket } from "socket.io";
 import { ChatService } from "src/chat/chat.service";
+import { createUserDto } from "src/dto/createUser.dto";
 import { ReqSocketDto } from "src/dto/reqSocket.dto";
+import { UserService } from "src/user/user.service";
 
 // @WebSocketGateway({cors:{origin:['nextjs']}})
 @WebSocketGateway()
 export class socketGateway implements OnModuleInit{
 	constructor(
-		private chatService:ChatService
+		private chatService:ChatService,
+		private userService:UserService
 	){}
 
 	@WebSocketServer()
@@ -21,6 +25,15 @@ export class socketGateway implements OnModuleInit{
 				console.log(`client disconnected. id: ${client.id}`)
 			})
 		})
+	}
+
+	@SubscribeMessage('create')
+	async createUser(client:Socket, nick:string){
+		const req = new createUserDto();
+		req.nickname = nick;
+		await this.userService.createUser(req);
+		const created = await this.userService.getUserByNick(nick)
+		this.chatService.bind(client, created);
 	}
 
 	@SubscribeMessage('message')
@@ -46,7 +59,7 @@ export class socketGateway implements OnModuleInit{
 
 	@SubscribeMessage('join')
 	handleJoinReq(client:Socket, roomName:string){
-		if (client.rooms.size != 1){
+		if (client.rooms.size >= 2){
 			client.emit('error', 400)
 			return ;
 		}
@@ -54,7 +67,8 @@ export class socketGateway implements OnModuleInit{
 		newReq.client = client;
 		newReq.roomName = roomName;
 		if (this.chatService.joinChatroom(newReq)){
-			this.server.to(roomName).emit('notice', `${client.id} has joined`)
+			this.server.to(roomName).emit('notice', `${client.id} has joined`);
+			client.join(roomName);
 		}
 	}
 

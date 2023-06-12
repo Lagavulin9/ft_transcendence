@@ -27,7 +27,7 @@ export class ChatController{
 
 	@Post()
 	@UsePipes(new JoiValidationPipe(reqChatSchema))
-	createChatroom(@Body(new ValidationPipe) reqchatdto:reqChatDto): Promise<void>{
+	createChatroom(@Body(new ValidationPipe) reqchatdto:reqChatDto): Promise<Chat>{
 		return this.chatService.createChatroom(reqchatdto);
 	}
 }

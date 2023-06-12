@@ -40,13 +40,13 @@ export class UserService{
 		return getuserdto;
 	}
 
-	async createUser(user:createUserDto): Promise<void> {
+	async createUser(user:createUserDto): Promise<User> {
 		const newUser = this.userRepository.create(user);
 		await this.userRepository.save(newUser).catch(err=>{throw new HttpException(JSON.stringify(err.detail), HttpStatus.CONFLICT)});
 		const newFriendList = new FriendList();
 		newFriendList.uid = newUser.uid;
 		await this.friendRepository.save(newFriendList);
-		throw new HttpException("Accepted", HttpStatus.ACCEPTED);
+		return newUser;
 	}
 
 	async getUserGameLogs(uid:number): Promise<GameLogDto[]>{
@@ -55,11 +55,11 @@ export class UserService{
 		return gamelogdto;
 	}
 
-	async saveGameLog(log:LogDto): Promise<void>{
+	async saveGameLog(log:LogDto): Promise<Log>{
 		const newLog = this.logRepository.create(log);
 		newLog.fromScore = log.score[0];
 		newLog.toScore = log.score[1];
 		await this.logRepository.save(newLog);
-		throw new HttpException("Accepted", HttpStatus.ACCEPTED);
+		return newLog;
 	}
 }

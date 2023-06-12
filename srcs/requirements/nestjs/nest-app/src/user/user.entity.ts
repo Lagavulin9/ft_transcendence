@@ -8,13 +8,13 @@ export class User{
 	@Column({unique:true})
 	nickname: string;
 
-	@Column()
+	@Column({default:false})
 	isOTP: boolean;
 
-	@Column()
+	@Column({default:false})
 	isAvatar: boolean;
 
-	@Column()
+	@Column({default:0})
 	avatarIndex: number;
 
 	@Column({default:0})

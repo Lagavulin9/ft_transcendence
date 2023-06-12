@@ -15,7 +15,7 @@ export class ChatService{
 		private userService:UserService,
 		private friendService:FriendService
 		){}
-	public Clients:BidirectionalMap<User, Socket>
+	private Clients:BidirectionalMap<User, Socket> = new BidirectionalMap()
 	private ChatRooms:Chat[] = []
 	private RoomIndex:number = 0
 
@@ -54,6 +54,10 @@ export class ChatService{
 		return true
 	}
 
+	async bind(client:Socket, user:User){
+		this.Clients.set(user, client);
+	}
+
 	async sendDirectMessage(req:ReqSocketDto){
 		const speaker = this.Clients.getKey(req.client);
 		const target = await this.userService.getUserByNick(req.target);
@@ -64,7 +68,7 @@ export class ChatService{
 		}
 	}
 
-	async createChatroom(reqchatdto:reqChatDto): Promise<void>{
+	async createChatroom(reqchatdto:reqChatDto): Promise<Chat>{
 		const newChat = new Chat();
 		newChat.roomOwner = await this.userService.getUserByID(reqchatdto.roomOwner);
 		if (!newChat.roomOwner){
@@ -84,7 +88,7 @@ export class ChatService{
 			newChat.password = reqchatdto.password; // 나중에 해쉬로 바꿔서 저장되도록 바꿔야함
 		}
 		this.ChatRooms.push(newChat);
-		throw new HttpException("Accepted", HttpStatus.ACCEPTED);
+		return newChat;
 	}
 
 	async joinChatroom(req:ReqSocketDto):Promise<boolean>{

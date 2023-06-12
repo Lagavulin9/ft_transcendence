@@ -6,6 +6,8 @@ import { getUserDto } from "src/dto/getUser.dto";
 import { createUserSchema } from "src/schema/createUser.schema";
 import { LogSchema } from "src/schema/log.schema";
 import { LogDto } from "src/dto/log.dto";
+import { User } from "./user.entity";
+import { Log } from "./log.entity";
 
 @Controller('user')
 export class UserController{
@@ -23,13 +25,13 @@ export class UserController{
 
 	@Post()
 	@UsePipes(new JoiValidationPipe(createUserSchema))
-	createUser(@Body(new ValidationPipe) user:createUserDto):Promise<void> {
-	return this.userService.createUser(user);
+	createUser(@Body(new ValidationPipe) user:createUserDto):Promise<User> {
+		return this.userService.createUser(user);
 	}
 
 	@Post('/log')
 	@UsePipes(new JoiValidationPipe(LogSchema))
-	saveGameLog(@Body(new ValidationPipe) log:LogDto):Promise<void>{
+	saveGameLog(@Body(new ValidationPipe) log:LogDto):Promise<Log>{
 		return this.userService.saveGameLog(log);
 	}
 }
