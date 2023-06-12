@@ -1,9 +1,8 @@
 import { OnModuleInit } from "@nestjs/common";
 import { SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
-import { subscribe } from "diagnostics_channel";
 import { Server, Socket } from "socket.io";
+import { Chat } from "src/chat/chat.entity";
 import { ChatService } from "src/chat/chat.service";
-import { createUserDto } from "src/dto/createUser.dto";
 import { ReqSocketDto } from "src/dto/reqSocket.dto";
 import { UserService } from "src/user/user.service";
 
@@ -22,93 +21,50 @@ export class socketGateway implements OnModuleInit{
 		this.server.on('connection', client=>{
 			console.log(`client connected. id: ${client.id}`)
 			client.on('disconnect', ()=>{
-				console.log(`client disconnected. id: ${client.id}`)
+				console.log(`client disconnected. id: ${client.id}`);
+				this.chatService.unbindUser(client);
 			})
 		})
 	}
 
-	@SubscribeMessage('create')
-	async createUser(client:Socket, nick:string){
-		const req = new createUserDto();
-		req.nickname = nick;
-		await this.userService.createUser(req);
-		const created = await this.userService.getUserByNick(nick)
-		this.chatService.bind(client, created);
+	//소켓이 열릴때 훅을 걸어서 바인드
+	@SubscribeMessage('bind')
+	handleBind(client:Socket, uid:number):Promise<boolean>{
+		return this.chatService.bindUser(client, uid);
 	}
-
-	@SubscribeMessage('message')
-	handleMessage(client:Socket, msg:string){
-		if (client.rooms.size != 2)
-			return ;
-		const [id, roomName] = client.rooms.keys();
-		const newReq = new ReqSocketDto();
-		newReq.client = client;
-		newReq.roomName = roomName;
-		newReq.msg = msg;
-		this.chatService.sendMessage(newReq);
-	}
-
-	@SubscribeMessage('DM')
-	handleDirectMessage(client:Socket, req:{target:string,msg:string}){
-		const newReq = new ReqSocketDto();
-		newReq.client = client;
-		newReq.target = req.target;
-		newReq.msg = req.msg;
-		this.chatService.sendDirectMessage(newReq);
-	}
-
+	
 	@SubscribeMessage('join')
-	handleJoinReq(client:Socket, roomName:string){
-		if (client.rooms.size >= 2){
-			client.emit('error', 400)
-			return ;
-		}
-		const newReq = new ReqSocketDto();
-		newReq.client = client;
-		newReq.roomName = roomName;
-		if (this.chatService.joinChatroom(newReq)){
-			this.server.to(roomName).emit('notice', `${client.id} has joined`);
-			client.join(roomName);
-		}
+	handleJoinReq(client:Socket, req:ReqSocketDto):Chat|undefined{
+		return this.chatService.joinChatroom(client, req)
 	}
 
 	@SubscribeMessage('leave')
-	handleLeaveReq(client:Socket){
-		if (client.rooms.size != 2)
-		{
-			client.emit('error', 401)
-			return ;
-		}
-		const [id, roomName] = client.rooms.keys();
-		const newReq = new ReqSocketDto();
-		newReq.client = client;
-		newReq.roomName = roomName;
-		if (this.chatService.leaveChatroom(newReq)){
-			this.server.to(roomName).emit('notice', `${client.id} has left`)
-		}
+	handleLeaveReq(client:Socket, req:ReqSocketDto){
+		this.chatService.leaveChatroom(client, req)
+	}
+
+	@SubscribeMessage('message')
+	handleMessage(client:Socket, req:ReqSocketDto){
+		this.chatService.sendMessage(client, req);
+	}
+
+	@SubscribeMessage('DM')
+	handleDirectMessage(client:Socket, req:ReqSocketDto){
+		this.chatService.sendDirectMessage(client, req);
 	}
 
 	@SubscribeMessage('kick')
-	handleKickReq(client:Socket, target:string){
-		const newReq = new ReqSocketDto();
-		newReq.client = client;
-		newReq.target = target;
-		this.chatService.kickClient(newReq);
+	handleKickReq(client:Socket, req:ReqSocketDto){
+		this.chatService.kickClient(client, req);
 	}
 
 	@SubscribeMessage('ban')
-	handleBanReq(client:Socket, target:string){
-		const newReq = new ReqSocketDto();
-		newReq.client = client;
-		newReq.target = target;
-		this.chatService.banClient(newReq)
+	handleBanReq(client:Socket, req:ReqSocketDto){
+		this.chatService.banClient(client, req);
 	}
 
 	@SubscribeMessage('mute')
-	handleMuteReq(client:Socket, target:string){
-		const newReq = new ReqSocketDto();
-		newReq.client = client;
-		newReq.target = target;
-		this.chatService.muteClient(newReq)
+	handleMuteReq(client:Socket, req:ReqSocketDto){
+		this.chatService.muteClient(client, req);
 	}
 }
