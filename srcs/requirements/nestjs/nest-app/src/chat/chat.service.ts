@@ -100,6 +100,10 @@ export class ChatService{
 	}
 
 	createChatroom(client:Socket, req:ReqSocketDto):Chat|undefined{
+		if (client.rooms.size >= 2){
+			client.emit('error', `cant join more than two rooms`);
+			return undefined;
+		}
 		if (this.ChatRooms.get(req.roomName)){
 			client.emit('error', `Chatroom ${req.roomName} already exist`);
 			return undefined;
@@ -122,6 +126,10 @@ export class ChatService{
 	}
 
 	joinChatroom(client:Socket, req:ReqSocketDto):Chat|undefined{
+		if (client.rooms.size >= 2){
+			client.emit('error', `cant join more than two rooms`);
+			return undefined;
+		}
 		const user = this.Clients.getKey(client);
 		const chatroom = this.ChatRooms.get(req.roomName);
 		if (!chatroom){
@@ -152,6 +160,10 @@ export class ChatService{
 		const user = this.Clients.getKey(client);
 		const chatroom = this.ChatRooms.get(req.roomName);
 		if (!user || !chatroom){
+			client.emit('error', 'failed');
+			return false;
+		}
+		if (!chatroom.participants.find(u=>u==user)) {
 			client.emit('error', 'failed');
 			return false;
 		}

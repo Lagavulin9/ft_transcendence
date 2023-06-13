@@ -49,8 +49,30 @@ export class UserService{
 		return newUser;
 	}
 
+	async updateNickname(uid: number, nickname: string):Promise<User>{
+		const toUpdate =  await this.userRepository.findOne({where:{uid:uid}});
+		if (!toUpdate){
+			return undefined;
+		}
+		toUpdate.nickname = nickname;
+		this.userRepository.save(toUpdate);
+		return toUpdate;
+	}
+/*
+	async updateProfileUrl(uid: number, profileUrl: string):Promise<User>{
+		const toUpdate =  await this.userRepository.findOne({where:{uid:uid}});
+		if (!toUpdate){
+			return undefined;
+		}
+		toUpdate.profileUrl = profileUrl;
+		this.userRepository.save(toUpdate);
+		return toUpdate;
+	}
+*/
 	async getUserGameLogs(uid:number): Promise<GameLogDto[]>{
-		const gamelog = await this.logRepository.find({where:{fromId:uid}});
+		const gamelog = []
+		gamelog.push(...await this.logRepository.find({where:{fromId:uid}}));
+		gamelog.push(...await this.logRepository.find({where:{toId:uid}}));
 		const gamelogdto = plainToInstance(GameLogDto, gamelog)
 		return gamelogdto;
 	}
@@ -60,6 +82,18 @@ export class UserService{
 		newLog.fromScore = log.score[0];
 		newLog.toScore = log.score[1];
 		await this.logRepository.save(newLog);
+		const host = await this.userRepository.findOne({where:{uid:log.fromId}});
+		const guest = await this.userRepository.findOne({where:{uid:log.toId}});
+		if (newLog.fromScore > newLog.toScore){
+			host.totalWin++;
+			guest.totalLose++;
+		}
+		else{
+			host.totalLose++;
+			guest.totalWin++;
+		}
+		this.userRepository.save(host);
+		this.userRepository.save(guest);
 		return newLog;
 	}
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, ParseIntPipe, UsePipes, ValidationPipe, Query } from "@nestjs/common";
+import { Controller, Get, Post, Body, Param, ParseIntPipe, UsePipes, ValidationPipe, Query, Patch } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { createUserDto } from "src/dto/createUser.dto";
 import { JoiValidationPipe } from "../validation.pipe";
@@ -34,4 +34,18 @@ export class UserController{
 	saveGameLog(@Body(new ValidationPipe) log:LogDto):Promise<Log>{
 		return this.userService.saveGameLog(log);
 	}
+
+	@Patch('/nickname')
+	updateNickname(@Body() req:{'uid':number, 'nickname':string}):Promise<User> {
+		console.log(req.uid, req.nickname);
+		return this.userService.updateNickname(req.uid, req.nickname);
+	}
+	
+	@Patch('/profile')
+	updateProfileUrl(@Body() req:{'uid':number, 'profileUrl':string}):Promise<User> {
+		console.log(req.uid, req.profileUrl);
+		return this.userService.updateNickname(req.uid, req.profileUrl);
+	}
 }
+
+// Nickname -> User -> nickname

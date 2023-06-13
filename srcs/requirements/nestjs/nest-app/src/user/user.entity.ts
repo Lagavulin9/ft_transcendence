@@ -1,10 +1,15 @@
+import { IsBoolean, IsNotEmpty, IsNumber, IsString } from "class-validator";
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class User{
+	@IsNotEmpty()
+	@IsNumber()
 	@PrimaryGeneratedColumn('identity')
 	uid: number;
 
+	@IsNotEmpty()
+	@IsString()
 	@Column({unique:true})
 	nickname: string;
 

@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { FriendList } from "./friend.entity";
@@ -21,6 +21,9 @@ export class FriendService{
 
 	async addFriend(req:reqFriendDto): Promise<resFriendListDto>{
 		const current = await this.friendRepository.findOne({where:{uid:req.uid}})
+		if (!current) {
+			throw new NotFoundException(`Could not find uid:${req.uid}`)
+		}
 		const target = await this.userService.getUserByID(req.target);
 		if (current.friendList.find(friend=>friend.uid==target.uid)){
 			return plainToClass(resFriendListDto, current);
