@@ -75,6 +75,7 @@ export class ChatService{
 				//방에 아무도 없는경우 채팅방 삭제
 				if (chatroom.participants.length == 0){
 					this.ChatRooms.delete(roomName);
+					console.log(this.ChatRooms);
 				}
 				//주딱이면 다른놈이 왕위계승
 				else if (user == chatroom.roomOwner){
@@ -99,24 +100,34 @@ export class ChatService{
 		return true;
 	}
 
+	createChatroom(client:Socket, req:ReqSocketDto):Chat|undefined{
+		if (this.ChatRooms.get(req.roomName)){
+			client.emit('error', `Chatroom ${req.roomName} already exist`);
+			return undefined;
+		}
+		const user = this.Clients.getKey(client);
+		const newChat = new Chat();
+		newChat.roomOwner = user;
+		newChat.roomId = ++this.RoomIndex;
+		newChat.roomName = req.roomName;
+		newChat.roomType = req.roomType;
+		newChat.password = req.password;
+		newChat.roomAlba = [ user ];
+		newChat.participants = [ user ];
+		newChat.banned = [];
+		newChat.muted = [];
+		this.ChatRooms.set(req.roomName, newChat);
+		client.emit('notice', 'You are owner of this channel');
+		client.join(newChat.roomName);
+		return newChat;
+	}
+
 	joinChatroom(client:Socket, req:ReqSocketDto):Chat|undefined{
 		const user = this.Clients.getKey(client);
-		let chatroom = this.ChatRooms.get(req.roomName);
+		const chatroom = this.ChatRooms.get(req.roomName);
 		if (!chatroom){
-			//create new one
-			const newChat = new Chat();
-			newChat.roomOwner = user;
-			newChat.roomId = ++this.RoomIndex;
-			newChat.roomName = req.roomName;
-			newChat.roomType = req.roomType;
-			newChat.password = req.password;
-			newChat.roomAlba = [ user ];
-			newChat.participants = [];
-			newChat.banned = [];
-			newChat.muted = [];
-			this.ChatRooms.set(req.roomName, newChat);
-			chatroom = newChat;
-			client.emit('notice', 'You are owner of this channel');
+			client.emit('error', `No such chatroom ${req.roomName}`);
+			return undefined;
 		}
 		//패스워드 틀림
 		else if (chatroom.password != req.password){
@@ -150,6 +161,7 @@ export class ChatService{
 		//방에 아무도 없는경우 채팅방 삭제
 		if (chatroom.participants.length == 0){
 			this.ChatRooms.delete(chatroom.roomName);
+			console.log(this.ChatRooms);
 			return true;
 		}
 		//주딱이면 다른놈이 왕위계승
@@ -173,7 +185,9 @@ export class ChatService{
 	sendMessage(client:Socket, req:ReqSocketDto):boolean{
 		const user = this.Clients.getKey(client);
 		const chatroom = this.ChatRooms.get(req.roomName);
-		if (!chatroom || chatroom.muted.find(u=>u==user)){
+		if (!chatroom ||
+			!chatroom.participants.find(u=>u==user) ||
+			chatroom.muted.find(u=>u==user)){
 			return false;
 		}
 		client.to(req.roomName).emit('message', req.msg);
@@ -184,7 +198,7 @@ export class ChatService{
 		const sender = this.Clients.getKey(client);
 		const target = await this.userService.getUserByNick(req.target);
 		if (!target){
-			client.emit('error', `no such user: ${req.target}`);
+			client.emit('error', `No such user: ${req.target}`);
 			return false;
 		}
 		const targetSocket = this.Clients.getValue(target);
@@ -221,19 +235,20 @@ export class ChatService{
 	}
 
 	muteClient(client:Socket, req:ReqSocketDto):boolean{
+		const time = 1000 * 60;
 		if (!this.validateRequest(client, req)){
 			return false
 		}
 		const chatroom = this.ChatRooms.get(req.roomName);
 		const target = chatroom.participants.find(u=>u.nickname==req.target);
 		const targetSocket = this.Clients.getValue(target);
-		chatroom.participants = chatroom.participants.filter(u=>u!=target);
-		targetSocket.emit('notice', `You are not muted`);
+		targetSocket.emit('notice', `You are now muted for ${time/1000}seconds`);
 		client.to(chatroom.roomName).emit('notice', `${target.nickname} was muted by channel's admin`);
 		chatroom.muted.push(target);
 		setTimeout(()=>{
 			chatroom.muted = chatroom.muted.filter(u=>u!=target);
-		}, 1000 * 60);
+			targetSocket.emit('notice', `You are now unmuted`);
+		}, time);
 	}
 
 	validateRequest(client:Socket, req:ReqSocketDto):boolean{
@@ -252,7 +267,7 @@ export class ChatService{
 		const target = chatroom.participants.find(u=>u.nickname==req.target);
 		//타겟이 없음
 		if (!target){
-			client.emit('error', `no such user: ${req.target}`);
+			client.emit('error', `No such user: ${req.target}`);
 			return false;
 		}
 		//타겟이 오너, 어드민

@@ -32,20 +32,25 @@ export class socketGateway implements OnModuleInit{
 	handleBind(client:Socket, uid:number):Promise<boolean>{
 		return this.chatService.bindUser(client, uid);
 	}
-	
+
+	@SubscribeMessage('create')
+	handleCreateReq(client:Socket, req:ReqSocketDto):Chat|undefined{
+		return this.chatService.createChatroom(client, req);
+	}
+
 	@SubscribeMessage('join')
 	handleJoinReq(client:Socket, req:ReqSocketDto):Chat|undefined{
 		return this.chatService.joinChatroom(client, req)
 	}
 
 	@SubscribeMessage('leave')
-	handleLeaveReq(client:Socket, req:ReqSocketDto){
-		this.chatService.leaveChatroom(client, req)
+	handleLeaveReq(client:Socket, req:ReqSocketDto):boolean{
+		return this.chatService.leaveChatroom(client, req)
 	}
 
 	@SubscribeMessage('message')
-	handleMessage(client:Socket, req:ReqSocketDto){
-		this.chatService.sendMessage(client, req);
+	handleMessage(client:Socket, req:ReqSocketDto):boolean{
+		return this.chatService.sendMessage(client, req);
 	}
 
 	@SubscribeMessage('DM')
@@ -54,17 +59,17 @@ export class socketGateway implements OnModuleInit{
 	}
 
 	@SubscribeMessage('kick')
-	handleKickReq(client:Socket, req:ReqSocketDto){
-		this.chatService.kickClient(client, req);
+	handleKickReq(client:Socket, req:ReqSocketDto):boolean{
+		return this.chatService.kickClient(client, req);
 	}
 
 	@SubscribeMessage('ban')
-	handleBanReq(client:Socket, req:ReqSocketDto){
-		this.chatService.banClient(client, req);
+	handleBanReq(client:Socket, req:ReqSocketDto):boolean{
+		return this.chatService.banClient(client, req);
 	}
 
 	@SubscribeMessage('mute')
-	handleMuteReq(client:Socket, req:ReqSocketDto){
-		this.chatService.muteClient(client, req);
+	handleMuteReq(client:Socket, req:ReqSocketDto):boolean{
+		return this.chatService.muteClient(client, req);
 	}
 }
