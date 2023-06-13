@@ -1,5 +1,6 @@
 import { OnModuleInit } from "@nestjs/common";
 import { SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
+import { subscribe } from "diagnostics_channel";
 import { Server, Socket } from "socket.io";
 import { Chat } from "src/chat/chat.entity";
 import { ChatService } from "src/chat/chat.service";
@@ -71,5 +72,10 @@ export class socketGateway implements OnModuleInit{
 	@SubscribeMessage('mute')
 	handleMuteReq(client:Socket, req:ReqSocketDto):boolean{
 		return this.chatService.muteClient(client, req);
+	}
+
+	@SubscribeMessage('usermod')
+	handleUsermod(client:Socket, req:ReqSocketDto):boolean{
+		return this.chatService.addAdmin(client, req);
 	}
 }

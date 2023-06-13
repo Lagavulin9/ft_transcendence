@@ -251,6 +251,29 @@ export class ChatService{
 		}, time);
 	}
 
+	addAdmin(client:Socket, req:ReqSocketDto):boolean{
+		const user = this.Clients.getKey(client);
+		const chatroom = this.ChatRooms.get(req.roomName);
+		if (user != chatroom.roomOwner){
+			client.emit('notice', 'You are now the owner of this chat');
+			return false;
+		}
+		const target = chatroom.participants.find(u=>u.nickname==req.target);
+		if (!target){
+			client.emit('error', `No such user: ${req.target}`);
+			return false;
+		}
+		if (chatroom.roomAlba.find(u=>u==target)){
+			client.emit('error', `${req.target} is already an admin`);
+			return false;
+		}
+		chatroom.roomAlba.push(target);
+		const targetSocket = this.Clients.getValue(target);
+		targetSocket.emit('notice', `You are now the channel's admin`);
+		targetSocket.to(chatroom.roomName).emit('notice', `${target.nickname} is now the channel's admin`)
+		return true;
+	}
+
 	validateRequest(client:Socket, req:ReqSocketDto):boolean{
 		const user = this.Clients.getKey(client);
 		const chatroom = this.ChatRooms.get(req.roomName);
@@ -272,6 +295,9 @@ export class ChatService{
 		}
 		//타겟이 오너, 어드민
 		else if (target == chatroom.roomOwner || chatroom.roomAlba.find(u=>u==target)){
+			if (user == chatroom.roomOwner || target != chatroom.roomOwner){
+				return true;
+			}
 			client.emit('error', 'You cannot kick, ban, or mute owner/admins');
 			return false;
 		}
