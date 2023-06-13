@@ -1,10 +1,9 @@
-import { HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { resChatDto } from "src/dto/resChat.dto";
-import { reqChatDto } from "src/dto/reqChat.dto";
 import { User } from "src/user/user.entity";
 import { Chat } from "./chat.entity";
 import { Socket } from "socket.io";
-import { plainToClass, plainToInstance } from "class-transformer";
+import { plainToInstance } from "class-transformer";
 import { UserService } from "src/user/user.service";
 import { FriendService } from "src/friend/friend.service";
 import { ReqSocketDto } from "src/dto/reqSocket.dto";
