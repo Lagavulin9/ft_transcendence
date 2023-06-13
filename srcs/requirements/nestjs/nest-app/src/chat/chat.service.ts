@@ -138,6 +138,9 @@ export class ChatService{
 			client.emit('error', `You are banned by channel's admin`);
 			return undefined;
 		}
+		else if (chatroom.participants.find(u=>u==user)){
+			client.emit('error', `You are already in ${req.roomName}`);
+		}
 		chatroom.participants.push(user);
 		client.join(chatroom.roomName);
 		client.emit('notice', `You have joined ${chatroom.roomName}`);
