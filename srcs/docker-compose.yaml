@@ -48,6 +48,10 @@ services:
       context: ./requirements/nextjs
       dockerfile: dockerfile
     restart: on-failure
+    volumes:
+      - type: bind
+        source: ./requirements/nextjs/next-app
+        target: /app
     networks:
       - docker-network
     env_file:
