@@ -8,6 +8,7 @@ import AppLayout from "../globalComponents/AppLayout";
 import MyModal from "../globalComponents/MyModal";
 import { useRouter } from "next/router";
 import H3 from "../PostComponents/H3";
+import FriendSearch from "../friendList/components/FriendSearch";
 
 const FriendList = () => {
   const [state, setState] = useState({ activeTab: 0 });
@@ -82,7 +83,7 @@ const FriendList = () => {
                 mocUserData.map((user, index) => (
                   <BlockUser key={index} userNickName={user.userNickName} />
                 ))}
-              {activeTab === 2 && <H3>검색화면</H3>}
+              {activeTab === 2 && <FriendSearch />}
             </ScrollView>
           </Row>
         </WindowContent>
