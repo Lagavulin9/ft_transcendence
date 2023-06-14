@@ -1,13 +1,10 @@
 FROM node:20-alpine3.16
 
 WORKDIR /app
-COPY ./nest-app .
 RUN env > .env
-#COPY ./nest-app/package*.json ./
-RUN npm install
-RUN npm run build
+COPY ./tools/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 EXPOSE 8080
 
-#CMD [ "npm", "run", "start:prod" ]
-CMD [ "npm", "run", "start:dev" ]
+ENTRYPOINT [ "sh", "/entrypoint.sh" ]

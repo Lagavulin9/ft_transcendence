@@ -62,9 +62,9 @@ FROM node:20-alpine3.16
 
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
-COPY ./next-app .
-#COPY next-app/package.json .
-RUN npm install
-RUN npm run build
+COPY ./tools/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 EXPOSE 3000
-CMD [ "npm", "run", "dev" ]
+
+ENTRYPOINT [ "sh", "/entrypoint.sh" ]
