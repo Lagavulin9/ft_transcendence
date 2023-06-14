@@ -81,9 +81,11 @@ export class UserService{
 		const newLog = this.logRepository.create(log);
 		newLog.fromScore = log.score[0];
 		newLog.toScore = log.score[1];
-		await this.logRepository.save(newLog);
 		const host = await this.userRepository.findOne({where:{uid:log.fromId}});
 		const guest = await this.userRepository.findOne({where:{uid:log.toId}});
+		if (!host || !guest){
+			throw new NotFoundException('No such user');
+		}
 		if (newLog.fromScore > newLog.toScore){
 			host.totalWin++;
 			guest.totalLose++;
@@ -92,6 +94,7 @@ export class UserService{
 			host.totalLose++;
 			guest.totalWin++;
 		}
+		await this.logRepository.save(newLog);
 		this.userRepository.save(host);
 		this.userRepository.save(guest);
 		return newLog;

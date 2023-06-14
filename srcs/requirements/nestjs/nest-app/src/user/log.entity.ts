@@ -29,4 +29,7 @@ export class Log{
 	@Column()
 	@IsNotEmpty()
 	toScore: number
+
+	@Column({type:"integer", array:true, default:[0,0]})
+	score:number[]
 }
