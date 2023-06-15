@@ -78,4 +78,9 @@ export class socketGateway implements OnModuleInit{
 	handleUsermod(client:Socket, req:ReqSocketDto):boolean{
 		return this.chatService.addAdmin(client, req);
 	}
+
+	@SubscribeMessage('echo')
+	handlePing(client:Socket, req:string):boolean{
+		return client.emit('echo', req);
+	}
 }
