@@ -7,6 +7,7 @@ import { plainToInstance } from "class-transformer";
 import { UserService } from "src/user/user.service";
 import { FriendService } from "src/friend/friend.service";
 import { ReqSocketDto } from "src/dto/reqSocket.dto";
+import { ResMsgDto } from "src/dto/msg.dto";
 
 @Injectable()
 export class ChatService{
@@ -21,7 +22,14 @@ export class ChatService{
 	getAllChatroom():Chat[]{
 		const chatArray = []
 		for (const [roomName, chatroom] of this.ChatRooms){
-			chatArray.push(chatroom);
+			const resdto = new resChatDto();
+			resdto.roomId = chatroom.roomId;
+			resdto.roomName = chatroom.roomName;
+			resdto.roomType = chatroom.roomType;
+			resdto.roomOwner = chatroom.roomOwner;
+			resdto.roomAlba = chatroom.roomAlba;
+			resdto.participants = chatroom.participants;
+			chatArray.push(resdto);
 		}
 		return chatArray;
 	}
@@ -204,7 +212,13 @@ export class ChatService{
 			chatroom.muted.find(u=>u==user)){
 			return false;
 		}
-		client.to(req.roomName).emit('message', req.msg);
+		const msgCard = new ResMsgDto();
+		msgCard.uid = user.uid;
+		msgCard.nickname = user.nickname;
+		msgCard.profileURL = user.profileURL;
+		msgCard.content = req.msg;
+		//나중에 날짜추가
+		client.to(req.roomName).emit('message', msgCard);
 		return true;
 	}
 

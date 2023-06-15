@@ -1,6 +1,8 @@
+import { User } from "src/user/user.entity"
+
 export class reqChatDto{
-	roomOwner: number // UserId
-	roomType: number // 0: public, 1: private, 2: protected
+	roomId: number
 	roomName: string
-	password?: string // 받고 나서 hash로 저장하는 방식
+	roomType: number // 0: public, 1: private, 2: protected
+	roomOwner: User
 }

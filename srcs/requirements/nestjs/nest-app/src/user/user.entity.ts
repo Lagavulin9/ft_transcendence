@@ -16,11 +16,8 @@ export class User{
 	@Column({default:false})
 	isOTP: boolean;
 
-	@Column({default:false})
-	isAvatar: boolean;
-
-	@Column({default:0})
-	avatarIndex: number;
+	@Column({default:'https://www.google.com/url?sa=i&url=https%3A%2F%2Fbrunch.co.kr%2F%40samsamvet%2F19&psig=AOvVaw12Uq43ff5rSZ60AX0hYHmb&ust=1686899734069000&source=images&cd=vfe&ved=0CBEQjRxqFwoTCNCX063dxP8CFQAAAAAdAAAAABAD'})
+	profileURL: string;
 
 	@Column({default:0})
 	totalWin: number;

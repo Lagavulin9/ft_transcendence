@@ -11,7 +11,7 @@ export class ChatController{
 	constructor(private chatService:ChatService){}
 
 	@Get('/all')
-	getAllChatrooms(): Chat[]{
+	getAllChatrooms(): resChatDto[]{
 		return this.chatService.getAllChatroom();
 	}
 
