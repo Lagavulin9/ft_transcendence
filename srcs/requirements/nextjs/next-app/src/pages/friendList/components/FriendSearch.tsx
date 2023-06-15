@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button, TextInput } from "react95";
 import { useGetUserByNickQuery } from "@/redux/Api/User";
-import { useAddFriendMutation } from "@/redux/Api/Friend";
+import { useAddFriendMutation, useGetFriendQuery } from "@/redux/Api/Friend";
 import { useGetAuthQuery } from "@/redux/Api/Auth";
 
 const FriendSearch = () => {
@@ -16,13 +16,15 @@ const FriendSearch = () => {
   const { data: authData } = useGetAuthQuery();
 
   const [addFriend] = useAddFriendMutation();
+  const { refetch } = useGetFriendQuery(authData?.uid ?? 1);
 
   const clickSearch = () => {
     userRefetch();
   };
 
-  const clickAdd = () => {
-    addFriend({ uid: authData?.uid ?? 1, target: userData?.uid ?? 1 });
+  const clickAdd = async () => {
+    await addFriend({ uid: authData?.uid ?? 1, target: userData?.uid ?? 1 });
+    refetch();
   };
 
   return (
@@ -41,12 +43,6 @@ const FriendSearch = () => {
           placeholder="Search..."
           onChange={(e) => setInput(e.target.value)}
         />
-        <Button
-          style={{ marginLeft: "20px", width: "70px" }}
-          onClick={clickSearch}
-        >
-          검색
-        </Button>
       </div>
 
       <div

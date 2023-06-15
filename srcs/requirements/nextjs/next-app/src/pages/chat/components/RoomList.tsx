@@ -2,10 +2,19 @@ import { chatMocData } from "@/moc/chat";
 import Spacer from "@/pages/globalComponents/Spacer";
 import H1 from "@/pages/PostComponents/H1";
 import H3 from "@/pages/PostComponents/H3";
+import { useGetAllQuery } from "@/redux/Api/ChatRoom";
+import { data } from "autoprefixer";
 import React from "react";
-import { ScrollView } from "react95";
+import { Button, ScrollView } from "react95";
 
 const RoomList = () => {
+  const {
+    data: chatData,
+    error: chatError,
+    isLoading: chatLoading,
+    refetch,
+  } = useGetAllQuery();
+
   return (
     <div
       style={{
@@ -14,8 +23,8 @@ const RoomList = () => {
       }}
     >
       <ScrollView style={{ width: "60%", height: "430px" }}>
-        {chatMocData.map((chat, index) => {
-          return <div key={index}>{chatMocData[index].roomName}</div>;
+        {chatData?.map((chat, index) => {
+          return <Button key={index}>{chat.roomName}</Button>;
         })}
       </ScrollView>
       <div

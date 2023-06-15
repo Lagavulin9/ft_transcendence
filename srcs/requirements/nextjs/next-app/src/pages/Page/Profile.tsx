@@ -16,22 +16,20 @@ import { useGetFriendQuery } from "@/redux/Api/Friend";
 const Profile = () => {
   const [state, setState] = useState({ activeTab: 0 });
   const router = useRouter();
-  const { uid } = router.query;
+  const { uId } = router.query;
   const {
     data: authData,
     error: authError,
     isLoading: authLoading,
   } = useGetAuthQuery();
 
-  const uId = uid === undefined ? authData?.uid : Number(uid);
+  const uid = uId === undefined ? authData?.uid : Number(uId);
 
   const {
     data: userData,
     error: userError,
     isLoading: userLoading,
-  } = useGetUserQuery(uId ?? 1);
-
-  console.log(userData);
+  } = useGetUserQuery(uid ?? 1);
 
   const handleChange = (
     value: number,
@@ -71,7 +69,7 @@ const Profile = () => {
                 게임로그
               </span>
             </Tab>
-            {authData?.uid === uId && (
+            {authData?.uid === uid && (
               <Tab value={2}>
                 <span
                   style={{
@@ -89,7 +87,7 @@ const Profile = () => {
             <Row>
               <ScrollView
                 shadow={false}
-                style={{ width: "100%", height: "44vh" }}
+                style={{ width: "100%", height: "430px" }}
               >
                 {state.activeTab === 0 && <UserInfo user={userData} />}
                 {state.activeTab === 1 && <H1>게임로그</H1>}

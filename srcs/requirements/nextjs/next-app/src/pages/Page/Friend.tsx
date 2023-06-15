@@ -20,9 +20,10 @@ const FriendList = () => {
     error: authError,
     isLoading: authLoading,
   } = useGetAuthQuery();
-  const { data, error, isLoading } = useGetFriendQuery(authData?.uid ?? 1);
+  const { data, error, isLoading, refetch } = useGetFriendQuery(
+    authData?.uid ?? 1
+  );
 
-  console.log(data);
   const handleChange = (
     value: number,
     event: React.MouseEvent<HTMLButtonElement>
@@ -30,8 +31,13 @@ const FriendList = () => {
     setState({ activeTab: value });
   };
 
-  const close = () => {
+  const close = async () => {
     router.back();
+    await refetch();
+  };
+
+  const cancelBlock = async () => {
+    await refetch();
   };
 
   const { activeTab } = state;
@@ -98,6 +104,7 @@ const FriendList = () => {
                       key={index}
                       userNickName={user.nickname}
                       uId={user.uid}
+                      func={cancelBlock}
                     />
                   ))}
                 </>

@@ -1,15 +1,28 @@
-import React from "react";
+import { useGetAuthQuery } from "@/redux/Api/Auth";
+import {
+  useBlockFriendMutation,
+  useGetFriendQuery,
+  useUnBlockFriendMutation,
+} from "@/redux/Api/Friend";
+import React, { useEffect } from "react";
 import { Button } from "react95";
 
 interface User {
   userNickName: string;
   uId: number;
+  func: () => void;
 }
 
-const BlockUser = ({ userNickName, uId }: User) => {
-  const cancelBlock = () => {
-    console.log(`${userNickName} 차단 해제`);
+const BlockUser = ({ userNickName, uId, func }: User) => {
+  const [BlockUser] = useUnBlockFriendMutation();
+  const { data: authData } = useGetAuthQuery();
+  const { refetch } = useGetFriendQuery(authData?.uid ?? 1);
+
+  const cancelBlock = async () => {
+    await BlockUser({ uid: authData?.uid ?? 1, target: uId });
+    func();
   };
+
   return (
     <div
       style={{

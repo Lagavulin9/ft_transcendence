@@ -11,9 +11,6 @@ const SearchPage = () => {
   const [input, setInput] = useState("");
   const [filteredChat, setFilteredChat] = useState<chat>();
   const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
-  const dispatch = useDispatch();
-  const room = useSelector((state: RootState) => state.chat.room);
-
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
     setInput(value);
@@ -24,9 +21,6 @@ const SearchPage = () => {
         const result = chatMocData.find((chat) => chat.roomName === value);
         setFilteredChat(result);
         if (result) {
-          dispatch(ChatSlice.actions.addRoom(result));
-        } else {
-          dispatch(ChatSlice.actions.deleteRoom());
         }
       }, 500);
       setTimer(newTimer);
