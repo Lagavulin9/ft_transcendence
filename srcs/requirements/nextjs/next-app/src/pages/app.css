@@ -1,0 +1,113 @@
+@font-face {
+  font-family: "ms_sans_serif";
+  src: url("~react95/dist/fonts/ms_sans_serif.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: "ms_sans_serif";
+  src: url("~react95/dist/fonts/ms_sans_serif_bold.woff2") format("woff2");
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "dunggeunmo";
+  src: url("./DungGeunMo.otf");
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "dunggeunmo-bold";
+  src: url("./DungGeunMo.otf");
+  font-weight: bold;
+  font-style: normal;
+}
+
+pre {
+  background-color: #7b7b7b;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow: auto;
+  margin: 1em 0;
+  font-family: inherit;
+  font-size: 1em;
+  line-height: 1.5;
+  border: none;
+}
+
+pre code.hljs {
+  display: block;
+  overflow-x: auto;
+  padding: 1em;
+  background-color: #7b7b7b;
+  color: #ffffff;
+  font-family: dunggeunmo;
+}
+
+pre code.hljs span {
+  font-weight: normal;
+  color: #333;
+}
+
+pre code.hljs span.hljs-comment,
+pre code.hljs span.hljs-quote {
+  color: #008000;
+}
+
+pre code.hljs span.hljs-keyword,
+pre code.hljs span.hljs-selector-tag,
+pre code.hljs span.hljs-subst {
+  color: #ff5aec;
+  font-weight: bold;
+}
+
+pre code.hljs span.hljs-number,
+pre code.hljs span.hljs-literal,
+pre code.hljs span.hljs-variable,
+pre code.hljs span.hljs-template-variable,
+pre code.hljs span.hljs-tag .hljs-attr {
+  color: #ffa500;
+}
+
+pre code.hljs span.hljs-string,
+pre code.hljs span.hljs-doctag {
+  color: #027602;
+}
+
+pre code.hljs span.hljs-title,
+pre code.hljs span.hljs-section,
+pre code.hljs span.hljs-selector-id {
+  color: #800000;
+  font-weight: bold;
+}
+
+pre code.hljs span.hljs-subst {
+  font-weight: normal;
+}
+
+pre code.hljs span.hljs-type,
+pre code.hljs span.hljs-class .hljs-title {
+  color: #0000ff;
+  font-weight: bold;
+}
+
+pre code.hljs.span.hljs-tag,
+pre code.hljs span.hljs-name,
+pre code.hljs span.hljs-attribute {
+  color: #ff0000;
+  font-weight: normal;
+}
+
+pre code.hljs span.hljs-regexp,
+pre code.hljs span.hljs-link {
+  color: #000000;
+}
+
+pre code.hljs span.hljs-symbol,
+pre code.hljs span.hljs-bullet {
+  color: #000000;
+}
