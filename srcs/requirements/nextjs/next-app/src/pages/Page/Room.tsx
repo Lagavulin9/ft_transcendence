@@ -1,21 +1,7 @@
-import { chatMocData } from "@/moc/chat";
-import { mocContentData } from "@/moc/chatContent";
-import Modal from "@/pages/globalComponents/ModalWrapper";
-import { chat } from "@/types/ChatType";
 import { Grid, Row } from "antd";
 import React, { useEffect, useRef, useState } from "react";
-import {
-  WindowHeader,
-  Window,
-  Button,
-  WindowContent,
-  ScrollView,
-  TextInput,
-  Tabs,
-  Tab,
-} from "react95";
+import { Button, WindowContent, ScrollView, Tabs, Tab } from "react95";
 import MessageCard from "../chat/components/MessageCard";
-import { mocUserData } from "@/moc/user";
 import GameMode from "@/pages/game/GameMode";
 import ChatInput from "../chat/components/ChatInput";
 import { useSelector } from "react-redux";
@@ -24,9 +10,7 @@ import MyModal from "../globalComponents/MyModal";
 import { useRouter } from "next/router";
 import { useGetAllQuery, useGetChatRoomQuery } from "@/redux/Api/ChatRoom";
 import { emitEvent, onError, onEvent } from "@/utils/socket";
-import { data } from "autoprefixer";
 import { ReqSocketDto, ResMsgDto } from "@/types/ChatDto";
-import { useGetAuthQuery } from "@/redux/Api/Auth";
 import { RootState } from "@/redux/RootStore";
 
 const { useBreakpoint } = Grid;
@@ -37,7 +21,6 @@ const ChatRoom = () => {
   const [isNormal, setIsNormal] = useState(true);
   const [isDm, setIsDm] = useState(false);
   const [state, setState] = useState({ activeTab: 0 });
-  const [isLoading, setIsLoading] = useState(false);
   const [msg, setMsg] = useState<ResMsgDto[]>([]);
   const [disabled, setDisabled] = useState(false);
   const router = useRouter();

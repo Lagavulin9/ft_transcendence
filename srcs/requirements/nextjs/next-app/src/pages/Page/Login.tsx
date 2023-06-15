@@ -1,7 +1,6 @@
 import { useLoginMutation } from "@/redux/Api/Auth";
 import { AppDispatch } from "@/redux/RootStore";
 import { fetchGlobal, login } from "@/redux/Slice/Global";
-import { fetchProfile } from "@/redux/Slice/Profile";
 import { User } from "@/types/UserType";
 import { socket } from "@/utils/socket";
 import { useRouter } from "next/router";

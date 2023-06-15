@@ -1,16 +1,13 @@
 import React, { useState } from "react";
 import { WindowContent, Tabs, Tab, ScrollView } from "react95";
 import { Row } from "antd";
-import { mocUserData } from "@/moc/user";
 import BlockUser from "../friendList/components/BlockUser";
 import FriendUser from "../friendList/components/FriendUser";
 import AppLayout from "../globalComponents/AppLayout";
 import MyModal from "../globalComponents/MyModal";
 import { useRouter } from "next/router";
-import H3 from "../PostComponents/H3";
 import FriendSearch from "../friendList/components/FriendSearch";
 import { useGetFriendQuery } from "@/redux/Api/Friend";
-import { useGetAuthQuery } from "@/redux/Api/Auth";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/RootStore";
 
