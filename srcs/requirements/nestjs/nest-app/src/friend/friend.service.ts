@@ -41,6 +41,9 @@ export class FriendService{
 	}
 
 	async blockUser(req:reqFriendDto): Promise<resFriendListDto>{
+		if (req.uid == req.target){
+			throw new HttpException('Cannot add self block', HttpStatus.BAD_REQUEST);
+		}
 		const current = await this.friendRepository.findOne({where:{uid:req.uid}})
 		const target = await this.userService.getUserByID(req.target);
 		if (current.blockedList.find(blocked=>blocked.uid==target.uid)){
@@ -52,6 +55,17 @@ export class FriendService{
 		newFriend.nickname = target.nickname;
 		//friend.isOn = true? 이 부분 처리를 고민해봐야겠습니다.
 		current.blockedList.push(newFriend);
+		await this.friendRepository.save(current);
+		return plainToClass(resFriendListDto, current);
+	}
+
+	async unblockUser(req:reqFriendDto):Promise<resFriendListDto>{
+		if (req.uid == req.target){
+			throw new HttpException('Cannot self unblock', HttpStatus.BAD_REQUEST);
+		}
+		const current = await this.friendRepository.findOne({where:{uid:req.uid}})
+		const target = await this.userService.getUserByID(req.target);
+		current.blockedList = current.blockedList.filter(blocked=>blocked.uid!=target.uid);
 		await this.friendRepository.save(current);
 		return plainToClass(resFriendListDto, current);
 	}
