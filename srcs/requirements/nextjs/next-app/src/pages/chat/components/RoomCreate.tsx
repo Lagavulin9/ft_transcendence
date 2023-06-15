@@ -1,11 +1,21 @@
+import { onEvent } from "@/utils/socket";
 import { Row } from "antd";
 import React, { useState } from "react";
+import { useDispatch } from "react-redux";
 import { Button, GroupBox, Radio, TextInput } from "react95";
 
 const RoomCreate = () => {
   const [input, setInput] = useState("");
   const [state, setState] = useState("Public");
+  const dispatch = useDispatch();
+  const Room = () => {
+    console.log("good");
+  };
 
+  const onClickCreate = () => {
+    console.log("create");
+    const onE = onEvent("bind", Room);
+  };
   return (
     <>
       <div

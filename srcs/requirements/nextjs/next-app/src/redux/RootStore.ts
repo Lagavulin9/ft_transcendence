@@ -5,9 +5,11 @@ import { ChatRoomApi } from "./Api/ChatRoom";
 import { FriendApi } from "./Api/Friend";
 import { ProfileApi } from "./Api/Profile";
 import { UserApi } from "./Api/User";
+import { rootReducer } from "./RootReducer";
 
 const store = configureStore({
   reducer: {
+    rootReducers: rootReducer,
     [ProfileApi.reducerPath]: ProfileApi.reducer,
     [FriendApi.reducerPath]: FriendApi.reducer,
     [AuthApi.reducerPath]: AuthApi.reducer,

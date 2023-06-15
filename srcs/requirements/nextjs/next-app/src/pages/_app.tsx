@@ -5,8 +5,11 @@ import { Provider, useSelector } from "react-redux";
 import store from "@/redux/RootStore";
 import Home from ".";
 import { useEffect } from "react";
+import { io } from "socket.io-client";
+import { connectSocket } from "@/utils/socket";
 
 export default function App({ Component, pageProps }: AppProps) {
+  const connect = connectSocket();
   return (
     <>
       <Provider store={store}>
