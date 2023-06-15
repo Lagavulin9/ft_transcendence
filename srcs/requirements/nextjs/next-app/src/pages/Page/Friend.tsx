@@ -9,11 +9,20 @@ import MyModal from "../globalComponents/MyModal";
 import { useRouter } from "next/router";
 import H3 from "../PostComponents/H3";
 import FriendSearch from "../friendList/components/FriendSearch";
+import { useGetFriendQuery } from "@/redux/Api/Friend";
+import { useGetAuthQuery } from "@/redux/Api/Auth";
 
 const FriendList = () => {
   const [state, setState] = useState({ activeTab: 0 });
   const router = useRouter();
+  const {
+    data: authData,
+    error: authError,
+    isLoading: authLoading,
+  } = useGetAuthQuery();
+  const { data, error, isLoading } = useGetFriendQuery(authData?.uid ?? 1);
 
+  console.log(data);
   const handleChange = (
     value: number,
     event: React.MouseEvent<HTMLButtonElement>
@@ -70,19 +79,29 @@ const FriendList = () => {
               shadow={false}
               style={{ width: "100%", height: "420px" }}
             >
-              {activeTab === 0 &&
-                mocUserData.map((user, index) => (
-                  <FriendUser
-                    key={index}
-                    userNickName={user.userNickName}
-                    stateOn={user.stateOn}
-                    uId={user.uId}
-                  />
-                ))}
-              {activeTab === 1 &&
-                mocUserData.map((user, index) => (
-                  <BlockUser key={index} userNickName={user.userNickName} />
-                ))}
+              {activeTab === 0 && data?.friendList && (
+                <>
+                  {data.friendList.map((user, index) => (
+                    <FriendUser
+                      key={index}
+                      userNickName={user.nickname}
+                      stateOn={true} // TODO: 나중에 상태값으로 변경
+                      uId={user.uid}
+                    />
+                  ))}
+                </>
+              )}
+              {activeTab === 1 && data?.blockedList && (
+                <>
+                  {data.blockedList.map((user, index) => (
+                    <BlockUser
+                      key={index}
+                      userNickName={user.nickname}
+                      uId={user.uid}
+                    />
+                  ))}
+                </>
+              )}
               {activeTab === 2 && <FriendSearch />}
             </ScrollView>
           </Row>

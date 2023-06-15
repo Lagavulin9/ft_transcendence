@@ -139,8 +139,9 @@ const InGame: React.FC = () => {
         });
         setBallSpeed({ x: 4 * initialDirection, y: 4 }); // Reset the ball speed
         // TODO: Declare the winner
+        // TODO: 여기서 보내고
       }
-    }, 10);
+    }, 16);
 
     return () => {
       clearInterval(interval);
@@ -204,6 +205,7 @@ const InGame: React.FC = () => {
           paddleWidth={paddleWidth}
           canvasWidth={canvasWidth}
           canvasHeight={canvasHeight}
+          isVisible={false} // TODO: 나중에 객체에서 받은 값으로 변경해야함
         />
       </div>
       <GameScore

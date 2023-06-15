@@ -1,35 +1,37 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { useDispatch, useSelector } from "react-redux";
-import RootState from "@/redux/RootReducer";
-import { fetchProfile, resetProfile } from "@/redux/Slice/Profile";
-import LoadingSlice from "@/redux/Slice/Loading";
+import { useDispatch } from "react-redux";
+import { resetProfile } from "@/redux/Slice/Profile";
 import H1 from "../PostComponents/H1";
-import {
-  Button,
-  ScrollView,
-  Tab,
-  TabBody,
-  Tabs,
-  Window,
-  WindowContent,
-  WindowHeader,
-} from "react95";
+import { ScrollView, Tab, Tabs, WindowContent } from "react95";
 import { Grid, Row } from "antd";
 import UserInfo from "../profile/UserInfo";
 import MyModal from "../globalComponents/MyModal";
 import AppLayout from "../globalComponents/AppLayout";
 import { AppDispatch } from "@/redux/RootStore";
-import { mocUserData } from "@/moc/user";
+import { useGetUserQuery } from "@/redux/Api/Profile";
+import { useGetAuthQuery } from "@/redux/Api/Auth";
+import { useGetFriendQuery } from "@/redux/Api/Friend";
 
 const Profile = () => {
   const [state, setState] = useState({ activeTab: 0 });
-  const { uId, isMe, status, error, user } = useSelector(
-    (state: RootState) => state.profile
-  );
   const router = useRouter();
-  const dispatch = useDispatch<AppDispatch>();
-  const owner = useSelector((state: RootState) => state.global.uId);
+  const { uid } = router.query;
+  const {
+    data: authData,
+    error: authError,
+    isLoading: authLoading,
+  } = useGetAuthQuery();
+
+  const uId = uid === undefined ? authData?.uid : Number(uid);
+
+  const {
+    data: userData,
+    error: userError,
+    isLoading: userLoading,
+  } = useGetUserQuery(uId ?? 1);
+
+  console.log(userData);
 
   const handleChange = (
     value: number,
@@ -38,26 +40,11 @@ const Profile = () => {
     setState({ activeTab: value });
   };
 
-  useEffect(() => {
-    if (uId !== null) {
-      dispatch(fetchProfile({ userId: uId, ownerId: owner }));
-    }
-  }, [uId, dispatch, owner]);
-
   const close = () => {
-    dispatch(resetProfile());
     router.back();
   };
 
-  if (status === "loading") {
-    return (
-      <AppLayout>
-        <MyModal hName="프로필" close={close}>
-          <H1>로딩중</H1>
-        </MyModal>
-      </AppLayout>
-    );
-  } else if (status === "succeeded") {
+  if (userData && !userLoading) {
     return (
       <AppLayout>
         <MyModal hName="프로필" close={close}>
@@ -84,7 +71,7 @@ const Profile = () => {
                 게임로그
               </span>
             </Tab>
-            {isMe && (
+            {authData?.uid === uId && (
               <Tab value={2}>
                 <span
                   style={{
@@ -104,7 +91,7 @@ const Profile = () => {
                 shadow={false}
                 style={{ width: "100%", height: "44vh" }}
               >
-                {state.activeTab === 0 && <UserInfo user={user} />}
+                {state.activeTab === 0 && <UserInfo user={userData} />}
                 {state.activeTab === 1 && <H1>게임로그</H1>}
                 {state.activeTab === 2 && <H1>프로필수정</H1>}
               </ScrollView>
@@ -113,17 +100,7 @@ const Profile = () => {
         </MyModal>
       </AppLayout>
     );
-  } else if (status === "failed") {
-    return (
-      <AppLayout>
-        <MyModal hName="프로필" close={close}>
-          <H1>Error</H1>
-          <p>{error}</p>
-        </MyModal>
-      </AppLayout>
-    );
   }
-
   return (
     <AppLayout>
       <MyModal hName="프로필" close={close}>

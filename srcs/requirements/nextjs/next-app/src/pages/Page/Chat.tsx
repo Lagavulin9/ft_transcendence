@@ -55,7 +55,7 @@ const ChatList = () => {
             <Row>
               <ScrollView
                 shadow={false}
-                style={{ width: "100%", height: "44vh" }}
+                style={{ width: "100%", height: "430px" }}
               >
                 <SearchPage />
               </ScrollView>

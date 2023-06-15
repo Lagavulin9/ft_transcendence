@@ -1,9 +1,10 @@
 import type { AppProps } from "next/app";
 import Head from "next/head";
 import "./app.css";
-import { Provider } from "react-redux";
+import { Provider, useSelector } from "react-redux";
 import store from "@/redux/RootStore";
 import Home from ".";
+import { useEffect } from "react";
 
 export default function App({ Component, pageProps }: AppProps) {
   return (

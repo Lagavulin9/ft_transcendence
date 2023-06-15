@@ -1,11 +1,7 @@
-import Profile from "@/pages/Page/Profile";
-import RootState from "@/redux/RootReducer";
-import { AppDispatch } from "@/redux/RootStore";
-import LoadingSlice from "@/redux/Slice/Loading";
-import ProfileSlice, { fetchProfile } from "@/redux/Slice/Profile";
+import { useGetAuthQuery } from "@/redux/Api/Auth";
+import { useBlockFriendMutation, useGetFriendQuery } from "@/redux/Api/Friend";
 import { useRouter } from "next/router";
-import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React from "react";
 import { Button } from "react95";
 
 interface User {
@@ -16,18 +12,20 @@ interface User {
 
 const FriendUser = ({ userNickName, stateOn, uId }: User) => {
   const router = useRouter();
-  const dispatch = useDispatch<AppDispatch>();
-  const owner = useSelector((state: RootState) => state.global.uId);
-
   const openProfile = () => {
-    dispatch(fetchProfile({ userId: uId, ownerId: owner }));
     document.body.style.overflow = "hidden";
-    router.push("/Page/Profile", "/Page/Profile", { shallow: false });
+    router.push({ pathname: "/Page/Profile", query: { uId } }, undefined, {
+      shallow: false,
+    });
   };
+  const { data, error, isLoading } = useGetAuthQuery();
+  const [BlockUser] = useBlockFriendMutation();
+  const { refetch } = useGetFriendQuery(data?.uid ?? 1);
   // TODO: 차단할때 사용할 API콜함수
 
-  const blockFriend = () => {
-    console.log(`${userNickName} 차단`);
+  const blockFriend = async () => {
+    await BlockUser({ uid: data?.uid ?? 1, target: uId });
+    refetch();
   };
 
   return (

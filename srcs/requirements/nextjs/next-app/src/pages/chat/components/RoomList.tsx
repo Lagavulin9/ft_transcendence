@@ -13,7 +13,7 @@ const RoomList = () => {
         alignItems: "center",
       }}
     >
-      <ScrollView style={{ width: "60%", height: "48vh" }}>
+      <ScrollView style={{ width: "60%", height: "430px" }}>
         {chatMocData.map((chat, index) => {
           return <div key={index}>{chatMocData[index].roomName}</div>;
         })}

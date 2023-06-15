@@ -5,7 +5,6 @@ import { chat } from "@/types/ChatType";
 import SearchRoom from "./SearchRoom";
 import { useDispatch, useSelector } from "react-redux";
 import { ChatSlice } from "@/redux/Slice/Chat";
-import { Room } from "@/types/RoomType";
 import RootState from "@/redux/RootReducer";
 
 const SearchPage = () => {

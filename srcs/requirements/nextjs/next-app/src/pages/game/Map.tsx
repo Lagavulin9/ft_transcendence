@@ -11,6 +11,7 @@ interface MapProps {
   paddleWidth: number;
   canvasWidth: number;
   canvasHeight: number;
+  isVisible: boolean;
 }
 
 const Map = ({

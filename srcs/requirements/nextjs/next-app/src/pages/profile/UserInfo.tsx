@@ -2,13 +2,16 @@ import React from "react";
 import H1 from "../PostComponents/H1";
 import H3 from "../PostComponents/H3";
 import Div from "../PostComponents/Div";
-import { user } from "@/types/UserType";
+import { user, User } from "@/types/UserType";
 
 interface Props {
-  user: user | null;
+  user: User | undefined;
 }
 
 const UserInfo = ({ user }: Props) => {
+  if (user === undefined) {
+    return null;
+  }
   return (
     <div>
       <div
@@ -18,7 +21,7 @@ const UserInfo = ({ user }: Props) => {
           justifyContent: "space-around",
         }}
       >
-        <H1>{`${user?.userNickName}`}</H1>
+        <H1>{`${user?.nickname}`}</H1>
         <H3>프로필 아바타위치</H3>
       </div>
       <Div />

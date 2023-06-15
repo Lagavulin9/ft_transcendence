@@ -3,9 +3,10 @@ import { Button } from "react95";
 
 interface User {
   userNickName: string;
+  uId: number;
 }
 
-const BlockUser = ({ userNickName }: User) => {
+const BlockUser = ({ userNickName, uId }: User) => {
   const cancelBlock = () => {
     console.log(`${userNickName} 차단 해제`);
   };

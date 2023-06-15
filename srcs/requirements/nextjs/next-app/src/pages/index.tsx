@@ -1,9 +1,11 @@
+import { useGetAuthQuery } from "@/redux/Api/Auth";
+import { RootState } from "@/redux/RootStore";
 import React, { useState } from "react";
+import { useSelector } from "react-redux";
 import AppLayout from "./globalComponents/AppLayout";
-import { Provider } from "react-redux";
-import store from "@/redux/RootStore";
 
 const Home = () => {
+  const { data, error, isLoading } = useGetAuthQuery();
   return (
     <AppLayout>
       <div></div>

@@ -7,6 +7,8 @@ interface Props {
   Data: Content;
 }
 
+// isDm
+
 const MessageCard = ({ Data }: Props) => {
   if (!Data) {
     return null;
