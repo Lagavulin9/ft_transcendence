@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { resetProfile } from "@/redux/Slice/Profile";
 import H1 from "../PostComponents/H1";
 import { ScrollView, Tab, Tabs, WindowContent } from "react95";
@@ -8,10 +8,11 @@ import { Grid, Row } from "antd";
 import UserInfo from "../profile/UserInfo";
 import MyModal from "../globalComponents/MyModal";
 import AppLayout from "../globalComponents/AppLayout";
-import { AppDispatch } from "@/redux/RootStore";
+import { AppDispatch, RootState } from "@/redux/RootStore";
 import { useGetUserQuery } from "@/redux/Api/Profile";
-import { useGetAuthQuery } from "@/redux/Api/Auth";
+import { useGetAuthQuery, useLoginMutation } from "@/redux/Api/Auth";
 import { useGetFriendQuery } from "@/redux/Api/Friend";
+import { createSelector } from "@reduxjs/toolkit";
 
 const Profile = () => {
   const [state, setState] = useState({ activeTab: 0 });
@@ -23,13 +24,13 @@ const Profile = () => {
     isLoading: authLoading,
   } = useGetAuthQuery();
 
-  const uid = uId === undefined ? authData?.uid : Number(uId);
+  const uid = Number(uId);
 
   const {
     data: userData,
     error: userError,
     isLoading: userLoading,
-  } = useGetUserQuery(uid ?? 1);
+  } = useGetUserQuery(uid);
 
   const handleChange = (
     value: number,

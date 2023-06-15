@@ -31,6 +31,7 @@ export class ChatService {
       resdto.participants = chatroom.participants;
       chatArray.push(resdto);
     }
+
     return chatArray;
   }
 
@@ -57,6 +58,9 @@ export class ChatService {
   }
 
   async bindUser(client: Socket, uid: number): Promise<boolean> {
+    if (this.Clients.getKey(client)) {
+      return false;
+    }
     const userdto = await this.userService.getUserByID(uid);
     if (!userdto) {
       return false;
@@ -82,7 +86,6 @@ export class ChatService {
         //방에 아무도 없는경우 채팅방 삭제
         if (chatroom.participants.length == 0) {
           this.ChatRooms.delete(roomName);
-          console.log(this.ChatRooms);
         }
         //주딱이면 다른놈이 왕위계승
         else if (user == chatroom.roomOwner) {
@@ -134,6 +137,7 @@ export class ChatService {
     this.ChatRooms.set(req.roomName, newChat);
     client.emit('notice', 'You are owner of this channel');
     client.join(newChat.roomName);
+    client.emit('message', 'hello');
     return newChat;
   }
 
@@ -190,7 +194,6 @@ export class ChatService {
     //방에 아무도 없는경우 채팅방 삭제
     if (chatroom.participants.length == 0) {
       this.ChatRooms.delete(chatroom.roomName);
-      console.log(this.ChatRooms);
       return true;
     }
     //주딱이면 다른놈이 왕위계승
@@ -217,8 +220,8 @@ export class ChatService {
     const chatroom = this.ChatRooms.get(req.roomName);
     if (
       !chatroom ||
-      !chatroom.participants.find((u) => u == user) ||
-      chatroom.muted.find((u) => u == user)
+      !chatroom.participants.find((u) => u.uid === user.uid) ||
+      chatroom.muted.find((u) => u.uid === user.uid)
     ) {
       return false;
     }
@@ -228,6 +231,7 @@ export class ChatService {
     msgCard.profileURL = user.profileURL;
     msgCard.content = req.msg;
     //나중에 날짜추가
+    client.emit('message', msgCard);
     client.to(req.roomName).emit('message', msgCard);
     return true;
   }
@@ -354,11 +358,9 @@ export class ChatService {
   }
 
   getClientChatroomName(client: Socket): string | undefined {
-    console.log(client.rooms);
     if (client.rooms.size < 2) {
       return undefined;
     }
-    console.log(Array.from(client.rooms)[1]);
     return Array.from(client.rooms)[1];
   }
 }

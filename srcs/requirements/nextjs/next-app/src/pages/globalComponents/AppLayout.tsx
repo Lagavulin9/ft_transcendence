@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled, { createGlobalStyle, ThemeProvider } from "styled-components";
 import tokyoDart from "react95/dist/themes/tokyoDark";
 import original from "react95/dist/themes/original";
@@ -23,7 +23,7 @@ import GameIcon from "../game/GameIcon";
 import RandomMatch from "../game/RandomMatch";
 import { useRouter } from "next/router";
 import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "@/redux/RootStore";
+import store, { AppDispatch, RootState } from "@/redux/RootStore";
 import { fetchProfile } from "@/redux/Slice/Profile";
 import Image from "next/image";
 
@@ -38,12 +38,23 @@ const AppLayout = ({ children }: Props) => {
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
-  // const uId = useSelector((state: RootState) => state.global.uId);
+  const { uId, isLoading } = useSelector(
+    (state: RootState) => state.rootReducers.global
+  );
 
-  const openProfile = () => {
-    // dispatch(fetchProfile({ userId: uId, ownerId: uId }));
+  const openProfile = async () => {
     document.body.style.overflow = "hidden";
-    router.push("/Page/Profile", "/Page/Profile", { shallow: false });
+    if (uId) {
+      router.push({ pathname: "/Page/Profile", query: { uId } }, undefined, {
+        shallow: false,
+      });
+    }
+    setIsOpen(!isOpen);
+  };
+
+  const login = () => {
+    document.body.style.overflow = "hidden";
+    router.push("/Page/Login", "/Page/Login", { shallow: false });
   };
 
   return (
@@ -91,8 +102,7 @@ const AppLayout = ({ children }: Props) => {
                       }}
                     >
                       <img
-                        src=
-                          "https://user-images.githubusercontent.com/86397600/236210202-560b7128-fa5a-4fdd-b746-f3c304c977bd.png"
+                        src="https://user-images.githubusercontent.com/86397600/236210202-560b7128-fa5a-4fdd-b746-f3c304c977bd.png"
                         style={{
                           paddingRight: "5px",
                           height: screens.md ? "1.6rem" : "25px",
@@ -136,7 +146,7 @@ const AppLayout = ({ children }: Props) => {
                           </div>
                         </MenuListItem>
                         <Separator />
-                        <MenuListItem>
+                        <MenuListItem onClick={login}>
                           <span role="img" aria-label="🔙">
                             🔙
                           </span>
@@ -151,9 +161,10 @@ const AppLayout = ({ children }: Props) => {
               </Bar>
             </div>
             <Row gutter={[0, 30]}>
-              {Components.map(({ Component }, index) => {
-                return <Component key={index} />;
-              })}
+              {!isLoading &&
+                Components.map(({ Component }, index) => {
+                  return <Component key={index} />;
+                })}
             </Row>
             {children}
           </div>

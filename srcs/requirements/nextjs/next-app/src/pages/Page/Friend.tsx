@@ -11,18 +11,16 @@ import H3 from "../PostComponents/H3";
 import FriendSearch from "../friendList/components/FriendSearch";
 import { useGetFriendQuery } from "@/redux/Api/Friend";
 import { useGetAuthQuery } from "@/redux/Api/Auth";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/RootStore";
 
 const FriendList = () => {
   const [state, setState] = useState({ activeTab: 0 });
   const router = useRouter();
-  const {
-    data: authData,
-    error: authError,
-    isLoading: authLoading,
-  } = useGetAuthQuery();
-  const { data, error, isLoading, refetch } = useGetFriendQuery(
-    authData?.uid ?? 1
+  const { uId: owner } = useSelector(
+    (state: RootState) => state.rootReducers.global
   );
+  const { data, error, isLoading, refetch } = useGetFriendQuery(owner);
 
   const handleChange = (
     value: number,

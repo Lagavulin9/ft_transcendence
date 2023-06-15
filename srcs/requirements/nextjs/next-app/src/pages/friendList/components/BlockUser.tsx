@@ -4,7 +4,9 @@ import {
   useGetFriendQuery,
   useUnBlockFriendMutation,
 } from "@/redux/Api/Friend";
+import { RootState } from "@/redux/RootStore";
 import React, { useEffect } from "react";
+import { useSelector } from "react-redux";
 import { Button } from "react95";
 
 interface User {
@@ -15,11 +17,13 @@ interface User {
 
 const BlockUser = ({ userNickName, uId, func }: User) => {
   const [BlockUser] = useUnBlockFriendMutation();
-  const { data: authData } = useGetAuthQuery();
-  const { refetch } = useGetFriendQuery(authData?.uid ?? 1);
+  const { uId: owner } = useSelector(
+    (state: RootState) => state.rootReducers.global
+  );
+  const { refetch } = useGetFriendQuery(owner);
 
   const cancelBlock = async () => {
-    await BlockUser({ uid: authData?.uid ?? 1, target: uId });
+    await BlockUser({ uid: owner, target: uId });
     func();
   };
 

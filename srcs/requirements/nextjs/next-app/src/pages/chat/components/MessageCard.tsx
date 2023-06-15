@@ -2,20 +2,22 @@ import { Content } from "@/types/ContentType";
 import React from "react";
 import { Image } from "antd";
 import Spacer from "@/pages/globalComponents/Spacer";
+import { ResMsgDto } from "@/types/ChatDto";
 
 interface Props {
-  Data: Content;
+  Data: ResMsgDto;
+  isMe: boolean;
 }
 
 // isDm
 
-const MessageCard = ({ Data }: Props) => {
+const MessageCard = ({ Data, isMe }: Props) => {
   if (!Data) {
     return null;
   }
   return (
     <div style={{ display: "flex", width: "100%" }}>
-      {Data.isTo === true ? (
+      {isMe === true ? (
         <>
           <div style={{ flex: "1" }}></div>
           <div
@@ -38,12 +40,12 @@ const MessageCard = ({ Data }: Props) => {
             >
               <Image
                 preview={false}
-                src={Data.profileImage}
+                src={Data.profileURL}
                 width={"40px"}
                 style={{ borderRadius: "50%" }}
               />
               <div style={{ marginRight: "20px", fontSize: "25px" }}>
-                {Data.userNickName}
+                {Data.nickname}
               </div>
             </div>
             <div
@@ -53,8 +55,8 @@ const MessageCard = ({ Data }: Props) => {
                 alignItems: "end",
               }}
             >
-              <div style={{ marginTop: "10px" }}>{Data.Content}</div>
-              <div style={{ color: "#333" }}>{Data.Date}</div>
+              <div style={{ marginTop: "10px" }}>{Data.content}</div>
+              <div style={{ color: "#333" }}>{Data.date}</div>
             </div>
           </div>
         </>
@@ -74,17 +76,17 @@ const MessageCard = ({ Data }: Props) => {
             <div style={{ display: "flex", alignItems: "center" }}>
               <Image
                 preview={false}
-                src={Data.profileImage}
+                src={Data.profileURL}
                 width={"40px"}
                 style={{ borderRadius: "50%" }}
               />
               <div style={{ marginLeft: "20px", fontSize: "25px" }}>
-                {Data.userNickName}
+                {Data.nickname}
               </div>
             </div>
             <div>
-              <div style={{ marginTop: "10px" }}>{Data.Content}</div>
-              <div style={{ color: "#444" }}>{Data.Date}</div>
+              <div style={{ marginTop: "10px" }}>{Data.content}</div>
+              <div style={{ color: "#444" }}>{Data.date}</div>
             </div>
           </div>
           <div style={{ flex: "1" }}></div>

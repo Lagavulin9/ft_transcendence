@@ -3,6 +3,8 @@ import { Button, TextInput } from "react95";
 import { useGetUserByNickQuery } from "@/redux/Api/User";
 import { useAddFriendMutation, useGetFriendQuery } from "@/redux/Api/Friend";
 import { useGetAuthQuery } from "@/redux/Api/Auth";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/RootStore";
 
 const FriendSearch = () => {
   const [input, setInput] = useState("");
@@ -11,19 +13,18 @@ const FriendSearch = () => {
     data: userData,
     error: userError,
     isFetching: userIsFetching,
-    refetch: userRefetch,
   } = useGetUserByNickQuery(input);
   const { data: authData } = useGetAuthQuery();
 
-  const [addFriend] = useAddFriendMutation();
-  const { refetch } = useGetFriendQuery(authData?.uid ?? 1);
+  const { uId: owner } = useSelector(
+    (state: RootState) => state.rootReducers.global
+  );
 
-  const clickSearch = () => {
-    userRefetch();
-  };
+  const [addFriend] = useAddFriendMutation();
+  const { refetch } = useGetFriendQuery(owner);
 
   const clickAdd = async () => {
-    await addFriend({ uid: authData?.uid ?? 1, target: userData?.uid ?? 1 });
+    await addFriend({ uid: owner, target: userData?.uid ?? 1 });
     refetch();
   };
 

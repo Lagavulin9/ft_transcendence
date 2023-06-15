@@ -1,5 +1,5 @@
 // 2개
-import { resChatDto } from "@/types/resChatDto";
+import { resChatDto } from "@/types/ChatDto";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export const ChatRoomApi = createApi({

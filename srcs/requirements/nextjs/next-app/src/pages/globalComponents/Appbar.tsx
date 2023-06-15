@@ -37,9 +37,14 @@ export default function Appbar() {
 
   const openProfile = () => {
     console.log(`${uId}uId`);
-    dispatch(fetchProfile({ userId: uId, ownerId: uId }));
     document.body.style.overflow = "hidden";
     router.push("/Page/Profile", "/Page/Profile", { shallow: false });
+  };
+
+  const login = () => {
+    console.log("login");
+    document.body.style.overflow = "hidden";
+    router.push("/Page/Login", "/Page/Login", { shallow: false });
   };
 
   return (
@@ -112,8 +117,8 @@ export default function Appbar() {
                         GitHub?
                       </div>
                     </MenuListItem>
-                    <Separator />
-                    <MenuListItem>
+                    {/* <Separator /> */}
+                    <MenuListItem onClick={login}>
                       <span role="img" aria-label="🔙">
                         🔙
                       </span>

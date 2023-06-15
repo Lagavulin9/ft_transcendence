@@ -1,21 +1,42 @@
-import { onEvent } from "@/utils/socket";
+import ChatRoom from "@/pages/Page/Room";
+import { useGetAllQuery } from "@/redux/Api/ChatRoom";
+import { emitEvent, onEvent } from "@/utils/socket";
 import { Row } from "antd";
+import { useRouter } from "next/router";
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { Button, GroupBox, Radio, TextInput } from "react95";
 
 const RoomCreate = () => {
   const [input, setInput] = useState("");
+  const [password, setPassword] = useState("");
   const [state, setState] = useState("Public");
+  const router = useRouter();
   const dispatch = useDispatch();
-  const Room = () => {
-    console.log("good");
+  const {
+    data: chatData,
+    error: chatError,
+    isLoading: chatLoading,
+    refetch,
+  } = useGetAllQuery();
+
+  const onClickCreate = async () => {
+    console.log("create");
+    emitEvent("create", {
+      roomName: input,
+      roomType: state,
+      target: "",
+      msg: "",
+      password: "",
+    });
+    await refetch();
+    router.push(
+      { pathname: "/Page/Room", query: { roomName: input } },
+      undefined,
+      { shallow: false }
+    );
   };
 
-  const onClickCreate = () => {
-    console.log("create");
-    const onE = onEvent("bind", Room);
-  };
   return (
     <>
       <div
@@ -32,7 +53,10 @@ const RoomCreate = () => {
           placeholder="Room Name"
           onChange={(e) => setInput(e.target.value)}
         />
-        <Button style={{ width: "80px", fontSize: "23px", marginLeft: "15px" }}>
+        <Button
+          style={{ width: "80px", fontSize: "23px", marginLeft: "15px" }}
+          onClick={onClickCreate}
+        >
           생성
         </Button>
       </div>
@@ -47,9 +71,10 @@ const RoomCreate = () => {
         <TextInput
           disabled={state !== "Protected"}
           style={{ width: "400px" }}
-          value={input}
+          value={password}
           placeholder="Password"
-          onChange={(e) => setInput(e.target.value)}
+          type="password"
+          onChange={(e) => setPassword(e.target.value)}
         />
       </div>
       <GroupBox

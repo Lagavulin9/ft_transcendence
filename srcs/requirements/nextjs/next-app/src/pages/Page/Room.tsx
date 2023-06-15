@@ -19,10 +19,15 @@ import { mocUserData } from "@/moc/user";
 import GameMode from "@/pages/game/GameMode";
 import ChatInput from "../chat/components/ChatInput";
 import { useSelector } from "react-redux";
-import RootState from "@/redux/RootReducer";
 import AppLayout from "../globalComponents/AppLayout";
 import MyModal from "../globalComponents/MyModal";
 import { useRouter } from "next/router";
+import { useGetAllQuery, useGetChatRoomQuery } from "@/redux/Api/ChatRoom";
+import { emitEvent, onError, onEvent } from "@/utils/socket";
+import { data } from "autoprefixer";
+import { ReqSocketDto, ResMsgDto } from "@/types/ChatDto";
+import { useGetAuthQuery } from "@/redux/Api/Auth";
+import { RootState } from "@/redux/RootStore";
 
 const { useBreakpoint } = Grid;
 
@@ -32,9 +37,23 @@ const ChatRoom = () => {
   const [isNormal, setIsNormal] = useState(true);
   const [isDm, setIsDm] = useState(false);
   const [state, setState] = useState({ activeTab: 0 });
-
-  const room = useSelector((state: RootState) => state.chat.room);
+  const [isLoading, setIsLoading] = useState(false);
+  const [msg, setMsg] = useState<ResMsgDto[]>([]);
+  const [disabled, setDisabled] = useState(false);
   const router = useRouter();
+  const { roomName } = router.query;
+
+  const { uId: owner } = useSelector(
+    (state: RootState) => state.rootReducers.global
+  );
+
+  const {
+    data: chatRoomData,
+    refetch: chatRoomRefetch,
+    isLoading: RoomListLoading,
+  } = useGetChatRoomQuery(roomName as string);
+
+  const { refetch: RoomListRefetch } = useGetAllQuery();
 
   const screens = useBreakpoint();
   const scrollBottomRef = useRef<HTMLDivElement>(null); // 참조 생성
@@ -61,13 +80,23 @@ const ChatRoom = () => {
 
   const handleInput = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
-    const dm = value.includes("/w");
-    if (dm === true) {
-      setIsDm(true);
-    } else {
-      setIsDm(false);
+    value.length > 100 ? alert("100자 이내로 입력해주세요") : setInput(value);
+  };
+
+  const sendMsg = () => {
+    setDisabled(true);
+    if (chatRoomData) {
+      const tmp = {
+        roomName: chatRoomData.roomName,
+        roomType: chatRoomData.roomType,
+        target: "",
+        msg: input,
+        password: "",
+      } as ReqSocketDto;
+      emitEvent("message", tmp);
+      setInput("");
     }
-    setInput(value);
+    setDisabled(false);
   };
 
   const handleChange = (
@@ -76,15 +105,53 @@ const ChatRoom = () => {
   ) => {
     setState({ activeTab: value });
   };
-  const close = () => {
-    router.back();
-  };
 
   const { activeTab } = state;
 
+  const close = () => {
+    if (chatRoomData) {
+      const tmp = {
+        roomName: chatRoomData.roomName,
+        roomType: chatRoomData.roomType,
+        target: "",
+        msg: "",
+        password: "",
+      } as ReqSocketDto;
+      emitEvent("leave", tmp);
+    }
+    chatRoomRefetch();
+    RoomListRefetch();
+    router.back();
+  };
+
+  useEffect(() => {
+    // 메시지 이벤트 리스너 등록
+    const handleMessage = (data: ResMsgDto) => {
+      setMsg((prevMsg) => [...prevMsg, data]);
+    };
+
+    const handleDM = (data: ResMsgDto) => {
+      data.isDm = true;
+      setMsg((prevMsg) => [...prevMsg, data]);
+    };
+
+    const handleNotice = async (data: ResMsgDto) => {
+      chatRoomRefetch();
+      RoomListRefetch();
+    };
+
+    onEvent("message", handleMessage);
+    // 컴포넌트가 언마운트될 때 이벤트 리스너 해제
+    onEvent("DM", handleDM);
+    onEvent("notice", handleNotice);
+    return () => {
+      onError("message", handleMessage);
+    };
+  }, []);
+
   return (
     <AppLayout>
-      <MyModal hName={room.roomName} close={close}>
+      <MyModal hName={chatRoomData?.roomName ?? "채팅룸"} close={close}>
         <Tabs value={activeTab} onChange={handleChange}>
           <Tab value={0}>
             <span
@@ -97,7 +164,7 @@ const ChatRoom = () => {
               채팅로그
             </span>
           </Tab>
-          <Tab value={2}>
+          <Tab value={1}>
             <span
               style={{
                 fontFamily: "dunggeunmo-bold",
@@ -105,7 +172,7 @@ const ChatRoom = () => {
                 width: "200px",
               }}
             >
-              {`유저목록 (${room?.connectUser.length})`}
+              {`유저목록 (${chatRoomData?.participants.length})`}
             </span>
           </Tab>
         </Tabs>
@@ -113,18 +180,22 @@ const ChatRoom = () => {
           <Row>
             <ScrollView
               shadow={false}
-              style={{ width: "100%", height: "330px" }}
+              style={{ width: "100%", height: "380px" }}
             >
               {activeTab === 0 &&
-                mocContentData.map((data, index) => {
+                msg.map((data, index) => {
                   return (
-                    <div key={index} style={{}}>
-                      <MessageCard Data={data} />
+                    <div key={index}>
+                      <MessageCard
+                        Data={data}
+                        isMe={data.uid === owner ? true : false}
+                      />
+                      <div ref={scrollBottomRef} />
                     </div>
                   );
                 })}
               {activeTab === 1 &&
-                room?.connectUser.map((index) => {
+                chatRoomData?.participants.map((User, index) => {
                   return (
                     <div key={index}>
                       <div
@@ -137,7 +208,7 @@ const ChatRoom = () => {
                           fontSize: "20px",
                         }}
                       >
-                        {mocUserData[index].userNickName}
+                        {User.nickname}
                         <Button
                           style={{
                             fontFamily: "dunggeunmo-bold",
@@ -163,7 +234,12 @@ const ChatRoom = () => {
             </ScrollView>
           </Row>
         </WindowContent>
-        <ChatInput input={input} func={handleInput} />
+        <ChatInput
+          input={input}
+          func={handleInput}
+          click={sendMsg}
+          disabled={disabled}
+        />
       </MyModal>
     </AppLayout>
 

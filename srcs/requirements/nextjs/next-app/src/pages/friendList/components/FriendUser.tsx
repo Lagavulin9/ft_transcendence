@@ -1,7 +1,9 @@
 import { useGetAuthQuery } from "@/redux/Api/Auth";
 import { useBlockFriendMutation, useGetFriendQuery } from "@/redux/Api/Friend";
+import { RootState } from "@/redux/RootStore";
 import { useRouter } from "next/router";
 import React from "react";
+import { useSelector } from "react-redux";
 import { Button } from "react95";
 
 interface User {
@@ -18,13 +20,15 @@ const FriendUser = ({ userNickName, stateOn, uId }: User) => {
       shallow: false,
     });
   };
-  const { data, error, isLoading } = useGetAuthQuery();
+  const { uId: owner } = useSelector(
+    (state: RootState) => state.rootReducers.global
+  );
   const [BlockUser] = useBlockFriendMutation();
-  const { refetch } = useGetFriendQuery(data?.uid ?? 1);
+  const { refetch } = useGetFriendQuery(owner);
   // TODO: 차단할때 사용할 API콜함수
 
   const blockFriend = async () => {
-    await BlockUser({ uid: data?.uid ?? 1, target: uId });
+    await BlockUser({ uid: owner, target: uId });
     refetch();
   };
 

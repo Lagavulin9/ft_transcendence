@@ -1,38 +1,27 @@
 import { mocUserData } from "@/moc/user";
-import { Room } from "@/types/RoomType";
 import React, { useEffect, useState } from "react";
 import { Button } from "react95";
 import { useRouter } from "next/router";
 import { chat } from "@/types/ChatType";
+import { resChatDto } from "@/types/ChatDto";
+import { Room } from "@/types/roomType";
 
 interface Room {
-  room: chat;
+  room: resChatDto;
 }
 
 const SearchRoom = ({ room }: Room) => {
   const router = useRouter();
 
-  if (!room) {
-    // room이 undefined인 경우, 즉 초기에는 room이 존재하지 않을 때
-    return null; // 또는 다른 처리 방법을 선택할 수 있습니다.
-  }
   const openModal = () => {
-    // 조인하기전 핸들함수
-    if (room?.type === 2) {
-      // 패스워드가 있는경우
-      const password = prompt("비밀번호를 입력하세요:");
-      if (password === room.password?.toString()) {
-        // TODO: 나중에 APIServer에 암호화해서 보내고 True False를 받아야함
-        router.push("/Page/Room", "/Page/Room", { shallow: true });
-      } else {
-        // 비밀번호를 틀렸을때
+    router.push(
+      { pathname: "/Page/Room", query: { roomName: room.roomName } },
+      undefined,
+      {
+        shallow: false,
       }
-    } else if (room?.type === 1 || room?.type === 0) {
-      // 비밀번호가 없는경우
-      router.push("/Page/Room", "/Page/Room", { shallow: true });
-    }
+    );
   };
-
   return (
     <div
       style={{
@@ -45,15 +34,12 @@ const SearchRoom = ({ room }: Room) => {
     >
       {room.roomName.length > 0 ? (
         <div style={{ width: "70vw" }}>
-          {/* Render your new component based on the filteredChat data */}
           <p>Matching chat room found:</p>
           <p>
             {"Connect User: "}
-            {room.connectUser
-              .map((index) => mocUserData[index].userNickName)
-              .join(", ")}
+            {room.participants.map((user) => user.nickname).join(", ")}
           </p>
-          <p>Type: {`${Room[room.type]?.type}`}</p>
+          <p>Type: {`${Room[room.roomType].type}`}</p>
         </div>
       ) : (
         <div style={{ fontSize: "30px", color: "red" }}>Not Found</div>

@@ -4,9 +4,11 @@ import { Button, TextInput } from "react95";
 interface Props {
   input: string;
   func: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  click: () => void;
+  disabled: boolean;
 }
 
-const ChatInput = ({ input, func }: Props) => {
+const ChatInput = ({ input, func, click }: Props) => {
   // TODO: 사용자인풋 최대 100글자만 작성되게해야함
   return (
     <div
@@ -33,6 +35,7 @@ const ChatInput = ({ input, func }: Props) => {
           fontSize: "20px",
           width: "100px",
         }}
+        onClick={click}
       >
         보내기
       </Button>

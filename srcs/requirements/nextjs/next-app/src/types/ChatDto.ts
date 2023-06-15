@@ -31,3 +31,20 @@ export interface reqChatDto {
   msg: msgCard;
   password: string;
 }
+
+export interface ReqSocketDto {
+  roomName: string;
+  roomType: number;
+  target: string;
+  msg: string;
+  password: string;
+}
+
+export interface ResMsgDto {
+  uid: number;
+  nickname: string;
+  profileURL: string;
+  date: string;
+  content: string;
+  isDm?: boolean;
+}

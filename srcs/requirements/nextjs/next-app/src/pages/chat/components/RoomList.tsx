@@ -2,18 +2,47 @@ import { chatMocData } from "@/moc/chat";
 import Spacer from "@/pages/globalComponents/Spacer";
 import H1 from "@/pages/PostComponents/H1";
 import H3 from "@/pages/PostComponents/H3";
-import { useGetAllQuery } from "@/redux/Api/ChatRoom";
+import { useGetAllQuery, useGetChatRoomQuery } from "@/redux/Api/ChatRoom";
+import { emitEvent, onError } from "@/utils/socket";
 import { data } from "autoprefixer";
-import React from "react";
+import { useRouter } from "next/router";
+import React, { useEffect, useRef } from "react";
 import { Button, ScrollView } from "react95";
 
 const RoomList = () => {
+  const router = useRouter();
+
   const {
     data: chatData,
     error: chatError,
     isLoading: chatLoading,
     refetch,
   } = useGetAllQuery();
+
+  const ChatRoomJoin = (index: number) => {
+    emitEvent("join", {
+      roomName: chatData?.[index].roomName,
+      roomType: chatData?.[index].roomType,
+      target: "",
+      msg: "",
+      password: "",
+    });
+    onError("error", () => {
+      return;
+    });
+    router.push(
+      {
+        pathname: "/Page/Room",
+        query: { roomName: chatData?.[index].roomName },
+      },
+      undefined,
+      { shallow: false }
+    );
+  };
+
+  useEffect(() => {
+    refetch();
+  });
 
   return (
     <div
@@ -22,28 +51,36 @@ const RoomList = () => {
         alignItems: "center",
       }}
     >
-      <ScrollView style={{ width: "60%", height: "430px" }}>
+      <ScrollView style={{ width: "100%", height: "430px" }}>
         {chatData?.map((chat, index) => {
-          return <Button key={index}>{chat.roomName}</Button>;
+          return (
+            <>
+              <div
+                key={index}
+                style={{
+                  display: "flex",
+                  fontFamily: "dunggeunmo-bold",
+                  fontSize: "22px",
+                  margin: "5px",
+                }}
+              >
+                <span style={{ width: "80%" }}>{chat.roomName}</span>
+                <Button
+                  style={{
+                    width: "20%",
+                  }}
+                  onClick={() => ChatRoomJoin(index)}
+                >
+                  참가
+                </Button>
+              </div>
+              <div
+                style={{ width: "100", height: "2px", backgroundColor: "#999" }}
+              ></div>
+            </>
+          );
         })}
       </ScrollView>
-      <div
-        style={{
-          paddingLeft: "20px",
-          flexDirection: "row",
-          borderColor: "#999",
-          borderWidth: "2px",
-        }}
-      >
-        <H1>{`룸정보`}</H1>
-        <Spacer />
-        <H3>{`Name: `}</H3>
-        <div style={{ padding: "5px" }}></div>
-        <H3>{`Connect Users: `}</H3>
-        <div style={{ padding: "5px" }}></div>
-        <H3>{`Type: `}</H3>
-        <div style={{ padding: "5px" }}></div>
-      </div>
     </div>
   );
 };
