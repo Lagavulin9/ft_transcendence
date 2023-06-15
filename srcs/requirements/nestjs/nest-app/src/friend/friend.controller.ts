@@ -24,4 +24,11 @@ export class FriendController{
 	blockFriend(@Body(new ValidationPipe) req:reqFriendDto): Promise<resFriendListDto>{
 		return this.friendService.blockUser(req);
 	}
+
+	@Post('/unblock')
+	@UsePipes(new JoiValidationPipe(reqFriendSchema))
+	unblockFriend(@Body(new ValidationPipe) req:reqFriendDto){
+		return this.friendService.unblockUser(req);
+	}
+
 }

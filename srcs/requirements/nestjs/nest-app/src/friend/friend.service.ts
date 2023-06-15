@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { FriendList } from "./friend.entity";
@@ -20,6 +20,9 @@ export class FriendService{
 	}
 
 	async addFriend(req:reqFriendDto): Promise<resFriendListDto>{
+		if (req.uid == req.target){
+			throw new HttpException('Cannot add self to friend', HttpStatus.BAD_REQUEST);
+		}
 		const current = await this.friendRepository.findOne({where:{uid:req.uid}})
 		if (!current) {
 			throw new NotFoundException(`Could not find uid:${req.uid}`)
@@ -38,6 +41,9 @@ export class FriendService{
 	}
 
 	async blockUser(req:reqFriendDto): Promise<resFriendListDto>{
+		if (req.uid == req.target){
+			throw new HttpException('Cannot add self block', HttpStatus.BAD_REQUEST);
+		}
 		const current = await this.friendRepository.findOne({where:{uid:req.uid}})
 		const target = await this.userService.getUserByID(req.target);
 		if (current.blockedList.find(blocked=>blocked.uid==target.uid)){
@@ -49,6 +55,17 @@ export class FriendService{
 		newFriend.nickname = target.nickname;
 		//friend.isOn = true? 이 부분 처리를 고민해봐야겠습니다.
 		current.blockedList.push(newFriend);
+		await this.friendRepository.save(current);
+		return plainToClass(resFriendListDto, current);
+	}
+
+	async unblockUser(req:reqFriendDto):Promise<resFriendListDto>{
+		if (req.uid == req.target){
+			throw new HttpException('Cannot self unblock', HttpStatus.BAD_REQUEST);
+		}
+		const current = await this.friendRepository.findOne({where:{uid:req.uid}})
+		const target = await this.userService.getUserByID(req.target);
+		current.blockedList = current.blockedList.filter(blocked=>blocked.uid!=target.uid);
 		await this.friendRepository.save(current);
 		return plainToClass(resFriendListDto, current);
 	}
