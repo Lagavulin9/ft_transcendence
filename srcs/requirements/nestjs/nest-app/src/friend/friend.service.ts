@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { FriendList } from "./friend.entity";
@@ -20,6 +20,9 @@ export class FriendService{
 	}
 
 	async addFriend(req:reqFriendDto): Promise<resFriendListDto>{
+		if (req.uid == req.target){
+			throw new HttpException('Cannot add self to friend', HttpStatus.BAD_REQUEST);
+		}
 		const current = await this.friendRepository.findOne({where:{uid:req.uid}})
 		if (!current) {
 			throw new NotFoundException(`Could not find uid:${req.uid}`)
