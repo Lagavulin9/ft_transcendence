@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@types/passport-oauth2": "^1.4.12"
+  }
+}

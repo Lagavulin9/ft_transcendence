@@ -8,6 +8,7 @@ import { UserModule } from './user/user.module';
 import { ChatModule } from './chat/chat.module';
 import { FriendModule } from './friend/friend.module';
 import { Gateway } from './gateway/gateway.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [ConfigModule.forRoot({isGlobal: true}),
@@ -16,6 +17,7 @@ import { Gateway } from './gateway/gateway.module';
             ChatModule,
             FriendModule,
             Gateway,
+            AuthModule,
           ],
   controllers: [AppController],
   providers: [AppService],
