@@ -7,6 +7,7 @@ import { jwtConstants } from "./constanats";
 import { JwtModule } from '@nestjs/jwt';
 import { UserService } from "src/user/user.service";
 import { UserModule } from "src/user/user.module";
+import { MailerModule } from '@nestjs-modules/mailer';
 
 @Module({
 	imports:[
@@ -14,6 +15,19 @@ import { UserModule } from "src/user/user.module";
 		global: true,
 		secret: jwtConstants.secret,
 		signOptions: { expiresIn: '60s' },
+		}),
+		MailerModule.forRoot({
+			transport: {
+			  host: 'smtp.gmail.com',
+			  port: 587,
+			  auth: {
+				user: 'fttransendence@gmail.com',
+				pass: 'orzbsjkjwpowlyct',
+			  },
+			},
+			defaults: {
+			  from: '"nest-modules" <modules@nestjs.com>',
+			},
 		}),
 		UserModule,
 	],

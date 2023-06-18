@@ -1,5 +1,3 @@
-import { Socket } from "socket.io";
-import { ResMsgDto } from "./msg.dto";
 
 export class ReqSocketDto{
 	roomName:string

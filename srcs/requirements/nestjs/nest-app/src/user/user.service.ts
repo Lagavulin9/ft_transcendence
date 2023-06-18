@@ -3,11 +3,12 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { User } from './user.entity'
 import { Repository } from "typeorm";
 import { createUserDto } from "src/dto/createUser.dto";
-import { getUserDto } from "src/dto/getUser.dto";
-import {  plainToInstance } from "class-transformer";
+import { ResUserDto } from "src/dto/resUser.dto";
+import { plainToInstance } from "class-transformer";
 import { LogDto, GameLogDto } from "src/dto/log.dto";
 import { Log } from "src/user/log.entity";
 import { FriendList } from "src/friend/friend.entity";
+import { ReqUserDto } from "src/dto/reqUser.dto";
 
 @Injectable()
 export class UserService{
@@ -20,24 +21,24 @@ export class UserService{
 		private friendRepository:Repository<FriendList>
 	){}
 
-	async getUserByID(uid:number): Promise<getUserDto> {
+	async getUserByID(uid:number): Promise<ResUserDto> {
 		const found = await this.userRepository.findOne({where:{uid:uid}});
 		if (!found){
 			throw new NotFoundException(`Could not find uid:${uid}`);
 		}
-		const getuserdto = plainToInstance(getUserDto, found);
-		getuserdto.gameLog = await this.getUserGameLogs(uid);
-		return getuserdto;
+		const res = plainToInstance(ResUserDto, found);
+		res.gameLog = await this.getUserGameLogs(uid);
+		return res;
 	}
 
-	async getUserByNick(nickname:string): Promise<getUserDto> {
+	async getUserByNick(nickname:string): Promise<ResUserDto> {
 		const found = await this.userRepository.findOne({where:{nickname:nickname}});
 		if (!found){
 			throw new NotFoundException(`Could not find nickname:${nickname}`)
 		}
-		const getuserdto = plainToInstance(getUserDto, found);
-		getuserdto.gameLog = await this.getUserGameLogs(found.uid);
-		return getuserdto;
+		const res = plainToInstance(ResUserDto, found);
+		res.gameLog = await this.getUserGameLogs(found.uid);
+		return res;
 	}
 
 	async createUser(user:createUserDto): Promise<User> {
@@ -49,12 +50,15 @@ export class UserService{
 		return newUser;
 	}
 
-	async updateNickname(uid: number, nickname: string):Promise<User>{
+	async updateUser(uid: number, req:ReqUserDto):Promise<User>{
 		const toUpdate =  await this.userRepository.findOne({where:{uid:uid}});
 		if (!toUpdate){
 			return undefined;
 		}
-		toUpdate.nickname = nickname;
+		toUpdate.nickname = req.nickname;
+		toUpdate.isOTP = req.isOTP;
+		toUpdate.email = req.email;
+		toUpdate.profileURL = req.profileURL;
 		this.userRepository.save(toUpdate);
 		return toUpdate;
 	}
