@@ -53,7 +53,7 @@ export class UserService{
 	async updateUser(uid: number, req:ReqUserDto):Promise<User>{
 		const toUpdate =  await this.userRepository.findOne({where:{uid:uid}});
 		if (!toUpdate){
-			return undefined;
+			throw new NotFoundException(`Could not find user id:${uid}`);
 		}
 		toUpdate.nickname = req.nickname;
 		toUpdate.isOTP = req.isOTP;
