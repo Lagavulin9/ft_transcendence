@@ -3,7 +3,7 @@ import { resChatDto } from "src/dto/resChat.dto";
 import { User } from "src/user/user.entity";
 import { Chat } from "./chat.entity";
 import { Socket } from "socket.io";
-import { plainToInstance } from "class-transformer";
+import { plainToClass, plainToInstance } from "class-transformer";
 import { UserService } from "src/user/user.service";
 import { FriendService } from "src/friend/friend.service";
 import { ReqSocketDto } from "src/dto/reqSocket.dto";
@@ -130,6 +130,7 @@ export class ChatService{
 		this.ChatRooms.set(req.roomName, newChat);
 		client.emit('notice', 'You are owner of this channel');
 		client.join(newChat.roomName);
+		client.emit('create', newChat);
 		return newChat;
 	}
 
@@ -161,6 +162,7 @@ export class ChatService{
 		client.join(chatroom.roomName);
 		client.emit('notice', `You have joined ${chatroom.roomName}`);
 		client.to(chatroom.roomName).emit('notice', `${user.nickname} has joined`);
+		client.emit('join', plainToInstance(resChatDto, chatroom))
 		return chatroom;
 	}
 
@@ -217,7 +219,7 @@ export class ChatService{
 		msgCard.nickname = user.nickname;
 		msgCard.profileURL = user.profileURL;
 		msgCard.content = req.msg;
-		//나중에 날짜추가
+		msgCard.date = new Date().toLocaleTimeString();
 		client.to(req.roomName).emit('message', msgCard);
 		return true;
 	}
@@ -230,7 +232,13 @@ export class ChatService{
 			return false;
 		}
 		const targetSocket = this.Clients.getValue(target);
-		targetSocket.emit('DM', `From:${sender.nickname} ${req.msg}`);
+		const msgCard = new ResMsgDto();
+		msgCard.uid = sender.uid;
+		msgCard.nickname = sender.nickname;
+		msgCard.profileURL = sender.profileURL;
+		msgCard.content = req.msg;
+		msgCard.date = new Date().toLocaleTimeString();
+		targetSocket.emit('DM', msgCard);
 	}
 
 	kickClient(client:Socket, req:ReqSocketDto):boolean{
@@ -244,6 +252,7 @@ export class ChatService{
 		targetSocket.leave(chatroom.roomName);
 		targetSocket.emit('notice', `You were kicked by channel's admin`);
 		client.to(chatroom.roomName).emit('notice', `${target.nickname} was kicked by channel's admin`);
+		client.emit('kick', 'Success');
 		return true;
 	}
 
@@ -258,6 +267,7 @@ export class ChatService{
 		targetSocket.leave(chatroom.roomName);
 		targetSocket.emit('notice', `You were banned by channel's admin`);
 		client.to(chatroom.roomName).emit('notice', `${target.nickname} was banned by channel's admin`);
+		client.emit('ban', 'Success');
 		chatroom.banned.push(target);
 		return true;
 	}
@@ -270,13 +280,14 @@ export class ChatService{
 		const chatroom = this.ChatRooms.get(req.roomName);
 		const target = chatroom.participants.find(u=>u.nickname==req.target);
 		const targetSocket = this.Clients.getValue(target);
-		targetSocket.emit('notice', `You are now muted for ${time/1000}seconds`);
-		client.to(chatroom.roomName).emit('notice', `${target.nickname} was muted by channel's admin`);
 		chatroom.muted.push(target);
 		setTimeout(()=>{
 			chatroom.muted = chatroom.muted.filter(u=>u!=target);
 			targetSocket.emit('notice', `You are now unmuted`);
 		}, time);
+		targetSocket.emit('notice', `You are now muted for ${time/1000}seconds`);
+		client.to(chatroom.roomName).emit('notice', `${target.nickname} was muted by channel's admin`);
+		client.emit('mute', 'Success');
 	}
 
 	addAdmin(client:Socket, req:ReqSocketDto):boolean{
@@ -299,6 +310,7 @@ export class ChatService{
 		const targetSocket = this.Clients.getValue(target);
 		targetSocket.emit('notice', `You are now the channel's admin`);
 		targetSocket.to(chatroom.roomName).emit('notice', `${target.nickname} is now the channel's admin`)
+		client.emit('usermod', 'Success');
 		return true;
 	}
 
