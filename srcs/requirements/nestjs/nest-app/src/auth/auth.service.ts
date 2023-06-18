@@ -34,13 +34,10 @@ export class AuthService{
       html: `<h4>Your verification code is: <h3><b>${otp}</b></h3></h4>`
     })
     .then((result)=>{
-      console.log(result);
       this.otpMap.set(uid, otp);
-      console.log(this.otpMap);
       setTimeout(()=>{
         this.otpMap.delete(uid);
-        console.log(this.otpMap);
-      }, 1000*60);
+      }, 1000*60*10);
     })
     .catch((error)=>{
       console.log(error);

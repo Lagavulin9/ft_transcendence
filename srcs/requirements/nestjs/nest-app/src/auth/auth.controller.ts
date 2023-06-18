@@ -14,22 +14,24 @@ export class AuthController{
   ){}
 
   @Get()
-  //@UseGuards(FtAuthGuard)
+  @UseGuards(FtAuthGuard)
   authCheck(){}
 
   @Get('/redirect')
-  //@UseGuards(FtAuthGuard)
+  @UseGuards(FtAuthGuard)
   async redirect(@GetGuardData() data, @Res() res:Response):Promise<any>{
     // const uid = await this.userService.getUserByID(data.id);
     // if (!uid){
     //   //회원가입으로 보내줌
     //   //uid랑 닉네임
-    //   const redirectURL = `http://localhost/signup`
-    //   return res.redirect(redirectURL);
+    //   // const redirectURL = `http://localhost/login`
+    //   // return res.redirect(redirectURL);
+    //   return 'not enrolled';
     // }
     // else{
-    //   const redirectURL = `http://localhost/`
-    //   return res.redirect(redirectURL);
+    //   // const redirectURL = `http://localhost/`
+    //   // return res.redirect(redirectURL);
+    //   return 'enrolled';
     // }
     return 'redirected successfully'
   }
