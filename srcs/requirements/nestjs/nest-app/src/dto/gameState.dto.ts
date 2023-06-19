@@ -1,6 +1,6 @@
 import { GameRoom } from "src/game/gameroom.entity";
 
-export class gameState {
+export class GameStateDto {
 	gameroom: GameRoom
 	ballPosition: { x: number; y: number };
   paddlePositions: {
