@@ -17,13 +17,13 @@ const InGame: React.FC = () => {
     player1: { x: 20, y: canvasHeight / 2 - paddleHeight / 2 },
     player2: { x: 480, y: canvasHeight / 2 - paddleHeight / 2 },
   });
-  // Define a state to keep track of which keys are pressed
   const [keysPressed, setKeysPressed] = useState({
     ArrowUp: false,
     ArrowDown: false,
     w: false,
     s: false,
   });
+  const [isGuest, setIsGuest] = useState(false);
 
   const [score, setScore] = useState({ player1: 0, player2: 0 }); // Add score state
   const [gameTime, setGameTime] = useState(0); // Add gameTime state
@@ -36,11 +36,21 @@ const InGame: React.FC = () => {
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      setKeysPressed((prev) => ({ ...prev, [event.key]: true }));
+      if (
+        (isGuest && (event.key === "w" || event.key === "s")) ||
+        (!isGuest && (event.key === "ArrowUp" || event.key === "ArrowDown"))
+      ) {
+        setKeysPressed((prev) => ({ ...prev, [event.key]: true }));
+      }
     };
 
     const handleKeyUp = (event: KeyboardEvent) => {
-      setKeysPressed((prev) => ({ ...prev, [event.key]: false }));
+      if (
+        (isGuest && (event.key === "w" || event.key === "s")) ||
+        (!isGuest && (event.key === "ArrowUp" || event.key === "ArrowDown"))
+      ) {
+        setKeysPressed((prev) => ({ ...prev, [event.key]: false }));
+      }
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -50,7 +60,7 @@ const InGame: React.FC = () => {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [isEnd]);
+  }, [isEnd, isGuest]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -58,38 +68,40 @@ const InGame: React.FC = () => {
         return;
       }
       // Handle paddle movements
-      if (keysPressed.ArrowUp && paddlePositions.player2.y > 0) {
-        setPaddlePositions((prev) => ({
-          ...prev,
-          player2: { ...prev.player2, y: prev.player2.y - 5 },
-        }));
-      }
+      if (isGuest) {
+        if (keysPressed.w && paddlePositions.player1.y > 0) {
+          setPaddlePositions((prev) => ({
+            ...prev,
+            player1: { ...prev.player1, y: prev.player1.y - 5 },
+          }));
+        }
 
-      if (
-        keysPressed.ArrowDown &&
-        paddlePositions.player2.y < canvasHeight - paddleHeight
-      ) {
-        setPaddlePositions((prev) => ({
-          ...prev,
-          player2: { ...prev.player2, y: prev.player2.y + 5 },
-        }));
-      }
+        if (
+          keysPressed.s &&
+          paddlePositions.player1.y < canvasHeight - paddleHeight
+        ) {
+          setPaddlePositions((prev) => ({
+            ...prev,
+            player1: { ...prev.player1, y: prev.player1.y + 5 },
+          }));
+        }
+      } else {
+        if (keysPressed.ArrowUp && paddlePositions.player2.y > 0) {
+          setPaddlePositions((prev) => ({
+            ...prev,
+            player2: { ...prev.player2, y: prev.player2.y - 5 },
+          }));
+        }
 
-      if (keysPressed.w && paddlePositions.player1.y > 0) {
-        setPaddlePositions((prev) => ({
-          ...prev,
-          player1: { ...prev.player1, y: prev.player1.y - 5 },
-        }));
-      }
-
-      if (
-        keysPressed.s &&
-        paddlePositions.player1.y < canvasHeight - paddleHeight
-      ) {
-        setPaddlePositions((prev) => ({
-          ...prev,
-          player1: { ...prev.player1, y: prev.player1.y + 5 },
-        }));
+        if (
+          keysPressed.ArrowDown &&
+          paddlePositions.player2.y < canvasHeight - paddleHeight
+        ) {
+          setPaddlePositions((prev) => ({
+            ...prev,
+            player2: { ...prev.player2, y: prev.player2.y + 5 },
+          }));
+        }
       }
 
       // Handle ball movement and collision
@@ -153,16 +165,17 @@ const InGame: React.FC = () => {
     paddlePositions,
     initialDirection,
     isEnd,
+    isGuest,
   ]);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setGameTime((prev) => {
         if (prev >= 100 || isEnd) {
-          clearInterval(timer); // End interval when gameTime reaches 100
-          return prev; // Return previous state, gameTime won't be incremented
+          clearInterval(timer);
+          return prev;
         }
-        return prev + 1; // Increment gameTime
+        return prev + 1;
       });
     }, 1000);
 
@@ -188,6 +201,11 @@ const InGame: React.FC = () => {
       console.log("Game over");
     }
   }, [score, gameTime]);
+
+  useEffect(() => {
+    // TODO: 여기서 받고 (소켓으로 받아야함)
+    // TODO: setIsGuest(true or false);
+  }, []);
 
   return (
     <div>
