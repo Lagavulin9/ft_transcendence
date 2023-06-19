@@ -8,7 +8,6 @@ export class FtAuthStrategy extends PassportStrategy(Strategy, 'ft'){
     constructor() {
     super({
       authorizationURL: `https://api.intra.42.fr/oauth/authorize?
-                          client_id=${process.env.FT_APP_UID}
                           &redirect_uri=${process.env.FT_APP_CALLBACK}
                           &response_type=code`,
       tokenURL: 'https://api.intra.42.fr/oauth/token',
@@ -19,11 +18,18 @@ export class FtAuthStrategy extends PassportStrategy(Strategy, 'ft'){
   }
 
   async validate(accessToken: string, refreshToken: string) {
-    const { data } = await axios.get('https://api.intra.42.fr/v2/me', {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
-    const login = data.login;
-    const id = data.id;
-    return { id: id, login: login };
+    console.log(`[${Date.now()}] GET TOKEN : '${accessToken}'`);
+    try {
+        const { data } = await axios.get('https://api.intra.42.fr/v2/me', {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        const login = data.login;
+        const id = data.id;
+        console.log(id, login);
+        return { id: id, login: login };
+    } catch (e) {
+      console.error(e);
+      return (false);  
+    }
   }
 }

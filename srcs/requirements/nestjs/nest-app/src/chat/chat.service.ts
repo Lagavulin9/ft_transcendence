@@ -1,13 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { resChatDto } from 'src/dto/resChat.dto';
-import { User } from 'src/user/user.entity';
-import { Chat } from './chat.entity';
-import { Socket } from 'socket.io';
-import { plainToInstance } from 'class-transformer';
-import { UserService } from 'src/user/user.service';
-import { FriendService } from 'src/friend/friend.service';
-import { ReqSocketDto } from 'src/dto/reqSocket.dto';
-import { ResMsgDto } from 'src/dto/msg.dto';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { resChatDto } from "src/dto/resChat.dto";
+import { User } from "src/user/user.entity";
+import { Chat } from "./chat.entity";
+import { Socket } from "socket.io";
+import { plainToClass, plainToInstance } from "class-transformer";
+import { UserService } from "src/user/user.service";
+import { FriendService } from "src/friend/friend.service";
+import { ReqSocketDto } from "src/dto/reqSocket.dto";
+import { ResMsgDto } from "src/dto/msg.dto";
+
 
 @Injectable()
 export class ChatService {
@@ -71,75 +72,65 @@ export class ChatService {
     return true;
   }
 
-  unbindUser(client: Socket): boolean {
-    const user = this.Clients.getKey(client);
-    if (!user) {
-      return false;
-    }
-    let roomName: string;
-    for (const chatroom of this.ChatRooms.values()) {
-      const found = chatroom.participants.find((u) => u == user);
-      if (found) {
-        roomName = chatroom.roomName;
-        chatroom.participants = chatroom.participants.filter((u) => u != user);
-        chatroom.roomAlba = chatroom.roomAlba.filter((u) => u != user);
-        //방에 아무도 없는경우 채팅방 삭제
-        if (chatroom.participants.length == 0) {
-          this.ChatRooms.delete(roomName);
-        }
-        //주딱이면 다른놈이 왕위계승
-        else if (user == chatroom.roomOwner) {
-          let newOwner: User;
-          if (chatroom.roomAlba.length) {
-            newOwner = chatroom.roomAlba[0];
-          } else {
-            newOwner = chatroom.participants[0];
-            chatroom.roomAlba.push(newOwner);
-          }
-          chatroom.roomOwner = newOwner;
-          const newOwnerSocket = this.Clients.getValue(newOwner);
-          newOwnerSocket.emit('notice', 'You are now the owner of this chat');
-          newOwnerSocket
-            .to(chatroom.roomName)
-            .emit(
-              'notice',
-              `${newOwner.nickname} is now the owner of this chat`,
-            );
-        }
-        break;
-      }
-    }
-    client.to(roomName).emit('notice', `${user.nickname} has left the chat`);
-    this.Clients.delete(user);
-    return true;
-  }
 
-  createChatroom(client: Socket, req: ReqSocketDto): Chat | undefined {
-    if (client.rooms.size >= 2) {
-      client.emit('error', `cant join more than two rooms`);
-      return undefined;
-    }
-    if (this.ChatRooms.get(req.roomName)) {
-      client.emit('error', `Chatroom ${req.roomName} already exist`);
-      return undefined;
-    }
-    const user = this.Clients.getKey(client);
-    const newChat = new Chat();
-    newChat.roomOwner = user;
-    newChat.roomId = ++this.RoomIndex;
-    newChat.roomName = req.roomName;
-    newChat.roomType = req.roomType;
-    newChat.password = req.password;
-    newChat.roomAlba = [user];
-    newChat.participants = [user];
-    newChat.banned = [];
-    newChat.muted = [];
-    this.ChatRooms.set(req.roomName, newChat);
-    client.emit('notice', 'You are owner of this channel');
-    client.join(newChat.roomName);
-    client.emit('message', 'hello');
-    return newChat;
-  }
+	createChatroom(client:Socket, req:ReqSocketDto):Chat|undefined{
+		if (client.rooms.size >= 2){
+			client.emit('error', `cant join more than two rooms`);
+			return undefined;
+		}
+		if (this.ChatRooms.get(req.roomName)){
+			client.emit('error', `Chatroom ${req.roomName} already exist`);
+			return undefined;
+		}
+		const user = this.Clients.getKey(client);
+		const newChat = new Chat();
+		newChat.roomOwner = user;
+		newChat.roomId = ++this.RoomIndex;
+		newChat.roomName = req.roomName;
+		newChat.roomType = req.roomType;
+		newChat.password = req.password;
+		newChat.roomAlba = [ user ];
+		newChat.participants = [ user ];
+		newChat.banned = [];
+		newChat.muted = [];
+		this.ChatRooms.set(req.roomName, newChat);
+		client.emit('notice', 'You are owner of this channel');
+		client.join(newChat.roomName);
+		client.emit('create', newChat);
+		return newChat;
+	}
+
+	joinChatroom(client:Socket, req:ReqSocketDto):Chat|undefined{
+		if (client.rooms.size >= 2){
+			client.emit('error', `cant join more than two rooms`);
+			return undefined;
+		}
+		const user = this.Clients.getKey(client);
+		const chatroom = this.ChatRooms.get(req.roomName);
+		if (!chatroom){
+			client.emit('error', `No such chatroom ${req.roomName}`);
+			return undefined;
+		}
+		//패스워드 틀림
+		else if (chatroom.password != req.password){
+			client.emit('error', `incorrect password`);
+			return undefined;
+		}
+		//밴당함
+		else if (chatroom.banned.find(u=>u==user)){
+			client.emit('error', `You are banned by channel's admin`);
+			return undefined;
+		}
+		else if (chatroom.participants.find(u=>u==user)){
+			client.emit('error', `You are already in ${req.roomName}`);
+		}
+		chatroom.participants.push(user);
+		client.join(chatroom.roomName);
+		client.emit('notice', `You have joined ${chatroom.roomName}`);
+		client.to(chatroom.roomName).emit('notice', `${user.nickname} has joined`);
+		client.emit('join', plainToInstance(resChatDto, chatroom))
+		return chatroom;
+	}
 
   joinChatroom(client: Socket, req: ReqSocketDto): Chat | undefined {
     if (client.rooms.size >= 2) {
@@ -171,133 +162,115 @@ export class ChatService {
     return chatroom;
   }
 
-  leaveChatroom(client: Socket, req: ReqSocketDto): boolean {
-    const user = this.Clients.getKey(client);
-    const chatroom = this.ChatRooms.get(req.roomName);
-    if (!user || !chatroom) {
-      client.emit('error', 'failed');
-      return false;
-    }
-    if (!chatroom.participants.find((u) => u == user)) {
-      client.emit('error', 'failed');
-      return false;
-    }
-    client.emit('notice', `You have left ${chatroom.roomName}`);
-    client
-      .to(chatroom.roomName)
-      .emit('notice', `${user.nickname} has left the chat`);
-    client.leave(chatroom.roomName);
-    chatroom.participants = chatroom.participants.filter(
-      (u) => u.uid != user.uid,
-    );
-    chatroom.roomAlba = chatroom.roomAlba.filter((u) => u != user);
-    //방에 아무도 없는경우 채팅방 삭제
-    if (chatroom.participants.length == 0) {
-      this.ChatRooms.delete(chatroom.roomName);
-      return true;
-    }
-    //주딱이면 다른놈이 왕위계승
-    else if (user == chatroom.roomOwner) {
-      let newOwner: User;
-      if (chatroom.roomAlba.length) {
-        newOwner = chatroom.roomAlba[0];
-      } else {
-        newOwner = chatroom.participants[0];
-        chatroom.roomAlba.push(newOwner);
-      }
-      chatroom.roomOwner = newOwner;
-      const newOwnerSocket = this.Clients.getValue(newOwner);
-      newOwnerSocket.emit('notice', 'You are now the owner of this chat');
-      newOwnerSocket
-        .to(chatroom.roomName)
-        .emit('notice', `${newOwner.nickname} is now the owner of this chat`);
-    }
-    return true;
-  }
 
-  sendMessage(client: Socket, req: ReqSocketDto): boolean {
-    const user = this.Clients.getKey(client);
-    const chatroom = this.ChatRooms.get(req.roomName);
-    if (
-      !chatroom ||
-      !chatroom.participants.find((u) => u.uid === user.uid) ||
-      chatroom.muted.find((u) => u.uid === user.uid)
-    ) {
-      return false;
-    }
-    const msgCard = new ResMsgDto();
-    msgCard.uid = user.uid;
-    msgCard.nickname = user.nickname;
-    msgCard.profileURL = user.profileURL;
-    msgCard.content = req.msg;
-    //나중에 날짜추가
-    client.emit('message', msgCard);
-    client.to(req.roomName).emit('message', msgCard);
-    return true;
-  }
+	sendMessage(client:Socket, req:ReqSocketDto):boolean{
+		const user = this.Clients.getKey(client);
+		const chatroom = this.ChatRooms.get(req.roomName);
+		if (!chatroom ||
+			!chatroom.participants.find(u=>u==user) ||
+			chatroom.muted.find(u=>u==user)){
+			return false;
+		}
+		const msgCard = new ResMsgDto();
+		msgCard.uid = user.uid;
+		msgCard.nickname = user.nickname;
+		msgCard.profileURL = user.profileURL;
+		msgCard.content = req.msg;
+		msgCard.date = new Date().toLocaleTimeString();
+		client.to(req.roomName).emit('message', msgCard);
+		return true;
+	}
 
-  async sendDirectMessage(client: Socket, req: ReqSocketDto): Promise<boolean> {
-    const sender = this.Clients.getKey(client);
-    const target = await this.userService.getUserByNick(req.target);
-    if (!target) {
-      client.emit('error', `No such user: ${req.target}`);
-      return false;
-    }
-    const targetSocket = this.Clients.getValue(target);
-    targetSocket.emit('DM', `From:${sender.nickname} ${req.msg}`);
-  }
+	async sendDirectMessage(client:Socket, req:ReqSocketDto):Promise<boolean>{
+		const sender = this.Clients.getKey(client);
+		const target = await this.userService.getUserByNick(req.target);
+		if (!target){
+			client.emit('error', `No such user: ${req.target}`);
+			return false;
+		}
+		const targetSocket = this.Clients.getValue(target);
+		const msgCard = new ResMsgDto();
+		msgCard.uid = sender.uid;
+		msgCard.nickname = sender.nickname;
+		msgCard.profileURL = sender.profileURL;
+		msgCard.content = req.msg;
+		msgCard.date = new Date().toLocaleTimeString();
+		targetSocket.emit('DM', msgCard);
+	}
 
-  kickClient(client: Socket, req: ReqSocketDto): boolean {
-    if (!this.validateRequest(client, req)) {
-      return false;
-    }
-    const chatroom = this.ChatRooms.get(req.roomName);
-    const target = chatroom.participants.find((u) => u.nickname == req.target);
-    const targetSocket = this.Clients.getValue(target);
-    chatroom.participants = chatroom.participants.filter((u) => u != target);
-    targetSocket.leave(chatroom.roomName);
-    targetSocket.emit('notice', `You were kicked by channel's admin`);
-    client
-      .to(chatroom.roomName)
-      .emit('notice', `${target.nickname} was kicked by channel's admin`);
-    return true;
-  }
+	kickClient(client:Socket, req:ReqSocketDto):boolean{
+		if (!this.validateRequest(client, req)){
+			return false;
+		}
+		const chatroom = this.ChatRooms.get(req.roomName);
+		const target = chatroom.participants.find(u=>u.nickname==req.target);
+		const targetSocket = this.Clients.getValue(target);
+		chatroom.participants = chatroom.participants.filter(u=>u!=target);
+		targetSocket.leave(chatroom.roomName);
+		targetSocket.emit('notice', `You were kicked by channel's admin`);
+		client.to(chatroom.roomName).emit('notice', `${target.nickname} was kicked by channel's admin`);
+		client.emit('kick', 'Success');
+		return true;
+	}
 
-  banClient(client: Socket, req: ReqSocketDto): boolean {
-    if (!this.validateRequest(client, req)) {
-      return false;
-    }
-    const chatroom = this.ChatRooms.get(req.roomName);
-    const target = chatroom.participants.find((u) => u.nickname == req.target);
-    const targetSocket = this.Clients.getValue(target);
-    chatroom.participants = chatroom.participants.filter((u) => u != target);
-    targetSocket.leave(chatroom.roomName);
-    targetSocket.emit('notice', `You were banned by channel's admin`);
-    client
-      .to(chatroom.roomName)
-      .emit('notice', `${target.nickname} was banned by channel's admin`);
-    chatroom.banned.push(target);
-    return true;
-  }
+	banClient(client:Socket, req:ReqSocketDto):boolean{
+		if (!this.validateRequest(client, req)){
+			return false
+		}
+		const chatroom = this.ChatRooms.get(req.roomName);
+		const target = chatroom.participants.find(u=>u.nickname==req.target);
+		const targetSocket = this.Clients.getValue(target);
+		chatroom.participants = chatroom.participants.filter(u=>u!=target);
+		targetSocket.leave(chatroom.roomName);
+		targetSocket.emit('notice', `You were banned by channel's admin`);
+		client.to(chatroom.roomName).emit('notice', `${target.nickname} was banned by channel's admin`);
+		client.emit('ban', 'Success');
+		chatroom.banned.push(target);
+		return true;
+	}
 
-  muteClient(client: Socket, req: ReqSocketDto): boolean {
-    const time = 1000 * 60;
-    if (!this.validateRequest(client, req)) {
-      return false;
-    }
-    const chatroom = this.ChatRooms.get(req.roomName);
-    const target = chatroom.participants.find((u) => u.nickname == req.target);
-    const targetSocket = this.Clients.getValue(target);
-    targetSocket.emit('notice', `You are now muted for ${time / 1000}seconds`);
-    client
-      .to(chatroom.roomName)
-      .emit('notice', `${target.nickname} was muted by channel's admin`);
-    chatroom.muted.push(target);
-    setTimeout(() => {
-      chatroom.muted = chatroom.muted.filter((u) => u != target);
-      targetSocket.emit('notice', `You are now unmuted`);
-    }, time);
-  }
+	muteClient(client:Socket, req:ReqSocketDto):boolean{
+		const time = 1000 * 60;
+		if (!this.validateRequest(client, req)){
+			return false
+		}
+		const chatroom = this.ChatRooms.get(req.roomName);
+		const target = chatroom.participants.find(u=>u.nickname==req.target);
+		const targetSocket = this.Clients.getValue(target);
+		chatroom.muted.push(target);
+		setTimeout(()=>{
+			chatroom.muted = chatroom.muted.filter(u=>u!=target);
+			targetSocket.emit('notice', `You are now unmuted`);
+		}, time);
+		targetSocket.emit('notice', `You are now muted for ${time/1000}seconds`);
+		client.to(chatroom.roomName).emit('notice', `${target.nickname} was muted by channel's admin`);
+		client.emit('mute', 'Success');
+	}
+
+	addAdmin(client:Socket, req:ReqSocketDto):boolean{
+		const user = this.Clients.getKey(client);
+		const chatroom = this.ChatRooms.get(req.roomName);
+		if (user != chatroom.roomOwner){
+			client.emit('notice', 'You are now the owner of this chat');
+			return false;
+		}
+		const target = chatroom.participants.find(u=>u.nickname==req.target);
+		if (!target){
+			client.emit('error', `No such user: ${req.target}`);
+			return false;
+		}
+		if (chatroom.roomAlba.find(u=>u==target)){
+			client.emit('error', `${req.target} is already an admin`);
+			return false;
+		}
+		chatroom.roomAlba.push(target);
+		const targetSocket = this.Clients.getValue(target);
+		targetSocket.emit('notice', `You are now the channel's admin`);
+		targetSocket.to(chatroom.roomName).emit('notice', `${target.nickname} is now the channel's admin`)
+		client.emit('usermod', 'Success');
+		return true;
+	}
+
 
   addAdmin(client: Socket, req: ReqSocketDto): boolean {
     const user = this.Clients.getKey(client);
