@@ -12,6 +12,8 @@ import { useGetAllQuery, useGetChatRoomQuery } from "@/redux/Api/ChatRoom";
 import { emitEvent, onError, onEvent } from "@/utils/socket";
 import { ReqSocketDto, ResMsgDto } from "@/types/ChatDto";
 import { RootState } from "@/redux/RootStore";
+import H3 from "../PostComponents/H3";
+import { data } from "autoprefixer";
 
 const { useBreakpoint } = Grid;
 
@@ -33,21 +35,19 @@ const ChatRoom = () => {
   const {
     data: chatRoomData,
     refetch: chatRoomRefetch,
-    isLoading: RoomListLoading,
+    isFetching: RoomListLoading,
   } = useGetChatRoomQuery(roomName as string);
 
-  const { refetch: RoomListRefetch } = useGetAllQuery();
+  const { refetch: RoomListRefetch } = useGetAllQuery(owner);
 
   const screens = useBreakpoint();
-  const scrollBottomRef = useRef<HTMLDivElement>(null); // 참조 생성
-
-  // TODO: 서버와 연결시 여기에서 다시 ChatRoom 최신정보 가져오기
+  const scrollBottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (scrollBottomRef.current) {
       scrollBottomRef.current.scrollIntoView({ behavior: "smooth" }); // 참조된 요소가 보이도록 스크롤
     }
-  }, [scrollBottomRef]); // mocContentData가 변경될 때마다 실행
+  }, [scrollBottomRef]);
 
   const openGameMode = () => {
     router.push("/Page/Game", "Page/Game", { shallow: false });
@@ -109,6 +109,7 @@ const ChatRoom = () => {
   useEffect(() => {
     // 메시지 이벤트 리스너 등록
     const handleMessage = (data: ResMsgDto) => {
+      data.isDm = false;
       setMsg((prevMsg) => [...prevMsg, data]);
     };
 
@@ -117,21 +118,22 @@ const ChatRoom = () => {
       setMsg((prevMsg) => [...prevMsg, data]);
     };
 
-    const handleNotice = async (data: ResMsgDto) => {
-      chatRoomRefetch();
-      RoomListRefetch();
-    };
-
     onEvent("message", handleMessage);
     // 컴포넌트가 언마운트될 때 이벤트 리스너 해제
     onEvent("DM", handleDM);
-    onEvent("notice", handleNotice);
 
     // 게임 게스트 입장 이벤트 리스너 등록
     return () => {
       onError("message", handleMessage);
     };
   }, [RoomListRefetch, chatRoomRefetch]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      chatRoomRefetch();
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [chatRoomRefetch]);
 
   return (
     <AppLayout>
@@ -173,6 +175,7 @@ const ChatRoom = () => {
                       <MessageCard
                         Data={data}
                         isMe={data.uid === owner ? true : false}
+                        isDm={data.isDm}
                       />
                       <div ref={scrollBottomRef} />
                     </div>
@@ -193,26 +196,29 @@ const ChatRoom = () => {
                         }}
                       >
                         {User.nickname}
-                        <div>
-                          <Button
-                            style={{
-                              fontFamily: "dunggeunmo-bold",
-                              fontSize: "17px",
-                            }}
-                            onClick={() => openProfile(User.uid)}
-                          >
-                            프로필
-                          </Button>
-                          <Button
-                            style={{
-                              fontFamily: "dunggeunmo-bold",
-                              fontSize: "17px",
-                            }}
-                            onClick={openGameMode}
-                          >
-                            게임하기
-                          </Button>
-                        </div>
+
+                        {User.uid !== owner && (
+                          <div>
+                            <Button
+                              style={{
+                                fontFamily: "dunggeunmo-bold",
+                                fontSize: "17px",
+                              }}
+                              onClick={() => openProfile(User.uid)}
+                            >
+                              프로필
+                            </Button>
+                            <Button
+                              style={{
+                                fontFamily: "dunggeunmo-bold",
+                                fontSize: "17px",
+                              }}
+                              onClick={openGameMode}
+                            >
+                              게임하기
+                            </Button>
+                          </div>
+                        )}
                       </div>
                       <div
                         style={{

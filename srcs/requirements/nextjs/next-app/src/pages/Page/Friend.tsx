@@ -10,6 +10,7 @@ import FriendSearch from "../friendList/components/FriendSearch";
 import { useGetFriendQuery } from "@/redux/Api/Friend";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/RootStore";
+import H3 from "../PostComponents/H3";
 
 const FriendList = () => {
   const [state, setState] = useState({ activeTab: 0 });
@@ -17,7 +18,7 @@ const FriendList = () => {
   const { uId: owner } = useSelector(
     (state: RootState) => state.rootReducers.global
   );
-  const { data, error, isLoading, refetch } = useGetFriendQuery(owner);
+  const { data, isFetching, refetch } = useGetFriendQuery(owner);
 
   const handleChange = (
     value: number,
@@ -45,6 +46,10 @@ const FriendList = () => {
       clearInterval(refetchInterval);
     };
   }, [refetch]);
+
+  if (isFetching) {
+    return <H3>...로딩중</H3>;
+  }
 
   return (
     <AppLayout>

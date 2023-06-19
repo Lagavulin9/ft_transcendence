@@ -1,11 +1,19 @@
-import { useCheckNicknameQuery } from "@/redux/Api/Profile";
+import {
+  useCheckNicknameMutation,
+  useProfileUpdateMutation,
+} from "@/redux/Api/Profile";
+import { ReqUserDto } from "@/types/UserType";
 import { data } from "autoprefixer";
 import React, { useRef, useState } from "react";
 import { Avatar, Button, GroupBox, Radio, Select, TextInput } from "react95";
 import { SelectOption } from "react95/dist/Select/Select.types";
 import H3 from "../PostComponents/H3";
 
-const ProfileUpdate = () => {
+interface Props {
+  uid: number;
+}
+
+const ProfileUpdate = ({ uid }: Props) => {
   const [nickname, setNickname] = useState("");
   const [isOtp, setIsOtp] = useState(false);
   const [image, setImage] = useState("");
@@ -13,11 +21,8 @@ const ProfileUpdate = () => {
   const [isCheck, setIsCheck] = useState(false);
   const nickCheck = ["중복체크완료.", "사용할 수 없습니다."];
 
-  const {
-    data: userData,
-    error: userError,
-    isFetching: userFetching,
-  } = useCheckNicknameQuery(nickname, { skip: isSkip });
+  const [nickCheckMutation, { data: userData }] = useCheckNicknameMutation();
+  const [profileUpdate, { data: profileData }] = useProfileUpdateMutation();
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -33,8 +38,18 @@ const ProfileUpdate = () => {
     }
   };
 
+  const readImageAsBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
+  };
+
   const nickNameCheck = () => {
     setIsSkip(false);
+    nickCheckMutation(nickname);
     if (userData === true) {
       setIsCheck(userData);
     } else {
@@ -43,7 +58,19 @@ const ProfileUpdate = () => {
     setIsSkip(true);
   };
 
-  const handleSubmit = () => {};
+  const handleSubmit = async () => {
+    const base64Image = fileInputRef.current?.files?.[0]
+      ? await readImageAsBase64(fileInputRef.current.files[0])
+      : null;
+
+    const req: ReqUserDto = {
+      nickname: nickname,
+      isOTP: isOtp,
+      profileURL: base64Image,
+    };
+
+    await profileUpdate({ uid: uid, user: req });
+  };
 
   return (
     <div>
@@ -57,7 +84,9 @@ const ProfileUpdate = () => {
             placeholder="닉네임을 입력하세요..."
             onChange={(e) => setNickname(e.target.value)}
           />
-          <Button onClick={nickNameCheck}>중복체크</Button>
+          <Button onClick={nickNameCheck} style={{ marginRight: "10px" }}>
+            중복체크
+          </Button>
           {nickname && <H3>{isCheck ? nickCheck[0] : nickCheck[1]}</H3>}
         </div>
       </GroupBox>

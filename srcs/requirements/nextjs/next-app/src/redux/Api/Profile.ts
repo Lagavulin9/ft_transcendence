@@ -14,16 +14,25 @@ export const ProfileApi = createApi({
     }),
     profileUpdate: builder.mutation<User, { user: ReqUserDto; uid: number }>({
       query({ user, uid }) {
+        const requestBody = {
+          nickname: user.nickname,
+          isOTP: user.isOTP,
+          profileURL: user.profileURL, // 이미 base64로 변환된 문자열
+        };
+
         return {
           url: `http://localhost/api/user/${uid}`,
           method: "PATCH",
-          body: user,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestBody),
         };
       },
     }),
-    checkNickname: builder.query<boolean, string>({
+    checkNickname: builder.mutation<boolean, string>({
       query(nickname: string) {
-        return `http://localhost/api/user/nickChecker?nickname=${nickname}`;
+        return `http://localhost/api/user/check/nick?nickname=${nickname}`;
       },
     }),
   }),
@@ -32,5 +41,5 @@ export const ProfileApi = createApi({
 export const {
   useGetUserQuery,
   useProfileUpdateMutation,
-  useCheckNicknameQuery,
+  useCheckNicknameMutation,
 } = ProfileApi;

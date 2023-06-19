@@ -13,7 +13,7 @@ import MyModal from "../globalComponents/MyModal";
 const Login = () => {
   const router = useRouter();
   const [input, setInput] = useState("");
-  const [loginMutation, { data, error, isLoading }] = useLoginMutation();
+  const [loginMutation, { data, isLoading }] = useLoginMutation();
   const dispatch = useDispatch<AppDispatch>();
 
   const close = () => {

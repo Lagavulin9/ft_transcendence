@@ -55,7 +55,7 @@ export class UserController {
     return this.userService.updateUser(uid, req);
   }
 
-  @Get('/nickChecker')
+  @Get('/check/nick')
   checkUniqueNick(@Query('nickname') nickname: string): Promise<boolean> {
     console.log(nickname);
     return this.userService.checkUniqueNick(nickname);
