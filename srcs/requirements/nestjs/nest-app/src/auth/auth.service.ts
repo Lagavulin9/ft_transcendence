@@ -1,8 +1,10 @@
-import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException, Res } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from "src/user/user.service";
 import { MailerService } from '@nestjs-modules/mailer';
-
+import * as cookie from 'cookie';
+import { Response } from 'express';
+import { access } from 'fs';
 
 @Injectable()
 export class AuthService {
@@ -13,9 +15,17 @@ export class AuthService {
   
   private otpMap = new Map<number, number>();
 
-  async signUp(id: number) {
-    const payload = { id: id };
-    return { access_token: await this.jwtService.signAsync(payload) };
+  async signUp(res:Response) {
+    const payload = { id: 1 };
+    const token = await this.jwtService.signAsync(payload);
+    const cookieOptions = {
+      httpOnly: true,
+      expires: new Date(Date.now() + 100000000000 * 1000), // Set the cookie expiration time
+      // secure: process.env.NODE_ENV === 'production', // Set 'secure' flag in production
+      // sameSite: 'Strict', // Set the 'sameSite' attribute to 'Strict'
+    };
+    res.cookie('Auth', token);
+    return { access_token: token };
   }
 
 
