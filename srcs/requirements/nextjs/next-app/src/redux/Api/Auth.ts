@@ -16,7 +16,7 @@ export const AuthApi = createApi({
     }),
     login: bundler.mutation<User, number>({
       query(id: number) {
-        return `http://localhost/api/auth/login/${id}`;
+        return `http://localhost/api/user/${id}`; //로그인이라고 가정
       },
     }),
   }),
