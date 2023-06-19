@@ -329,7 +329,7 @@ export class ChatService {
     targetSocket.emit('notice', `You are now the channel's admin`);
     targetSocket
       .to(chatroom.roomName)
-      .emit('notice', `${target.nickname} is now the channel's admin`);
+      .emit('usermod', `${target.nickname} is now the channel's admin`);
     client.emit('usermod', 'Success');
     return true;
   }
