@@ -1,3 +1,5 @@
+import { useCheckNicknameQuery } from "@/redux/Api/Profile";
+import { data } from "autoprefixer";
 import React, { useRef, useState } from "react";
 import { Avatar, Button, GroupBox, Radio, Select, TextInput } from "react95";
 import { SelectOption } from "react95/dist/Select/Select.types";
@@ -7,8 +9,15 @@ const ProfileUpdate = () => {
   const [nickname, setNickname] = useState("");
   const [isOtp, setIsOtp] = useState(false);
   const [image, setImage] = useState("");
+  const [isSkip, setIsSkip] = useState(true);
   const [isCheck, setIsCheck] = useState(false);
   const nickCheck = ["중복체크완료.", "사용할 수 없습니다."];
+
+  const {
+    data: userData,
+    error: userError,
+    isFetching: userFetching,
+  } = useCheckNicknameQuery(nickname, { skip: isSkip });
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -24,7 +33,15 @@ const ProfileUpdate = () => {
     }
   };
 
-  const nickNameCheck = () => {};
+  const nickNameCheck = () => {
+    setIsSkip(false);
+    if (userData === true) {
+      setIsCheck(userData);
+    } else {
+      setIsCheck(false);
+    }
+    setIsSkip(true);
+  };
 
   const handleSubmit = () => {};
 

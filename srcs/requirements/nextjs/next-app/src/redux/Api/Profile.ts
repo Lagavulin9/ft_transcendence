@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { User } from "@/types/UserType";
+import { ReqUserDto, User } from "@/types/UserType";
 
 export const ProfileApi = createApi({
   reducerPath: "ProfileApi",
@@ -12,7 +12,25 @@ export const ProfileApi = createApi({
         return `http://localhost/api/user/${userId}`;
       },
     }),
+    profileUpdate: builder.mutation<User, { user: ReqUserDto; uid: number }>({
+      query({ user, uid }) {
+        return {
+          url: `http://localhost/api/user/${uid}`,
+          method: "PATCH",
+          body: user,
+        };
+      },
+    }),
+    checkNickname: builder.query<boolean, string>({
+      query(nickname: string) {
+        return `http://localhost/api/user/nickChecker?nickname=${nickname}`;
+      },
+    }),
   }),
 });
 
-export const { useGetUserQuery } = ProfileApi;
+export const {
+  useGetUserQuery,
+  useProfileUpdateMutation,
+  useCheckNicknameQuery,
+} = ProfileApi;
