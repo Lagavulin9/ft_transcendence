@@ -62,6 +62,14 @@ export class UserService{
 		this.userRepository.save(toUpdate);
 		return toUpdate;
 	}
+
+	async checkUniqueNick(nickname:string):Promise<boolean>{
+		const found = await this.userRepository.findOne({where:{nickname:nickname}});
+		if (!found){
+			return false;
+		}
+		return true;
+	}
 /*
 	async updateProfileUrl(uid: number, profileUrl: string):Promise<User>{
 		const toUpdate =  await this.userRepository.findOne({where:{uid:uid}});
