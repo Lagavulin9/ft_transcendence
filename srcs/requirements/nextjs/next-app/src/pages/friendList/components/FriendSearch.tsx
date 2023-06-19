@@ -14,7 +14,6 @@ const FriendSearch = () => {
     error: userError,
     isFetching: userIsFetching,
   } = useGetUserByNickQuery(input);
-  const { data: authData } = useGetAuthQuery();
 
   const { uId: owner } = useSelector(
     (state: RootState) => state.rootReducers.global
@@ -65,7 +64,7 @@ const FriendSearch = () => {
               style={{ marginLeft: "20px", width: "70px", marginTop: "15px" }}
               onClick={clickAdd}
             >
-              신청
+              팔로우
             </Button>
           </>
         )}

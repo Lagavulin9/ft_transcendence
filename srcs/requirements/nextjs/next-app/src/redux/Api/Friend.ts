@@ -16,6 +16,7 @@ export const FriendApi = createApi({
       query(userId: number) {
         return `http://localhost/api/friend/${userId}`;
       },
+      keepUnusedDataFor: 60, // 캐시된 데이터를 60초 동안 보관
     }),
     addFriend: bundler.mutation<FriendList[], PostFriend>({
       query(friend: PostFriend) {

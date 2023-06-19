@@ -50,15 +50,7 @@ const ChatRoom = () => {
   }, [scrollBottomRef]); // mocContentData가 변경될 때마다 실행
 
   const openGameMode = () => {
-    setIsGameMode(true);
-  };
-
-  const closeGameMode = () => {
-    setIsGameMode(false);
-  };
-
-  const handleGameMode = (value: boolean) => {
-    setIsNormal(value);
+    router.push("/Page/Game", "Page/Game", { shallow: false });
   };
 
   const handleInput = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,6 +72,13 @@ const ChatRoom = () => {
       setInput("");
     }
     setDisabled(false);
+  };
+
+  const openProfile = (uId: number) => {
+    document.body.style.overflow = "hidden";
+    router.push({ pathname: "/Page/Profile", query: { uId } }, undefined, {
+      shallow: false,
+    });
   };
 
   const handleChange = (
@@ -127,10 +126,12 @@ const ChatRoom = () => {
     // 컴포넌트가 언마운트될 때 이벤트 리스너 해제
     onEvent("DM", handleDM);
     onEvent("notice", handleNotice);
+
+    // 게임 게스트 입장 이벤트 리스너 등록
     return () => {
       onError("message", handleMessage);
     };
-  }, []);
+  }, [RoomListRefetch, chatRoomRefetch]);
 
   return (
     <AppLayout>
@@ -192,6 +193,15 @@ const ChatRoom = () => {
                         }}
                       >
                         {User.nickname}
+                        <Button
+                          style={{
+                            fontFamily: "dunggeunmo-bold",
+                            fontSize: "17px",
+                          }}
+                          onClick={() => openProfile(User.uid)}
+                        >
+                          프로필
+                        </Button>
                         <Button
                           style={{
                             fontFamily: "dunggeunmo-bold",

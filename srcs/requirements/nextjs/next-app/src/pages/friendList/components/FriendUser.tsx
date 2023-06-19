@@ -8,11 +8,13 @@ import { Button } from "react95";
 
 interface User {
   userNickName: string;
-  stateOn: boolean;
+  state: number;
   uId: number;
 }
 
-const FriendUser = ({ userNickName, stateOn, uId }: User) => {
+const State: string[] = ["green", "red", "yellow"];
+
+const FriendUser = ({ userNickName, state, uId }: User) => {
   const router = useRouter();
   const openProfile = () => {
     document.body.style.overflow = "hidden";
@@ -58,7 +60,7 @@ const FriendUser = ({ userNickName, stateOn, uId }: User) => {
           <div
             style={{
               marginRight: "8px",
-              backgroundColor: stateOn ? "green" : "red",
+              backgroundColor: State[state],
               width: "10px",
               height: "10px",
               borderRadius: "50%",

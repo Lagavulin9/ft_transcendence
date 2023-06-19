@@ -7,11 +7,12 @@ import { ResMsgDto } from "@/types/ChatDto";
 interface Props {
   Data: ResMsgDto;
   isMe: boolean;
+  isDm?: boolean;
 }
 
 // isDm
 
-const MessageCard = ({ Data, isMe }: Props) => {
+const MessageCard = ({ Data, isMe, isDm }: Props) => {
   if (!Data) {
     return null;
   }
@@ -23,7 +24,7 @@ const MessageCard = ({ Data, isMe }: Props) => {
           <div
             style={{
               maxWidth: "50%",
-              backgroundColor: "#2271ae",
+              backgroundColor: isDm ? "#7d8e23" : "#2271ae",
               padding: "10px",
               borderRadius: "10px",
               marginBottom: "20px",
@@ -65,7 +66,7 @@ const MessageCard = ({ Data, isMe }: Props) => {
           <div
             style={{
               maxWidth: "50%",
-              backgroundColor: "#999",
+              backgroundColor: isDm ? "#7d8e23" : "#999",
               padding: "10px",
               borderRadius: "10px",
               marginBottom: "20px",

@@ -39,6 +39,24 @@ const Login = () => {
       });
   };
 
+  if (isLoading) {
+    return (
+      <AppLayout>
+        <MyModal hName="로그인" close={close}>
+          <div
+            style={{
+              fontFamily: "dunggeunmo-bold",
+              fontSize: "22px",
+              width: "100px",
+            }}
+          >
+            ...로딩중
+          </div>
+        </MyModal>
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout>
       <MyModal hName="로그인" close={close}>

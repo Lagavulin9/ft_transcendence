@@ -9,23 +9,21 @@ import MyModal from "../globalComponents/MyModal";
 import AppLayout from "../globalComponents/AppLayout";
 import { useGetUserQuery } from "@/redux/Api/Profile";
 import { useGetAuthQuery } from "@/redux/Api/Auth";
+import { RootState } from "@/redux/RootStore";
 
 const Profile = () => {
   const [state, setState] = useState({ activeTab: 0 });
   const router = useRouter();
+  const { uId: owner } = useSelector(
+    (state: RootState) => state.rootReducers.global
+  );
   const { uId } = router.query;
-  const {
-    data: authData,
-    error: authError,
-    isLoading: authLoading,
-  } = useGetAuthQuery();
-
   const uid = Number(uId);
 
   const {
     data: userData,
     error: userError,
-    isLoading: userLoading,
+    isFetching: userFetching,
   } = useGetUserQuery(uid);
 
   const handleChange = (
@@ -39,7 +37,17 @@ const Profile = () => {
     router.back();
   };
 
-  if (userData && !userLoading) {
+  if (userFetching) {
+    return (
+      <AppLayout>
+        <MyModal hName="프로필" close={close}>
+          <H1>...로딩중</H1>
+        </MyModal>
+      </AppLayout>
+    );
+  }
+
+  if (userData) {
     return (
       <AppLayout>
         <MyModal hName="프로필" close={close}>
@@ -66,7 +74,7 @@ const Profile = () => {
                 게임로그
               </span>
             </Tab>
-            {authData?.uid === uid && (
+            {owner === uid && (
               <Tab value={2}>
                 <span
                   style={{

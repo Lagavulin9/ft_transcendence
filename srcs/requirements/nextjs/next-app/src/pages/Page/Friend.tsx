@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { WindowContent, Tabs, Tab, ScrollView } from "react95";
 import { Row } from "antd";
 import BlockUser from "../friendList/components/BlockUser";
@@ -36,6 +36,16 @@ const FriendList = () => {
   };
 
   const { activeTab } = state;
+
+  useEffect(() => {
+    const refetchInterval = setInterval(() => {
+      refetch();
+    }, 1000);
+    return () => {
+      clearInterval(refetchInterval);
+    };
+  }, [refetch]);
+
   return (
     <AppLayout>
       <MyModal hName="친구목록" close={close}>
@@ -86,7 +96,7 @@ const FriendList = () => {
                     <FriendUser
                       key={index}
                       userNickName={user.nickname}
-                      stateOn={true} // TODO: 나중에 상태값으로 변경
+                      state={0} // TODO: 나중에 상태값으로 변경
                       uId={user.uid}
                     />
                   ))}
