@@ -227,7 +227,7 @@ export class ChatService{
 
 	async sendDirectMessage(client:Socket, req:ReqSocketDto):Promise<boolean>{
 		const sender = this.Clients.getKey(client);
-		const target = await this.userService.getUserByNick(req.target);
+		const target = await this.userService.getUserByID(req.target);
 		if (!target){
 			client.emit('error', `No such user: ${req.target}`);
 			return false;
@@ -248,7 +248,7 @@ export class ChatService{
 			return false;
 		}
 		const chatroom = this.ChatRooms.get(req.roomName);
-		const target = chatroom.participants.find(u=>u.nickname==req.target);
+		const target = chatroom.participants.find(u=>u.uid==req.target);
 		const targetSocket = this.Clients.getValue(target);
 		chatroom.participants = chatroom.participants.filter(u=>u!=target);
 		targetSocket.leave(chatroom.roomName);
@@ -263,7 +263,7 @@ export class ChatService{
 			return false
 		}
 		const chatroom = this.ChatRooms.get(req.roomName);
-		const target = chatroom.participants.find(u=>u.nickname==req.target);
+		const target = chatroom.participants.find(u=>u.uid==req.target);
 		const targetSocket = this.Clients.getValue(target);
 		chatroom.participants = chatroom.participants.filter(u=>u!=target);
 		targetSocket.leave(chatroom.roomName);
@@ -280,7 +280,7 @@ export class ChatService{
 			return false
 		}
 		const chatroom = this.ChatRooms.get(req.roomName);
-		const target = chatroom.participants.find(u=>u.nickname==req.target);
+		const target = chatroom.participants.find(u=>u.uid==req.target);
 		const targetSocket = this.Clients.getValue(target);
 		chatroom.muted.push(target);
 		setTimeout(()=>{
@@ -299,7 +299,7 @@ export class ChatService{
 			client.emit('notice', 'You are now the owner of this chat');
 			return false;
 		}
-		const target = chatroom.participants.find(u=>u.nickname==req.target);
+		const target = chatroom.participants.find(u=>u.uid==req.target);
 		if (!target){
 			client.emit('error', `No such user: ${req.target}`);
 			return false;
@@ -329,7 +329,7 @@ export class ChatService{
 			client.emit('error', 'You are not an admin of this channel');
 			return false;
 		}
-		const target = chatroom.participants.find(u=>u.nickname==req.target);
+		const target = chatroom.participants.find(u=>u.uid==req.target);
 		//타겟이 없음
 		if (!target){
 			client.emit('error', `No such user: ${req.target}`);

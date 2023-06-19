@@ -2,7 +2,7 @@
 export class ReqSocketDto {
   roomName: string;
   roomType: number;
-  target: string;
+  target: number;
   msg: string;
   password: string;
 }
