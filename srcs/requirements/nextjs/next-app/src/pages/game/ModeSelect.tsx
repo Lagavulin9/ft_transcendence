@@ -7,14 +7,12 @@ interface props {
 }
 
 const ModeSelect = ({ func }: props) => {
-  const [isNormal, setIsNormal] = useState(true);
-
   return (
     <div>
-      <Button onClick={() => setIsNormal(true)}>
+      <Button onClick={() => func(true)}>
         <H3>일반 모드</H3>
       </Button>
-      <Button onClick={() => setIsNormal(false)}>
+      <Button onClick={() => func(false)}>
         <H3>스페셜 모드</H3>
       </Button>
     </div>

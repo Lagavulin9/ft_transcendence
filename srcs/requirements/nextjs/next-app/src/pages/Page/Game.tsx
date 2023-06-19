@@ -5,6 +5,7 @@ import MyModal from "../globalComponents/MyModal";
 import { WindowContent } from "react95";
 import InGame from "../game/InGame";
 import ModeSelect from "../game/ModeSelect";
+import GameReady from "../game/GameReady";
 
 const Game = () => {
   const [isNormal, setIsNormal] = useState(true);
@@ -25,7 +26,7 @@ const Game = () => {
     <AppLayout>
       <MyModal hName="게임" close={close}>
         <WindowContent>
-          {isVisible ? <InGame /> : <ModeSelect func={Mode} />}
+          {isVisible ? <GameReady /> : <ModeSelect func={Mode} />}
         </WindowContent>
       </MyModal>
     </AppLayout>

@@ -193,24 +193,26 @@ const ChatRoom = () => {
                         }}
                       >
                         {User.nickname}
-                        <Button
-                          style={{
-                            fontFamily: "dunggeunmo-bold",
-                            fontSize: "17px",
-                          }}
-                          onClick={() => openProfile(User.uid)}
-                        >
-                          프로필
-                        </Button>
-                        <Button
-                          style={{
-                            fontFamily: "dunggeunmo-bold",
-                            fontSize: "17px",
-                          }}
-                          onClick={openGameMode}
-                        >
-                          게임하기
-                        </Button>
+                        <div>
+                          <Button
+                            style={{
+                              fontFamily: "dunggeunmo-bold",
+                              fontSize: "17px",
+                            }}
+                            onClick={() => openProfile(User.uid)}
+                          >
+                            프로필
+                          </Button>
+                          <Button
+                            style={{
+                              fontFamily: "dunggeunmo-bold",
+                              fontSize: "17px",
+                            }}
+                            onClick={openGameMode}
+                          >
+                            게임하기
+                          </Button>
+                        </div>
                       </div>
                       <div
                         style={{

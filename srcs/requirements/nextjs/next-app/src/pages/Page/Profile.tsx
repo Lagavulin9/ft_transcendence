@@ -10,6 +10,7 @@ import AppLayout from "../globalComponents/AppLayout";
 import { useGetUserQuery } from "@/redux/Api/Profile";
 import { useGetAuthQuery } from "@/redux/Api/Auth";
 import { RootState } from "@/redux/RootStore";
+import ProfileUpdate from "../profile/ProfileUpdate";
 
 const Profile = () => {
   const [state, setState] = useState({ activeTab: 0 });
@@ -96,7 +97,7 @@ const Profile = () => {
               >
                 {state.activeTab === 0 && <UserInfo user={userData} />}
                 {state.activeTab === 1 && <H1>게임로그</H1>}
-                {state.activeTab === 2 && <H1>프로필수정</H1>}
+                {state.activeTab === 2 && <ProfileUpdate />}
               </ScrollView>
             </Row>
           </WindowContent>
