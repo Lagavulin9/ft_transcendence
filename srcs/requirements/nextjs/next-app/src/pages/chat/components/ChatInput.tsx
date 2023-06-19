@@ -5,10 +5,10 @@ interface Props {
   input: string;
   func: (event: React.ChangeEvent<HTMLInputElement>) => void;
   click: () => void;
-  disabled: boolean;
+  isMute: boolean;
 }
 
-const ChatInput = ({ input, func, click }: Props) => {
+const ChatInput = ({ input, func, click, isMute }: Props) => {
   // TODO: 사용자인풋 최대 100글자만 작성되게해야함
   return (
     <div
@@ -23,6 +23,7 @@ const ChatInput = ({ input, func, click }: Props) => {
     >
       <div style={{ width: "500px" }}>
         <TextInput
+          disabled={isMute}
           value={input}
           onChange={func}
           placeholder="Input..."

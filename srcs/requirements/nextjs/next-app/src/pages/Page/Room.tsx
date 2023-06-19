@@ -1,5 +1,5 @@
 import { Grid, Row } from "antd";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Button, WindowContent, ScrollView, Tabs, Tab } from "react95";
 import MessageCard from "../chat/components/MessageCard";
 import GameMode from "@/pages/game/GameMode";
@@ -9,13 +9,10 @@ import AppLayout from "../globalComponents/AppLayout";
 import MyModal from "../globalComponents/MyModal";
 import { useRouter } from "next/router";
 import { useGetAllQuery, useGetChatRoomQuery } from "@/redux/Api/ChatRoom";
-import { emitEvent, onError, onEvent } from "@/utils/socket";
+import { emitEvent, offEvent, onError, onEvent } from "@/utils/socket";
 import { ReqSocketDto, ResMsgDto } from "@/types/ChatDto";
 import { RootState } from "@/redux/RootStore";
 import H3 from "../PostComponents/H3";
-import { data } from "autoprefixer";
-
-const { useBreakpoint } = Grid;
 
 const ChatRoom = () => {
   const [input, setInput] = useState("");
@@ -27,6 +24,9 @@ const ChatRoom = () => {
   const [disabled, setDisabled] = useState(false);
   const router = useRouter();
   const { roomName } = router.query;
+  const [isMute, setIsMute] = useState(false);
+  const [isBan, setIsBan] = useState(false);
+  const [isKick, setIsKick] = useState(false);
 
   const { uId: owner } = useSelector(
     (state: RootState) => state.rootReducers.global
@@ -38,9 +38,6 @@ const ChatRoom = () => {
     isFetching: RoomListLoading,
   } = useGetChatRoomQuery(roomName as string);
 
-  const { refetch: RoomListRefetch } = useGetAllQuery(owner);
-
-  const screens = useBreakpoint();
   const scrollBottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -59,7 +56,9 @@ const ChatRoom = () => {
   };
 
   const sendMsg = () => {
-    setDisabled(true);
+    if (input.length === 0) {
+      return;
+    }
     if (chatRoomData) {
       const tmp = {
         roomName: chatRoomData.roomName,
@@ -71,7 +70,6 @@ const ChatRoom = () => {
       emitEvent("message", tmp);
       setInput("");
     }
-    setDisabled(false);
   };
 
   const openProfile = (uId: number) => {
@@ -90,7 +88,7 @@ const ChatRoom = () => {
 
   const { activeTab } = state;
 
-  const close = () => {
+  const close = useCallback(() => {
     if (chatRoomData) {
       const tmp = {
         roomName: chatRoomData.roomName,
@@ -102,9 +100,8 @@ const ChatRoom = () => {
       emitEvent("leave", tmp);
     }
     chatRoomRefetch();
-    RoomListRefetch();
     router.back();
-  };
+  }, [chatRoomData, chatRoomRefetch, router]);
 
   useEffect(() => {
     // 메시지 이벤트 리스너 등록
@@ -124,9 +121,10 @@ const ChatRoom = () => {
 
     // 게임 게스트 입장 이벤트 리스너 등록
     return () => {
-      onError("message", handleMessage);
+      offEvent("message");
+      offEvent("DM");
     };
-  }, [RoomListRefetch, chatRoomRefetch]);
+  }, [chatRoomRefetch]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -137,20 +135,42 @@ const ChatRoom = () => {
 
   useEffect(() => {
     onEvent("kick", () => {
+      setIsKick(true);
       close();
     });
     onEvent("ban", () => {
+      setIsBan(true);
       close();
     });
-  }, []);
+    onEvent("mute", () => {
+      setIsMute(true);
+      const timer = setTimeout(() => {
+        setIsMute(false);
+      }, 1000 * 60);
+    });
 
-  const onAlba = (uid: number) => {
-    emitEvent("usermod", {
+    return () => {
+      offEvent("kick");
+      offEvent("ban");
+      offEvent("mute");
+      offEvent("usermod");
+    };
+  }, [close, isMute, chatRoomRefetch, isKick, isBan, RoomListLoading]);
+
+  const onAlba = async (uid: number) => {
+    await emitEvent("usermod", {
       roomName: chatRoomData?.roomName,
       roomType: chatRoomData?.roomType,
       target: uid,
       msg: "",
       password: "",
+    });
+    onEvent("error", () => {
+      console.log("error");
+    });
+    await onEvent("usermod", () => {
+      console.log("usermod");
+      chatRoomRefetch();
     });
   };
 
@@ -202,6 +222,10 @@ const ChatRoom = () => {
                 })}
               {activeTab === 1 &&
                 chatRoomData?.participants.map((User, index) => {
+                  const isAlba = chatRoomData.roomAlba?.find(
+                    (alba) => alba.uid === User.uid
+                  );
+
                   return (
                     <div key={index}>
                       <div
@@ -215,25 +239,46 @@ const ChatRoom = () => {
                         }}
                       >
                         {`${
-                          chatRoomData?.roomAlba[index].uid === User.uid
+                          chatRoomData.roomOwner.uid === User.uid
+                            ? "👑"
+                            : isAlba?.uid === User.uid
                             ? "😎"
                             : ""
                         } ${User.nickname}`}
 
                         {User.uid !== owner && (
                           <div>
-                            {chatRoomData &&
-                              chatRoomData.roomOwner.uid === owner && (
-                                <Button
-                                  style={{
-                                    fontFamily: "dunggeunmo-bold",
-                                    fontSize: "17px",
-                                  }}
-                                  onClick={() => onAlba(User.uid)}
-                                >
-                                  알바시키기
+                            {/* 자기 자신이 방장이고, 대상 유저가 알바인 경우 */}
+                            {owner === chatRoomData.roomOwner.uid &&
+                              chatRoomData.roomAlba.findIndex(
+                                (alba) => alba.uid === owner
+                              ) > 0 && (
+                                <Button onClick={() => onAlba(User.uid)}>
+                                  알바해고
                                 </Button>
                               )}
+
+                            {/* 자기 자신이 방장이고, 대상 유저가 일반인 경우 */}
+                            {owner === chatRoomData.roomOwner.uid &&
+                              chatRoomData.roomAlba.findIndex(
+                                (alba) => alba.uid === owner
+                              ) <= 0 && (
+                                <Button onClick={() => onAlba(User.uid)}>
+                                  알바고용
+                                </Button>
+                              )}
+
+                            {/* 자기 자신이 알바이거나 방장일 때 */}
+                            {chatRoomData.roomAlba.findIndex(
+                              (alba) => alba.uid === owner
+                            ) >= 0 && (
+                              <>
+                                <Button>차단</Button>
+                                <Button>강퇴</Button>
+                                <Button>뮤트</Button>
+                              </>
+                            )}
+
                             <Button
                               style={{
                                 fontFamily: "dunggeunmo-bold",
@@ -274,14 +319,10 @@ const ChatRoom = () => {
           input={input}
           func={handleInput}
           click={sendMsg}
-          disabled={disabled}
+          isMute={isMute}
         />
       </MyModal>
     </AppLayout>
-
-    // {isGameMode && (
-    //   <GameMode close={closeGameMode} gameMode={handleGameMode} />
-    // )}
   );
 };
 
