@@ -6,9 +6,10 @@ import { createUserDto } from "src/dto/createUser.dto";
 import { ResUserDto } from "src/dto/resUser.dto";
 import { plainToInstance } from "class-transformer";
 import { LogDto, GameLogDto } from "src/dto/log.dto";
-import { Log } from "src/user/log.entity";
+import { Log } from "src/game/log.entity";
 import { FriendList } from "src/friend/friend.entity";
 import { ReqUserDto } from "src/dto/reqUser.dto";
+import { GameService } from "src/game/game.service";
 
 @Injectable()
 export class UserService{
@@ -18,7 +19,8 @@ export class UserService{
 		@InjectRepository(Log)
 		private logRepository:Repository<Log>,
 		@InjectRepository(FriendList)
-		private friendRepository:Repository<FriendList>
+		private friendRepository:Repository<FriendList>,
+		private gameService:GameService
 	){}
 
 	async getUserByID(uid:number): Promise<ResUserDto> {
@@ -27,7 +29,7 @@ export class UserService{
 			throw new NotFoundException(`Could not find uid:${uid}`);
 		}
 		const res = plainToInstance(ResUserDto, found);
-		res.gameLog = await this.getUserGameLogs(uid);
+		res.gameLog = await this.gameService.getUserGameLogs(uid);
 		return res;
 	}
 
@@ -37,7 +39,7 @@ export class UserService{
 			throw new NotFoundException(`Could not find nickname:${nickname}`)
 		}
 		const res = plainToInstance(ResUserDto, found);
-		res.gameLog = await this.getUserGameLogs(found.uid);
+		res.gameLog = await this.gameService.getUserGameLogs(found.uid);
 		return res;
 	}
 
@@ -81,34 +83,34 @@ export class UserService{
 		return toUpdate;
 	}
 */
-	async getUserGameLogs(uid:number): Promise<GameLogDto[]>{
-		const gamelog = []
-		gamelog.push(...await this.logRepository.find({where:{fromId:uid}}));
-		gamelog.push(...await this.logRepository.find({where:{toId:uid}}));
-		const gamelogdto = plainToInstance(GameLogDto, gamelog)
-		return gamelogdto;
-	}
+	// async getUserGameLogs(uid:number): Promise<GameLogDto[]>{
+	// 	const gamelog = []
+	// 	gamelog.push(...await this.logRepository.find({where:{fromId:uid}}));
+	// 	gamelog.push(...await this.logRepository.find({where:{toId:uid}}));
+	// 	const gamelogdto = plainToInstance(GameLogDto, gamelog)
+	// 	return gamelogdto;
+	// }
 
-	async saveGameLog(log:LogDto): Promise<Log>{
-		const newLog = this.logRepository.create(log);
-		newLog.fromScore = log.score[0];
-		newLog.toScore = log.score[1];
-		const host = await this.userRepository.findOne({where:{uid:log.fromId}});
-		const guest = await this.userRepository.findOne({where:{uid:log.toId}});
-		if (!host || !guest){
-			throw new NotFoundException('No such user');
-		}
-		if (newLog.fromScore > newLog.toScore){
-			host.totalWin++;
-			guest.totalLose++;
-		}
-		else{
-			host.totalLose++;
-			guest.totalWin++;
-		}
-		await this.logRepository.save(newLog);
-		this.userRepository.save(host);
-		this.userRepository.save(guest);
-		return newLog;
-	}
+	// async saveGameLog(log:LogDto): Promise<Log>{
+	// 	const newLog = this.logRepository.create(log);
+	// 	newLog.fromScore = log.score[0];
+	// 	newLog.toScore = log.score[1];
+	// 	const host = await this.userRepository.findOne({where:{uid:log.fromId}});
+	// 	const guest = await this.userRepository.findOne({where:{uid:log.toId}});
+	// 	if (!host || !guest){
+	// 		throw new NotFoundException('No such user');
+	// 	}
+	// 	if (newLog.fromScore > newLog.toScore){
+	// 		host.totalWin++;
+	// 		guest.totalLose++;
+	// 	}
+	// 	else{
+	// 		host.totalLose++;
+	// 		guest.totalWin++;
+	// 	}
+	// 	await this.logRepository.save(newLog);
+	// 	this.userRepository.save(host);
+	// 	this.userRepository.save(guest);
+	// 	return newLog;
+	// }
 }

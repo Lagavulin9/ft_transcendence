@@ -9,6 +9,7 @@ import { Server, Socket } from 'socket.io';
 import { Chat } from 'src/chat/chat.entity';
 import { ChatService } from 'src/chat/chat.service';
 import { ReqSocketDto } from 'src/dto/reqSocket.dto';
+import { GameService } from 'src/game/game.service';
 import { UserService } from 'src/user/user.service';
 
 // @WebSocketGateway({cors:{origin:['nextjs']}})
@@ -17,6 +18,7 @@ export class socketGateway implements OnModuleInit {
   constructor(
     private chatService: ChatService,
     private userService: UserService,
+    private gameService: GameService
   ) {}
 
   @WebSocketServer()

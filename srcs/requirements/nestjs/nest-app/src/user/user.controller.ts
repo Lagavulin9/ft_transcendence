@@ -7,7 +7,7 @@ import { createUserSchema } from "src/schema/createUser.schema";
 import { LogSchema } from "src/schema/log.schema";
 import { LogDto } from "src/dto/log.dto";
 import { User } from "./user.entity";
-import { Log } from "./log.entity";
+import { Log } from "../game/log.entity";
 import { ReqUserDto } from "src/dto/reqUser.dto";
 
 @Controller('user')
@@ -30,16 +30,16 @@ export class UserController{
 		return this.userService.createUser(user);
 	}
 
-	@Post('/log')
-	@UsePipes(new JoiValidationPipe(LogSchema))
-	saveGameLog(@Body(new ValidationPipe) log:LogDto):Promise<Log>{
-		return this.userService.saveGameLog(log);
-	}
+	// @Post('/log')
+	// @UsePipes(new JoiValidationPipe(LogSchema))
+	// saveGameLog(@Body(new ValidationPipe) log:LogDto):Promise<Log>{
+	// 	return this.userService.saveGameLog(log);
+	// }
 
-	@Patch('/:uid')
-	updateUser(@Param('uid', ParseIntPipe) uid:number, @Body() req:ReqUserDto):Promise<User> {
-		return this.userService.updateUser(uid, req);
-	}
+	// @Patch('/:uid')
+	// updateUser(@Param('uid', ParseIntPipe) uid:number, @Body() req:ReqUserDto):Promise<User> {
+	// 	return this.userService.updateUser(uid, req);
+	// }
 
 	@Get('/nickChecker')
 	checkUniqueNick(@Query('nickname') nickname:string):Promise<boolean>{
