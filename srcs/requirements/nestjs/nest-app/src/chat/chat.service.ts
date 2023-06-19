@@ -220,6 +220,7 @@ export class ChatService{
 		msgCard.profileURL = user.profileURL;
 		msgCard.content = req.msg;
 		msgCard.date = new Date().toLocaleTimeString();
+		client.emit('message', msgCard);
 		client.to(req.roomName).emit('message', msgCard);
 		return true;
 	}
@@ -238,6 +239,7 @@ export class ChatService{
 		msgCard.profileURL = sender.profileURL;
 		msgCard.content = req.msg;
 		msgCard.date = new Date().toLocaleTimeString();
+		client.emit('DM', msgCard);
 		targetSocket.emit('DM', msgCard);
 	}
 
