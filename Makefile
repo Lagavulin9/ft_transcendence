@@ -2,7 +2,7 @@ NAME = ft_transcendence
 SRC_DIR = ./srcs
 DOCKER_COMPOSE_FILE = $(SRC_DIR)/docker-compose.yaml
 DOCKER_COMPOSE = sudo docker-compose -f $(DOCKER_COMPOSE_FILE)
-IMAGES := node:20-alpine3.16 postgres:15-alpine nginx:1.25.0-alpine dpage/pgadmin4:7.1
+IMAGES := node:18-alpine3.16 postgres:15-alpine nginx:1.25.0-alpine dpage/pgadmin4:7.1
 
 $(NAME) : all
 

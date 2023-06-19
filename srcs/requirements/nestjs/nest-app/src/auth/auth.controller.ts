@@ -1,10 +1,11 @@
-import { Body, Controller, Get, Param, Post, Req, Res, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Query, Req, Res, UseGuards } from "@nestjs/common";
 import { FtAuthGuard } from "./auth.guard";
 import { AuthService } from "./auth.service";
 import { GetGuardData } from "./getGuardData.decorator";
 import { UserService } from "src/user/user.service";
 import { Response } from 'express';
 import { ResUserDto } from "src/dto/resUser.dto";
+import axios from "axios";
 
 @Controller('auth')
 export class AuthController{
@@ -19,21 +20,17 @@ export class AuthController{
 
   @Get('/redirect')
   @UseGuards(FtAuthGuard)
-  async redirect(@GetGuardData() data, @Res() res:Response):Promise<any>{
-    // const uid = await this.userService.getUserByID(data.id);
-    // if (!uid){
-    //   //회원가입으로 보내줌
-    //   //uid랑 닉네임
-    //   // const redirectURL = `http://localhost/login`
-    //   // return res.redirect(redirectURL);
-    //   return 'not enrolled';
-    // }
-    // else{
-    //   // const redirectURL = `http://localhost/`
-    //   // return res.redirect(redirectURL);
-    //   return 'enrolled';
-    // }
-    return 'redirected successfully'
+  async redirect(@GetGuardData() data, @Res({passthrough: true}) res:Response):Promise<any>{
+    const user = await this.userService.getUserByID(data.id).catch((e)=>{});
+    if (!user){
+      console.log('no such user');
+      //redirect to signup
+    }
+    else{
+      console.log(user)
+      //redirect to home
+    }
+    return user
   }
 
   @Get('/login')
