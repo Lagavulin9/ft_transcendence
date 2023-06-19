@@ -3,8 +3,9 @@ import { JwtService } from '@nestjs/jwt';
 import { UserService } from "src/user/user.service";
 import { MailerService } from '@nestjs-modules/mailer';
 
+
 @Injectable()
-export class AuthService{
+export class AuthService {
   constructor(
     private jwtService:JwtService,
     private userService:UserService,
@@ -12,10 +13,11 @@ export class AuthService{
   
   private otpMap = new Map<number, number>();
 
-  async signUp(id:number){
-    const payload = { id:id };
+  async signUp(id: number) {
+    const payload = { id: id };
     return { access_token: await this.jwtService.signAsync(payload) };
   }
+
 
   async sendEmail(uid:number):Promise<boolean>{
     const to = await this.userService.getUserByID(uid);
@@ -62,3 +64,4 @@ export class AuthService{
     return randomNumber;
   }
 }
+
