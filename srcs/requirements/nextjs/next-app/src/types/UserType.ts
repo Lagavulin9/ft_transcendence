@@ -16,3 +16,9 @@ export interface User {
   totalWin: number;
   uid: number;
 }
+
+export interface ReqUserDto {
+  nickname: string;
+  isOTP: boolean;
+  profileURL: string;
+}
