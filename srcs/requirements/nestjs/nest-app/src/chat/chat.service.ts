@@ -252,7 +252,7 @@ export class ChatService{
 		const targetSocket = this.Clients.getValue(target);
 		chatroom.participants = chatroom.participants.filter(u=>u!=target);
 		targetSocket.leave(chatroom.roomName);
-		targetSocket.emit('notice', `You were kicked by channel's admin`);
+		targetSocket.emit('kick', `You were kicked by channel's admin`);
 		client.to(chatroom.roomName).emit('notice', `${target.nickname} was kicked by channel's admin`);
 		client.emit('kick', 'Success');
 		return true;
@@ -267,7 +267,7 @@ export class ChatService{
 		const targetSocket = this.Clients.getValue(target);
 		chatroom.participants = chatroom.participants.filter(u=>u!=target);
 		targetSocket.leave(chatroom.roomName);
-		targetSocket.emit('notice', `You were banned by channel's admin`);
+		targetSocket.emit('ban', `You were banned by channel's admin`);
 		client.to(chatroom.roomName).emit('notice', `${target.nickname} was banned by channel's admin`);
 		client.emit('ban', 'Success');
 		chatroom.banned.push(target);
@@ -287,7 +287,7 @@ export class ChatService{
 			chatroom.muted = chatroom.muted.filter(u=>u!=target);
 			targetSocket.emit('notice', `You are now unmuted`);
 		}, time);
-		targetSocket.emit('notice', `You are now muted for ${time/1000}seconds`);
+		targetSocket.emit('mute', `You are now muted for ${time/1000}seconds`);
 		client.to(chatroom.roomName).emit('notice', `${target.nickname} was muted by channel's admin`);
 		client.emit('mute', 'Success');
 	}
