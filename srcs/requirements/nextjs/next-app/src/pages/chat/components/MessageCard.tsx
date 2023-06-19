@@ -40,7 +40,7 @@ const MessageCard = ({ Data, isMe, isDm }: Props) => {
                 alignItems: "center",
               }}
             >
-              <Avatar src={Data.profileURL} size={50} />
+              <Avatar src={Data.profileURL} size={40} />
               <div style={{ marginRight: "20px", fontSize: "25px" }}>
                 {Data.nickname}
               </div>
@@ -71,12 +71,7 @@ const MessageCard = ({ Data, isMe, isDm }: Props) => {
             }}
           >
             <div style={{ display: "flex", alignItems: "center" }}>
-              <Image
-                preview={false}
-                src={Data.profileURL}
-                width={"40px"}
-                style={{ borderRadius: "50%" }}
-              />
+              <Avatar src={Data.profileURL} size={30} />
               <div style={{ marginLeft: "20px", fontSize: "25px" }}>
                 {Data.nickname}
               </div>

@@ -37,6 +37,10 @@ const RoomList = () => {
     onError("error", () => {
       return;
     });
+
+    if (chatData?.[index].roomType === 2) {
+      // TODO 비밀번호 받고, 서버에 validation 요청
+    }
     router.push(
       {
         pathname: "/Page/Room",

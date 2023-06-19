@@ -135,6 +135,25 @@ const ChatRoom = () => {
     return () => clearInterval(timer);
   }, [chatRoomRefetch]);
 
+  useEffect(() => {
+    onEvent("kick", () => {
+      close();
+    });
+    onEvent("ban", () => {
+      close();
+    });
+  }, []);
+
+  const onAlba = (uid: number) => {
+    emitEvent("usermod", {
+      roomName: chatRoomData?.roomName,
+      roomType: chatRoomData?.roomType,
+      target: uid,
+      msg: "",
+      password: "",
+    });
+  };
+
   return (
     <AppLayout>
       <MyModal hName={chatRoomData?.roomName ?? "채팅룸"} close={close}>
@@ -195,10 +214,26 @@ const ChatRoom = () => {
                           fontSize: "20px",
                         }}
                       >
-                        {User.nickname}
+                        {`${
+                          chatRoomData?.roomAlba[index].uid === User.uid
+                            ? "😎"
+                            : ""
+                        } ${User.nickname}`}
 
                         {User.uid !== owner && (
                           <div>
+                            {chatRoomData &&
+                              chatRoomData.roomOwner.uid === owner && (
+                                <Button
+                                  style={{
+                                    fontFamily: "dunggeunmo-bold",
+                                    fontSize: "17px",
+                                  }}
+                                  onClick={() => onAlba(User.uid)}
+                                >
+                                  알바시키기
+                                </Button>
+                              )}
                             <Button
                               style={{
                                 fontFamily: "dunggeunmo-bold",
