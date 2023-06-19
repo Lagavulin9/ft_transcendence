@@ -72,9 +72,13 @@ export class GameService{
 		}
 		for (const [key, gameroom] of this.GameRooms.entries())
 		{
-			if (gameroom.host.uid == uid || gameroom.guest.uid == uid){
-				console.log('connection lost..')
-				//여기서 게임종료처리해야함.
+			if (gameroom.host.uid == uid){
+				const guestSocket = this.Clients.getValue(gameroom.guest.uid);
+				guestSocket.emit('game-over', undefined);
+			}
+			else if(gameroom.guest.uid == uid){
+				const hostSocket = this.Clients.getValue(gameroom.host.uid);
+				hostSocket.emit('game-over', undefined);
 			}
 		}
 		this.Clients.delete(uid);
@@ -95,7 +99,7 @@ export class GameService{
 		}
 		const guestSocket = this.Clients.getValue(guest.uid);
 		if (!guestSocket){
-			console.log('guest is not online');
+			console.log('guest is offline');
 			return false;
 		}
 		const gameroom = new GameRoom();
@@ -130,17 +134,12 @@ export class GameService{
 				}
 			}
 		}
-		else{
-			for (const [key, gameroom] of this.GameRooms.entries()){
-				if (gameroom.guest.uid == guestUid){
-					const hostSocket = this.Clients.getValue(gameroom.host.uid);
-					hostSocket.emit('notice', `${gameroom.guest} has rejected`);
-					this.GameRooms.delete(gameroom.host.uid);
-					console.log(this.GameRooms);
-					break ;
-				}
-			}
-		}
+	}
+
+	declineInvitation(client:Socket, req:GameRoom){
+		const hostUid = this.Clients.getKey(client);
+		this.GameRooms.delete(hostUid);
+		client.emit('notice', 'gameroom closed');
 	}
 
 	host2guest(client:Socket, data:GameStateDto){

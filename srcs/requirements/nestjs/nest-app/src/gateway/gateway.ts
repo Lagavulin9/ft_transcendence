@@ -11,6 +11,7 @@ import { ChatService } from 'src/chat/chat.service';
 import { GameStateDto } from 'src/dto/gameState.dto';
 import { ReqSocketDto } from 'src/dto/reqSocket.dto';
 import { GameService } from 'src/game/game.service';
+import { GameRoom } from 'src/game/gameroom.entity';
 import { UserService } from 'src/user/user.service';
 
 // @WebSocketGateway({cors:{origin:['nextjs']}})
@@ -99,14 +100,19 @@ export class socketGateway implements OnModuleInit {
     return this.gameService.createNewGame(client, req);
   }
 
-  @SubscribeMessage('game-over')
-  handleGameOver(client:Socket, data:GameStateDto){
-    return this.gameService.gameOver(client, data);
-  }
-
   @SubscribeMessage('game-accept')
   handleGameAccept(client:Socket, req:ReqSocketDto){
     return this.gameService.acceptInvitation(client, req);
+  }
+
+  @SubscribeMessage('game-decline')
+  handleGameDecline(client:Socket, req:GameRoom){
+    return this.gameService.declineInvitation(client, req);
+  }
+
+  @SubscribeMessage('game-over')
+  handleGameOver(client:Socket, data:GameStateDto){
+    return this.gameService.gameOver(client, data);
   }
 
   @SubscribeMessage('host2guest')
