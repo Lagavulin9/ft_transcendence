@@ -27,10 +27,15 @@ const ChatRoom = () => {
   const [isMute, setIsMute] = useState(false);
   const [isBan, setIsBan] = useState(false);
   const [isKick, setIsKick] = useState(false);
+  const [isBlba, setIsBlba] = useState(false);
 
   const { uId: owner } = useSelector(
     (state: RootState) => state.rootReducers.global
   );
+
+  if (roomName === undefined || roomName === null) {
+    return null;
+  }
 
   const {
     data: chatRoomData,
@@ -88,7 +93,8 @@ const ChatRoom = () => {
 
   const { activeTab } = state;
 
-  const close = useCallback(() => {
+  const close = useCallback(async () => {
+    console.log("close");
     if (chatRoomData) {
       const tmp = {
         roomName: chatRoomData.roomName,
@@ -99,9 +105,14 @@ const ChatRoom = () => {
       } as ReqSocketDto;
       emitEvent("leave", tmp);
     }
-    chatRoomRefetch();
+    await offEvent("kick");
+    await offEvent("ban");
+    await offEvent("mute");
+    await offEvent("usermod");
+    await offEvent("message");
+    await offEvent("DM");
     router.back();
-  }, [chatRoomData, chatRoomRefetch, router]);
+  }, [chatRoomData, router]);
 
   useEffect(() => {
     // 메시지 이벤트 리스너 등록
@@ -120,10 +131,6 @@ const ChatRoom = () => {
     onEvent("DM", handleDM);
 
     // 게임 게스트 입장 이벤트 리스너 등록
-    return () => {
-      offEvent("message");
-      offEvent("DM");
-    };
   }, [chatRoomRefetch]);
 
   useEffect(() => {
@@ -134,14 +141,6 @@ const ChatRoom = () => {
   }, [chatRoomRefetch]);
 
   useEffect(() => {
-    onEvent("kick", () => {
-      setIsKick(true);
-      close();
-    });
-    onEvent("ban", () => {
-      setIsBan(true);
-      close();
-    });
     onEvent("mute", () => {
       setIsMute(true);
       const timer = setTimeout(() => {
@@ -149,15 +148,18 @@ const ChatRoom = () => {
       }, 1000 * 60);
     });
 
-    return () => {
-      offEvent("kick");
-      offEvent("ban");
-      offEvent("mute");
-      offEvent("usermod");
-    };
-  }, [close, isMute, chatRoomRefetch, isKick, isBan, RoomListLoading]);
+    onEvent("leave", () => {
+      chatRoomRefetch();
+    });
+
+    onEvent("kick", (data) => {
+      console.log(data);
+      close();
+    });
+  }, [close, isMute, chatRoomRefetch, RoomListLoading]);
 
   const onAlba = async (uid: number) => {
+    setIsBlba(true);
     await emitEvent("usermod", {
       roomName: chatRoomData?.roomName,
       roomType: chatRoomData?.roomType,
@@ -165,11 +167,55 @@ const ChatRoom = () => {
       msg: "",
       password: "",
     });
-    onEvent("error", () => {
-      console.log("error");
-    });
+
     await onEvent("usermod", () => {
       console.log("usermod");
+      chatRoomRefetch();
+    });
+  };
+
+  const onKick = async (uid: number) => {
+    setIsKick(!isKick);
+    await emitEvent("kick", {
+      roomName: chatRoomData?.roomName,
+      roomType: chatRoomData?.roomType,
+      target: uid,
+      msg: "",
+      password: "",
+    });
+
+    await onEvent("kicknotice", (data) => {
+      console.log(data);
+      chatRoomRefetch();
+    });
+  };
+
+  const onBan = async (uid: number) => {
+    setIsBan(!isBan);
+    await emitEvent("ban", {
+      roomName: chatRoomData?.roomName,
+      roomType: chatRoomData?.roomType,
+      target: uid,
+      msg: "",
+      password: "",
+    });
+
+    await onEvent("ban", () => {
+      chatRoomRefetch();
+    });
+  };
+
+  const onMute = async (uid: number) => {
+    setIsMute(!isMute);
+    await emitEvent("mute", {
+      roomName: chatRoomData?.roomName,
+      roomType: chatRoomData?.roomType,
+      target: uid,
+      msg: "",
+      password: "",
+    });
+
+    await onEvent("mute", () => {
       chatRoomRefetch();
     });
   };
@@ -248,22 +294,15 @@ const ChatRoom = () => {
 
                         {User.uid !== owner && (
                           <div>
-                            {/* 자기 자신이 방장이고, 대상 유저가 알바인 경우 */}
-                            {owner === chatRoomData.roomOwner.uid &&
-                              chatRoomData.roomAlba.findIndex(
-                                (alba) => alba.uid === owner
-                              ) > 0 && (
-                                <Button onClick={() => onAlba(User.uid)}>
-                                  알바해고
-                                </Button>
-                              )}
-
                             {/* 자기 자신이 방장이고, 대상 유저가 일반인 경우 */}
                             {owner === chatRoomData.roomOwner.uid &&
                               chatRoomData.roomAlba.findIndex(
                                 (alba) => alba.uid === owner
                               ) <= 0 && (
-                                <Button onClick={() => onAlba(User.uid)}>
+                                <Button
+                                  onClick={() => onAlba(User.uid)}
+                                  disabled={isBlba}
+                                >
                                   알바고용
                                 </Button>
                               )}
@@ -271,13 +310,20 @@ const ChatRoom = () => {
                             {/* 자기 자신이 알바이거나 방장일 때 */}
                             {chatRoomData.roomAlba.findIndex(
                               (alba) => alba.uid === owner
-                            ) >= 0 && (
-                              <>
-                                <Button>차단</Button>
-                                <Button>강퇴</Button>
-                                <Button>뮤트</Button>
-                              </>
-                            )}
+                            ) >= 0 &&
+                              User.uid !== chatRoomData.roomOwner.uid && (
+                                <>
+                                  <Button onClick={() => onBan(User.uid)}>
+                                    차단
+                                  </Button>
+                                  <Button onClick={() => onKick(User.uid)}>
+                                    강퇴
+                                  </Button>
+                                  <Button onClick={() => onMute(User.uid)}>
+                                    뮤트
+                                  </Button>
+                                </>
+                              )}
 
                             <Button
                               style={{
