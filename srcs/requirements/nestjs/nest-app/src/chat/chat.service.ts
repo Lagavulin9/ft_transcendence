@@ -107,64 +107,33 @@ export class ChatService{
 		return true;
 	}
 
-	createChatroom(client:Socket, req:ReqSocketDto):Chat|undefined{
-		if (client.rooms.size >= 2){
-			client.emit('error', `cant join more than two rooms`);
-			return undefined;
-		}
-		if (this.ChatRooms.get(req.roomName)){
-			client.emit('error', `Chatroom ${req.roomName} already exist`);
-			return undefined;
-		}
-		const user = this.Clients.getKey(client);
-		const newChat = new Chat();
-		newChat.roomOwner = user;
-		newChat.roomId = ++this.RoomIndex;
-		newChat.roomName = req.roomName;
-		newChat.roomType = req.roomType;
-		newChat.password = req.password;
-		newChat.roomAlba = [ user ];
-		newChat.participants = [ user ];
-		newChat.banned = [];
-		newChat.muted = [];
-		this.ChatRooms.set(req.roomName, newChat);
-		client.emit('notice', 'You are owner of this channel');
-		client.join(newChat.roomName);
-		client.emit('create', newChat);
-		return newChat;
-	}
 
-	joinChatroom(client:Socket, req:ReqSocketDto):Chat|undefined{
-		if (client.rooms.size >= 2){
-			client.emit('error', `cant join more than two rooms`);
-			return undefined;
-		}
-		const user = this.Clients.getKey(client);
-		const chatroom = this.ChatRooms.get(req.roomName);
-		if (!chatroom){
-			client.emit('error', `No such chatroom ${req.roomName}`);
-			return undefined;
-		}
-		//패스워드 틀림
-		else if (chatroom.password != req.password){
-			client.emit('error', `incorrect password`);
-			return undefined;
-		}
-		//밴당함
-		else if (chatroom.banned.find(u=>u==user)){
-			client.emit('error', `You are banned by channel's admin`);
-			return undefined;
-		}
-		else if (chatroom.participants.find(u=>u==user)){
-			client.emit('error', `You are already in ${req.roomName}`);
-		}
-		chatroom.participants.push(user);
-		client.join(chatroom.roomName);
-		client.emit('notice', `You have joined ${chatroom.roomName}`);
-		client.to(chatroom.roomName).emit('notice', `${user.nickname} has joined`);
-		client.emit('join', plainToInstance(resChatDto, chatroom))
-		return chatroom;
-	}
+  createChatroom(client: Socket, req: ReqSocketDto): Chat | undefined {
+    if (client.rooms.size >= 2) {
+      client.emit('error', `cant join more than two rooms`);
+      return undefined;
+    }
+    if (this.ChatRooms.get(req.roomName)) {
+      client.emit('error', `Chatroom ${req.roomName} already exist`);
+      return undefined;
+    }
+    const user = this.Clients.getKey(client);
+    const newChat = new Chat();
+    newChat.roomOwner = user;
+    newChat.roomId = ++this.RoomIndex;
+    newChat.roomName = req.roomName;
+    newChat.roomType = req.roomType;
+    newChat.password = req.password;
+    newChat.roomAlba = [user];
+    newChat.participants = [user];
+    newChat.banned = [];
+    newChat.muted = [];
+    this.ChatRooms.set(req.roomName, newChat);
+    client.emit('notice', 'You are owner of this channel');
+    client.join(newChat.roomName);
+    client.emit('create', newChat);
+    return newChat;
+  }
 
 	leaveChatroom(client:Socket, req:ReqSocketDto):boolean{
 		const user = this.Clients.getKey(client);
@@ -354,6 +323,7 @@ export class ChatService{
 		console.log(Array.from(client.rooms)[1])
 		return Array.from(client.rooms)[1];
 	}
+
 }
 
 class BidirectionalMap<Key, Value> {

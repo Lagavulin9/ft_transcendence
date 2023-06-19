@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import H1 from "../PostComponents/H1";
 import { ScrollView, Tab, Tabs, WindowContent } from "react95";
 import { Grid, Row } from "antd";
@@ -8,7 +8,6 @@ import UserInfo from "../profile/UserInfo";
 import MyModal from "../globalComponents/MyModal";
 import AppLayout from "../globalComponents/AppLayout";
 import { useGetUserQuery } from "@/redux/Api/Profile";
-import { useGetAuthQuery } from "@/redux/Api/Auth";
 import { RootState } from "@/redux/RootStore";
 import ProfileUpdate from "../profile/ProfileUpdate";
 import GameLog from "../profile/GameLog";
@@ -98,7 +97,7 @@ const Profile = () => {
               >
                 {state.activeTab === 0 && <UserInfo user={userData} />}
                 {state.activeTab === 1 && <GameLog uid={uid} />}
-                {state.activeTab === 2 && <ProfileUpdate />}
+                {state.activeTab === 2 && <ProfileUpdate uid={uid} />}
               </ScrollView>
             </Row>
           </WindowContent>

@@ -7,11 +7,15 @@ import { resChatDto } from "@/types/ChatDto";
 import { Room } from "@/types/roomType";
 
 interface Room {
-  room: resChatDto;
+  room: resChatDto | undefined;
 }
 
 const SearchRoom = ({ room }: Room) => {
   const router = useRouter();
+
+  if (room === undefined) {
+    return null;
+  }
 
   const openModal = () => {
     router.push(
@@ -22,6 +26,7 @@ const SearchRoom = ({ room }: Room) => {
       }
     );
   };
+
   return (
     <div
       style={{

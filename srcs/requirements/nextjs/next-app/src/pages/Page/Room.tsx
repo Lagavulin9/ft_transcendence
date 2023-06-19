@@ -1,5 +1,5 @@
 import { Grid, Row } from "antd";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Button, WindowContent, ScrollView, Tabs, Tab } from "react95";
 import MessageCard from "../chat/components/MessageCard";
 import GameMode from "@/pages/game/GameMode";
@@ -9,11 +9,10 @@ import AppLayout from "../globalComponents/AppLayout";
 import MyModal from "../globalComponents/MyModal";
 import { useRouter } from "next/router";
 import { useGetAllQuery, useGetChatRoomQuery } from "@/redux/Api/ChatRoom";
-import { emitEvent, onError, onEvent } from "@/utils/socket";
+import { emitEvent, offEvent, onError, onEvent } from "@/utils/socket";
 import { ReqSocketDto, ResMsgDto } from "@/types/ChatDto";
 import { RootState } from "@/redux/RootStore";
-
-const { useBreakpoint } = Grid;
+import H3 from "../PostComponents/H3";
 
 const ChatRoom = () => {
   const [input, setInput] = useState("");
@@ -25,6 +24,9 @@ const ChatRoom = () => {
   const [disabled, setDisabled] = useState(false);
   const router = useRouter();
   const { roomName } = router.query;
+  const [isMute, setIsMute] = useState(false);
+  const [isBan, setIsBan] = useState(false);
+  const [isKick, setIsKick] = useState(false);
 
   const { uId: owner } = useSelector(
     (state: RootState) => state.rootReducers.global
@@ -33,21 +35,16 @@ const ChatRoom = () => {
   const {
     data: chatRoomData,
     refetch: chatRoomRefetch,
-    isLoading: RoomListLoading,
+    isFetching: RoomListLoading,
   } = useGetChatRoomQuery(roomName as string);
 
-  const { refetch: RoomListRefetch } = useGetAllQuery();
-
-  const screens = useBreakpoint();
-  const scrollBottomRef = useRef<HTMLDivElement>(null); // 참조 생성
-
-  // TODO: 서버와 연결시 여기에서 다시 ChatRoom 최신정보 가져오기
+  const scrollBottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (scrollBottomRef.current) {
       scrollBottomRef.current.scrollIntoView({ behavior: "smooth" }); // 참조된 요소가 보이도록 스크롤
     }
-  }, [scrollBottomRef]); // mocContentData가 변경될 때마다 실행
+  }, [scrollBottomRef]);
 
   const openGameMode = () => {
     router.push("/Page/Game", "Page/Game", { shallow: false });
@@ -59,7 +56,9 @@ const ChatRoom = () => {
   };
 
   const sendMsg = () => {
-    setDisabled(true);
+    if (input.length === 0) {
+      return;
+    }
     if (chatRoomData) {
       const tmp = {
         roomName: chatRoomData.roomName,
@@ -71,7 +70,6 @@ const ChatRoom = () => {
       emitEvent("message", tmp);
       setInput("");
     }
-    setDisabled(false);
   };
 
   const openProfile = (uId: number) => {
@@ -90,7 +88,7 @@ const ChatRoom = () => {
 
   const { activeTab } = state;
 
-  const close = () => {
+  const close = useCallback(() => {
     if (chatRoomData) {
       const tmp = {
         roomName: chatRoomData.roomName,
@@ -102,13 +100,13 @@ const ChatRoom = () => {
       emitEvent("leave", tmp);
     }
     chatRoomRefetch();
-    RoomListRefetch();
     router.back();
-  };
+  }, [chatRoomData, chatRoomRefetch, router]);
 
   useEffect(() => {
     // 메시지 이벤트 리스너 등록
     const handleMessage = (data: ResMsgDto) => {
+      data.isDm = false;
       setMsg((prevMsg) => [...prevMsg, data]);
     };
 
@@ -117,21 +115,64 @@ const ChatRoom = () => {
       setMsg((prevMsg) => [...prevMsg, data]);
     };
 
-    const handleNotice = async (data: ResMsgDto) => {
-      chatRoomRefetch();
-      RoomListRefetch();
-    };
-
     onEvent("message", handleMessage);
     // 컴포넌트가 언마운트될 때 이벤트 리스너 해제
     onEvent("DM", handleDM);
-    onEvent("notice", handleNotice);
 
     // 게임 게스트 입장 이벤트 리스너 등록
     return () => {
-      onError("message", handleMessage);
+      offEvent("message");
+      offEvent("DM");
     };
-  }, [RoomListRefetch, chatRoomRefetch]);
+  }, [chatRoomRefetch]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      chatRoomRefetch();
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [chatRoomRefetch]);
+
+  useEffect(() => {
+    onEvent("kick", () => {
+      setIsKick(true);
+      close();
+    });
+    onEvent("ban", () => {
+      setIsBan(true);
+      close();
+    });
+    onEvent("mute", () => {
+      setIsMute(true);
+      const timer = setTimeout(() => {
+        setIsMute(false);
+      }, 1000 * 60);
+    });
+
+    return () => {
+      offEvent("kick");
+      offEvent("ban");
+      offEvent("mute");
+      offEvent("usermod");
+    };
+  }, [close, isMute, chatRoomRefetch, isKick, isBan, RoomListLoading]);
+
+  const onAlba = async (uid: number) => {
+    await emitEvent("usermod", {
+      roomName: chatRoomData?.roomName,
+      roomType: chatRoomData?.roomType,
+      target: uid,
+      msg: "",
+      password: "",
+    });
+    onEvent("error", () => {
+      console.log("error");
+    });
+    await onEvent("usermod", () => {
+      console.log("usermod");
+      chatRoomRefetch();
+    });
+  };
 
   return (
     <AppLayout>
@@ -173,6 +214,7 @@ const ChatRoom = () => {
                       <MessageCard
                         Data={data}
                         isMe={data.uid === owner ? true : false}
+                        isDm={data.isDm}
                       />
                       <div ref={scrollBottomRef} />
                     </div>
@@ -180,6 +222,10 @@ const ChatRoom = () => {
                 })}
               {activeTab === 1 &&
                 chatRoomData?.participants.map((User, index) => {
+                  const isAlba = chatRoomData.roomAlba?.find(
+                    (alba) => alba.uid === User.uid
+                  );
+
                   return (
                     <div key={index}>
                       <div
@@ -192,27 +238,67 @@ const ChatRoom = () => {
                           fontSize: "20px",
                         }}
                       >
-                        {User.nickname}
-                        <div>
-                          <Button
-                            style={{
-                              fontFamily: "dunggeunmo-bold",
-                              fontSize: "17px",
-                            }}
-                            onClick={() => openProfile(User.uid)}
-                          >
-                            프로필
-                          </Button>
-                          <Button
-                            style={{
-                              fontFamily: "dunggeunmo-bold",
-                              fontSize: "17px",
-                            }}
-                            onClick={openGameMode}
-                          >
-                            게임하기
-                          </Button>
-                        </div>
+                        {`${
+                          chatRoomData.roomOwner.uid === User.uid
+                            ? "👑"
+                            : isAlba?.uid === User.uid
+                            ? "😎"
+                            : ""
+                        } ${User.nickname}`}
+
+                        {User.uid !== owner && (
+                          <div>
+                            {/* 자기 자신이 방장이고, 대상 유저가 알바인 경우 */}
+                            {owner === chatRoomData.roomOwner.uid &&
+                              chatRoomData.roomAlba.findIndex(
+                                (alba) => alba.uid === owner
+                              ) > 0 && (
+                                <Button onClick={() => onAlba(User.uid)}>
+                                  알바해고
+                                </Button>
+                              )}
+
+                            {/* 자기 자신이 방장이고, 대상 유저가 일반인 경우 */}
+                            {owner === chatRoomData.roomOwner.uid &&
+                              chatRoomData.roomAlba.findIndex(
+                                (alba) => alba.uid === owner
+                              ) <= 0 && (
+                                <Button onClick={() => onAlba(User.uid)}>
+                                  알바고용
+                                </Button>
+                              )}
+
+                            {/* 자기 자신이 알바이거나 방장일 때 */}
+                            {chatRoomData.roomAlba.findIndex(
+                              (alba) => alba.uid === owner
+                            ) >= 0 && (
+                              <>
+                                <Button>차단</Button>
+                                <Button>강퇴</Button>
+                                <Button>뮤트</Button>
+                              </>
+                            )}
+
+                            <Button
+                              style={{
+                                fontFamily: "dunggeunmo-bold",
+                                fontSize: "17px",
+                              }}
+                              onClick={() => openProfile(User.uid)}
+                            >
+                              프로필
+                            </Button>
+                            <Button
+                              style={{
+                                fontFamily: "dunggeunmo-bold",
+                                fontSize: "17px",
+                              }}
+                              onClick={openGameMode}
+                            >
+                              게임하기
+                            </Button>
+                          </div>
+                        )}
                       </div>
                       <div
                         style={{
@@ -233,14 +319,10 @@ const ChatRoom = () => {
           input={input}
           func={handleInput}
           click={sendMsg}
-          disabled={disabled}
+          isMute={isMute}
         />
       </MyModal>
     </AppLayout>
-
-    // {isGameMode && (
-    //   <GameMode close={closeGameMode} gameMode={handleGameMode} />
-    // )}
   );
 };
 

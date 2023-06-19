@@ -18,7 +18,7 @@ const SearchPage = () => {
     error: chatRoomError,
     isFetching: chatRoomIsFetching,
     refetch: chatRoomRefetch,
-  } = useGetChatRoomQuery(input);
+  } = useGetChatRoomQuery(input, { skip: input === "" });
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;

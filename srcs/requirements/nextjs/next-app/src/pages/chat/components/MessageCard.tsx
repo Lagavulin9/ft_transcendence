@@ -3,17 +3,18 @@ import React from "react";
 import { Image } from "antd";
 import Spacer from "@/pages/globalComponents/Spacer";
 import { ResMsgDto } from "@/types/ChatDto";
+import { Avatar } from "react95";
 
 interface Props {
   Data: ResMsgDto;
   isMe: boolean;
-  isDm?: boolean;
+  isDm: boolean | undefined;
 }
 
 // isDm
 
 const MessageCard = ({ Data, isMe, isDm }: Props) => {
-  if (!Data) {
+  if (!Data && isDm === undefined) {
     return null;
   }
   return (
@@ -39,12 +40,7 @@ const MessageCard = ({ Data, isMe, isDm }: Props) => {
                 alignItems: "center",
               }}
             >
-              <Image
-                preview={false}
-                src={Data.profileURL}
-                width={"40px"}
-                style={{ borderRadius: "50%" }}
-              />
+              <Avatar src={Data.profileURL} size={40} />
               <div style={{ marginRight: "20px", fontSize: "25px" }}>
                 {Data.nickname}
               </div>
@@ -75,12 +71,7 @@ const MessageCard = ({ Data, isMe, isDm }: Props) => {
             }}
           >
             <div style={{ display: "flex", alignItems: "center" }}>
-              <Image
-                preview={false}
-                src={Data.profileURL}
-                width={"40px"}
-                style={{ borderRadius: "50%" }}
-              />
+              <Avatar src={Data.profileURL} size={30} />
               <div style={{ marginLeft: "20px", fontSize: "25px" }}>
                 {Data.nickname}
               </div>

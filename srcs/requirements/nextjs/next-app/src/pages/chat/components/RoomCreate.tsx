@@ -39,44 +39,46 @@ const RoomCreate = () => {
 
   return (
     <>
-      <div
-        style={{
-          padding: "15px",
-          fontFamily: "dunggeunmo-bold",
-          fontSize: "20px",
-          display: "flex",
-        }}
-      >
-        <TextInput
-          style={{ width: "400px" }}
-          value={input}
-          placeholder="Room Name"
-          onChange={(e) => setInput(e.target.value)}
-        />
-        <Button
-          style={{ width: "80px", fontSize: "23px", marginLeft: "15px" }}
-          onClick={onClickCreate}
+      <GroupBox>
+        <div
+          style={{
+            padding: "15px",
+            fontFamily: "dunggeunmo-bold",
+            fontSize: "20px",
+            display: "flex",
+          }}
         >
-          생성
-        </Button>
-      </div>
-      <div
-        style={{
-          padding: "15px",
-          fontFamily: "dunggeunmo-bold",
-          fontSize: "20px",
-          display: "flex",
-        }}
-      >
-        <TextInput
-          disabled={state !== "Protected"}
-          style={{ width: "400px" }}
-          value={password}
-          placeholder="Password"
-          type="password"
-          onChange={(e) => setPassword(e.target.value)}
-        />
-      </div>
+          <TextInput
+            style={{ width: "400px" }}
+            value={input}
+            placeholder="Room Name..."
+            onChange={(e) => setInput(e.target.value)}
+          />
+          <Button
+            style={{ width: "80px", fontSize: "23px", marginLeft: "15px" }}
+            onClick={onClickCreate}
+          >
+            생성
+          </Button>
+        </div>
+        <div
+          style={{
+            padding: "15px",
+            fontFamily: "dunggeunmo-bold",
+            fontSize: "20px",
+            display: "flex",
+          }}
+        >
+          <TextInput
+            disabled={state !== "Protected"}
+            style={{ width: "400px" }}
+            value={password}
+            placeholder="Password..."
+            type="password"
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+      </GroupBox>
       <GroupBox
         label="Room Type"
         style={{ fontFamily: "dunggeunmo-bold", width: "100px" }}

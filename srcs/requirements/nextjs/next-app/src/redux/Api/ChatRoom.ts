@@ -8,8 +8,8 @@ export const ChatRoomApi = createApi({
     baseUrl: "/",
   }),
   endpoints: (bundler) => ({
-    getAll: bundler.query<resChatDto[], void>({
-      query() {
+    getAll: bundler.query<resChatDto[], number>({
+      query(uid: number) {
         return `http://localhost/api/chat/all`;
       },
     }),

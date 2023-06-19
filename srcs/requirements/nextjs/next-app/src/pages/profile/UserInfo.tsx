@@ -3,6 +3,7 @@ import H1 from "../PostComponents/H1";
 import H3 from "../PostComponents/H3";
 import Div from "../PostComponents/Div";
 import { user, User } from "@/types/UserType";
+import { Avatar } from "react95";
 
 interface Props {
   user: User | undefined;
@@ -19,22 +20,13 @@ const UserInfo = ({ user }: Props) => {
           display: "flex",
           flexDirection: "row",
           justifyContent: "space-around",
+          marginTop: "20px",
         }}
       >
-        <H1>{`${user?.nickname}`}</H1>
-        <H3>프로필 아바타위치</H3>
-      </div>
-      <Div />
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <H1>레벨</H1>
-        <H3>0lv.</H3>
+        <div style={{ marginTop: "80px" }}>
+          <H1>{`${user?.nickname}`}</H1>
+        </div>
+        <Avatar src={user?.profileURL} size={200} />
       </div>
       <Div />
       <div
@@ -46,7 +38,7 @@ const UserInfo = ({ user }: Props) => {
         }}
       >
         <H1>게임전적</H1>
-        <H3>0승 0패</H3>
+        <H3>{`${user?.totalWin}승 ${user?.totalLose}패`}</H3>
       </div>
     </div>
   );
