@@ -11,6 +11,7 @@ import { useGetUserQuery } from "@/redux/Api/Profile";
 import { useGetAuthQuery } from "@/redux/Api/Auth";
 import { RootState } from "@/redux/RootStore";
 import ProfileUpdate from "../profile/ProfileUpdate";
+import GameLog from "../profile/GameLog";
 
 const Profile = () => {
   const [state, setState] = useState({ activeTab: 0 });
@@ -96,7 +97,7 @@ const Profile = () => {
                 style={{ width: "100%", height: "430px" }}
               >
                 {state.activeTab === 0 && <UserInfo user={userData} />}
-                {state.activeTab === 1 && <H1>게임로그</H1>}
+                {state.activeTab === 1 && <GameLog uid={uid} />}
                 {state.activeTab === 2 && <ProfileUpdate />}
               </ScrollView>
             </Row>
