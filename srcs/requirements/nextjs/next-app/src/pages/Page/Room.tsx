@@ -34,6 +34,7 @@ const ChatRoom = () => {
   const [isRoomAction, setIsRoomAction] = useState(false);
   const [comment, setComment] = useState("");
   const [password, setPassword] = useState("");
+  const [success, setSuccess] = useState(false);
 
   const router = useRouter();
   const { roomName } = router.query;
@@ -145,7 +146,7 @@ const ChatRoom = () => {
   useEffect(() => {
     const timer = setInterval(() => {
       chatRoomRefetch();
-    }, 5000);
+    }, 3000);
     return () => clearInterval(timer);
   }, [chatRoomRefetch]);
 
@@ -173,9 +174,21 @@ const ChatRoom = () => {
       setIsRoomAction(true);
       setComment("님 차단당함 이제 못들어옴 ㅋㅋ");
     });
-    // socket.on("kicknotice", (data) => {
-    //   console.log(data);
-    // });
+
+    socket.on("banned", () => {
+      setIsRoomAction(true);
+      setComment("차단당함 이제 못들어옴 ㅋㅋ");
+    });
+
+    socket.on("room404", () => {
+      setIsRoomAction(true);
+      setComment("방이 없음 나가세요 ~");
+    });
+
+    socket.on("wrongpass", () => {
+      setPassword("");
+      alert("비밀번호가 틀렸습니다.");
+    });
   }, [chatRoomRefetch, isMute]);
 
   const onAlba = async (uid: number) => {
@@ -225,13 +238,9 @@ const ChatRoom = () => {
       msg: "",
       password: "",
     });
-
-    await onEvent("mute", () => {
-      chatRoomRefetch();
-    });
   };
 
-  if (chatRoomData?.roomType === "Protected") {
+  if (chatRoomData?.roomType === "Protected" && success === false) {
     return (
       <AppLayout>
         <MyModal hName={chatRoomData?.roomName ?? "채팅룸"} close={close}>
@@ -261,14 +270,9 @@ const ChatRoom = () => {
       </AppLayout>
     );
   }
-  if (isRoomAction === true) {
-    return (
-      <AppLayout>
-        <MyModal hName={chatRoomData?.roomName ?? "채팅룸"} close={close}>
-          <RoomAction comment={comment} />
-        </MyModal>
-      </AppLayout>
-    );
+
+  if (chatRoomData?.roomType !== "Private" && success === false) {
+    socket.on("join", {});
   }
 
   return (
