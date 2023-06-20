@@ -137,15 +137,24 @@ export class GameService{
 	}
 
 	declineInvitation(client:Socket, req:GameRoom){
-		const hostUid = this.Clients.getKey(client);
-		this.GameRooms.delete(hostUid);
-		client.emit('notice', 'gameroom closed');
+		const hostSocket = this.Clients.getValue(req.host.uid);
+		this.GameRooms.delete(req.host.uid);
+		if (!hostSocket){
+			return false;
+		}
+		hostSocket.emit('game-decline', 'declined');
+		// client.emit('game-decline', 'declined');
 	}
 
 	host2guest(client:Socket, data:GameStateDto){
+		const hostSocket = this.Clients.getValue(data.gameroom.host.uid);
 		const guestSocket = this.Clients.getValue(data.gameroom.guest.uid);
 		if (!guestSocket){
 			console.log('guest is offline');
+			if (hostSocket){
+				hostSocket.emit('game-over', data);
+			}
+			this.GameRooms.delete(data.gameroom.host.uid);
 			return false;
 		}
 		guestSocket.emit('host2guest', data);
@@ -153,9 +162,14 @@ export class GameService{
 	}
 
 	guest2host(client:Socket, data:GameStateDto){
+		const guestSocket = this.Clients.getValue(data.gameroom.guest.uid);
 		const hostSocket = this.Clients.getValue(data.gameroom.host.uid);
 		if (!hostSocket){
 			console.log('host is offline');
+			if (guestSocket){
+				guestSocket.emit('game-over', data);
+			}
+			this.GameRooms.delete(data.gameroom.host.uid);
 			return false;
 		}
 		hostSocket.emit('guest2host', data);
@@ -163,12 +177,17 @@ export class GameService{
 	}
 
 	gameOver(client:Socket, data:GameStateDto){
+		this.GameRooms.delete(data.gameroom.host.uid);
 		const hostSocket = this.Clients.getValue(data.gameroom.host.uid);
 		const guestSocket = this.Clients.getValue(data.gameroom.guest.uid);
+		if (!hostSocket){
+			return false;
+		}
 		hostSocket.emit('game-over', data);
+		if (!guestSocket){
+			return false;
+		}
 		guestSocket.emit('game-over', data);
-		this.GameRooms.delete(data.gameroom.host.uid);
-		console.log(this.GameRooms);
 	}
 
 	async randomMatch(client:Socket){
@@ -193,8 +212,6 @@ export class GameService{
 			this.GameQueue.push(user);
 			client.emit('waiting', 'waiting for another user');
 		}
-		console.log(this.GameQueue);
-		console.log(this.GameRooms);
 	}
 }
 
