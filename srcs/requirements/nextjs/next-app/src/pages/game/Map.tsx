@@ -1,4 +1,6 @@
-import React, { useEffect, useRef } from "react";
+import { GameRoom } from "@/types/GameDto";
+import { emitEvent } from "@/utils/socket";
+import React, { useEffect, useRef, useState } from "react";
 
 interface MapProps {
   ballPosition: { x: number; y: number };
@@ -11,6 +13,11 @@ interface MapProps {
   paddleWidth: number;
   canvasWidth: number;
   canvasHeight: number;
+  room: GameRoom;
+  score: number[];
+  gameTime: number;
+  isHost: boolean;
+  setVisible: (value: boolean) => void;
   isVisible: boolean;
 }
 
@@ -22,8 +29,29 @@ const Map = ({
   paddleWidth,
   canvasWidth,
   canvasHeight,
+  room,
+  isHost,
+  setVisible,
+  isVisible,
 }: MapProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [ballColor, setBallColor] = useState("#ffffff");
+
+  useEffect(() => {
+    const changeBallColor = () => {
+      setBallColor("#000000"); // Change ball color to the same as background
+      setTimeout(() => {
+        setBallColor("#ffffff"); // Change ball color back after 2 seconds
+      }, 2000);
+    };
+
+    if (room.isNormal === false) {
+      const randomTime = Math.random() * 5000 + 2000; // Random time between 2 and 7 seconds
+      const intervalId = setInterval(changeBallColor, randomTime);
+
+      return () => clearInterval(intervalId); // Clear interval on unmount or when specialMode changes
+    }
+  }, [room.isNormal]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -55,10 +83,18 @@ const Map = ({
     // 공 그리기
     ctx.beginPath();
     ctx.arc(ballPosition.x, ballPosition.y, ballRadius, 0, Math.PI * 2);
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = ballColor;
     ctx.fill();
     ctx.closePath();
-  }, [ballPosition, paddlePositions, ballRadius, paddleHeight, paddleWidth]);
+  }, [
+    ballPosition,
+    paddlePositions,
+    ballRadius,
+    paddleHeight,
+    paddleWidth,
+    isVisible,
+    ballColor,
+  ]);
 
   return (
     <div>

@@ -1,16 +1,16 @@
-import { AppDispatch } from "@/redux/RootStore";
+import { AppDispatch, RootState } from "@/redux/RootStore";
 import { fetchRoom } from "@/redux/Slice/Room";
-import { GameRoomDto } from "@/types/GameDto";
+import { GameRoom, GameRoomDto } from "@/types/GameDto";
 import { onEvent } from "@/utils/socket";
 import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Counter } from "react95";
 import H3 from "../PostComponents/H3";
 import InGame from "./InGame";
 
 interface GameReadyProps {
   isNormal: boolean;
-  gameRoom: GameRoomDto;
+  gameRoom: GameRoom;
 }
 
 const GameReady = ({ isNormal, gameRoom }: GameReadyProps) => {
@@ -33,11 +33,12 @@ const GameReady = ({ isNormal, gameRoom }: GameReadyProps) => {
     }, 1000);
 
     onEvent("game-start", () => {
-      const arg: GameRoomDto = {
+      const arg: GameRoom = {
         host: gameRoom.host,
         guest: gameRoom.guest,
         game_start: true,
       };
+      console.log(`game-start: ${arg}`);
       dispatch(
         fetchRoom({
           gameRoom: arg,

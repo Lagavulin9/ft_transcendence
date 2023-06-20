@@ -8,6 +8,7 @@ import { subscribe } from 'diagnostics_channel';
 import { Server, Socket } from 'socket.io';
 import { Chat } from 'src/chat/chat.entity';
 import { ChatService } from 'src/chat/chat.service';
+import { gameKeyPressDto } from 'src/dto/gameKeyPress.dto';
 import { GameStateDto } from 'src/dto/gameState.dto';
 import { ReqGameDto } from 'src/dto/reqGame.dto';
 import { ReqSocketDto } from 'src/dto/reqSocket.dto';
@@ -106,12 +107,12 @@ export class socketGateway implements OnModuleInit {
   }
 
   @SubscribeMessage('game-invite')
-  handleGameInvite(client:Socket, req:ReqGameDto){
+  handleGameInvite(client: Socket, req: ReqGameDto) {
     return this.gameService.createNewGame(client, req);
   }
 
   @SubscribeMessage('game-accept')
-  handleGameAccept(client:Socket, req:ReqGameDto){
+  handleGameAccept(client: Socket, req: ReqGameDto) {
     return this.gameService.acceptInvitation(client, req);
   }
 
@@ -136,7 +137,7 @@ export class socketGateway implements OnModuleInit {
   }
 
   @SubscribeMessage('guest2host')
-  handleGuest2Host(client: Socket, data: GameStateDto) {
+  handleGuest2Host(client: Socket, data: gameKeyPressDto) {
     return this.gameService.guest2host(client, data);
   }
 

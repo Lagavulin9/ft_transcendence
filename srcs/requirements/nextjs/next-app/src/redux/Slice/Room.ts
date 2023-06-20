@@ -1,20 +1,20 @@
-import { GameRoomDto } from "@/types/GameDto";
+import { GameRoom, GameRoomDto } from "@/types/GameDto";
 import { User } from "@/types/UserType";
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-const initialState: GameRoomDto = {
-  host: {} as User,
-  guest: {} as User,
+const initialState: GameRoom = {
+  host: 0,
+  guest: 0,
   game_start: false,
 };
 
 export const fetchRoom = createAsyncThunk<
-  GameRoomDto | null,
-  { gameRoom: GameRoomDto },
+  GameRoom | null,
+  { gameRoom: GameRoom },
   { rejectValue: string }
 >("/room/fetchRoom", async ({ gameRoom }, thunkAPI) => {
   try {
-    const response = await new Promise<GameRoomDto>((resolve) => {
+    const response = await new Promise<GameRoom>((resolve) => {
       resolve({
         host: gameRoom.host,
         guest: gameRoom.guest,
@@ -42,7 +42,7 @@ const roomSlice = createSlice({
       })
       .addCase(
         fetchRoom.fulfilled,
-        (state, action: PayloadAction<GameRoomDto | null>) => {
+        (state, action: PayloadAction<GameRoom | null>) => {
           if (action.payload) {
             state = action.payload;
           }

@@ -1,36 +1,37 @@
-import { AppDispatch } from "@/redux/RootStore";
+import { AppDispatch, RootState } from "@/redux/RootStore";
 import { fetchRoom } from "@/redux/Slice/Room";
-import { GameRoomDto } from "@/types/GameDto";
-import { emitEvent, onEvent } from "@/utils/socket";
+import { GameRoom, GameRoomDto } from "@/types/GameDto";
+import { emitEvent, offEvent, onEvent } from "@/utils/socket";
+import { off } from "process";
 import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Button, Counter } from "react95";
 import H3 from "../PostComponents/H3";
 import InGame from "./InGame";
 
 interface GameAcceptProps {
   isNormal: boolean;
-  gameRoom: GameRoomDto;
+  room: GameRoom;
 }
 
-const GameAccept = ({ isNormal, gameRoom }: GameAcceptProps) => {
+const GameAccept = ({ isNormal, room }: GameAcceptProps) => {
   const [isVisible, setIsVisible] = useState(false);
   const [readyTime, setReadyTime] = useState(0);
   const [isEnd, setIsEnd] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
 
+  console.log(`GameAccept: ${isNormal}`);
+
   const onAccept = () => {
     emitEvent("game-accept", {
-      msg: "ok",
+      host: room.host,
+      guest: room.guest,
+      game_start: true,
     });
   };
 
   const onDecline = () => {
-    emitEvent("game-decline", {
-      host: gameRoom.host,
-      guest: gameRoom.guest,
-      game_start: false,
-    });
+    emitEvent("game-decline", room);
   };
 
   useEffect(() => {
@@ -40,8 +41,8 @@ const GameAccept = ({ isNormal, gameRoom }: GameAcceptProps) => {
           // test때문에 100초 나중에 10초로 바꿔야함
           clearInterval(timer);
           emitEvent("game-decline", {
-            host: gameRoom.host,
-            guest: gameRoom.guest,
+            host: room.host,
+            guest: room.guest,
             game_start: false,
           });
           setIsEnd(true);
@@ -52,9 +53,9 @@ const GameAccept = ({ isNormal, gameRoom }: GameAcceptProps) => {
     }, 1000);
 
     onEvent("game-start", () => {
-      const arg: GameRoomDto = {
-        host: gameRoom.host,
-        guest: gameRoom.guest,
+      const arg: GameRoom = {
+        host: room.host,
+        guest: room.guest,
         game_start: true,
       };
       dispatch(
@@ -62,9 +63,10 @@ const GameAccept = ({ isNormal, gameRoom }: GameAcceptProps) => {
           gameRoom: arg,
         })
       );
+      offEvent("game-accept");
       setIsVisible(true);
     });
-  }, [dispatch, gameRoom.guest, gameRoom.host]);
+  }, [dispatch, room.guest, room.host]);
 
   return (
     <>
@@ -74,13 +76,13 @@ const GameAccept = ({ isNormal, gameRoom }: GameAcceptProps) => {
         <>
           {isVisible ? (
             <div>
-              <InGame isHost={false} isNormal={isNormal} room={gameRoom} />
+              <InGame isHost={false} isNormal={isNormal} room={room} />
             </div>
           ) : (
             <>
               <Counter size={"md"} value={readyTime} />
               <div style={{ display: "flex" }}>
-                <H3>{`${gameRoom.host.nickname} 에게 게임초대가 왔습니다. (${
+                <H3>{`게임초대가 왔습니다. (${
                   isNormal === true ? "일반모드" : "스페셜모드"
                 })`}</H3>
               </div>

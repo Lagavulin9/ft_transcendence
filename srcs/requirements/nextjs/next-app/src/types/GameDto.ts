@@ -10,6 +10,7 @@ export interface GameRoom {
   host: number;
   guest: number;
   game_start: boolean;
+  isNormal?: boolean;
 }
 
 export interface GameStateDto {
@@ -23,4 +24,12 @@ export interface GameStateDto {
   isVisible: boolean;
   score: number[]; // [host, guest]
   gameTime: number; // s
+}
+
+export interface LogDto {
+  fromId: number;
+  toId: number;
+  fromScore: number;
+  toScore: number;
+  score: number[];
 }

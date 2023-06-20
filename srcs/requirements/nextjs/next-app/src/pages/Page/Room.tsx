@@ -23,7 +23,7 @@ import { socket } from "@/utils/socket";
 import H3 from "../PostComponents/H3";
 import RoomAction from "../chat/components/RoomAction";
 import { off } from "process";
-import { GameRoomDto } from "@/types/GameDto";
+import { GameRoom, GameRoomDto } from "@/types/GameDto";
 import roomSlice, { fetchRoom } from "@/redux/Slice/Room";
 
 const ChatRoom = () => {
@@ -66,7 +66,10 @@ const ChatRoom = () => {
 
   const openGameMode = (uid: number) => {
     router.push(
-      { pathname: "/Page/Game", query: { isHost: "Host", uId: uid } },
+      {
+        pathname: "/Page/Game",
+        query: { isHost: "Host", hostId: owner, guestId: uid },
+      },
       undefined,
       { shallow: false }
     );
@@ -188,17 +191,32 @@ const ChatRoom = () => {
     // 컴포넌트가 언마운트될 때 이벤트 리스너 해제
     onEvent("DM", handleDM);
 
-    onEvent("game-invite", (data: GameRoomDto) => {
+    onEvent("game-invite", (data: GameRoom) => {
       // 상태 업데이트 이벤트 핸들링
-      console.log(`guestGameInvite: ${data}`);
-      dispatch(fetchRoom({ gameRoom: data }));
+      dispatch(
+        fetchRoom({
+          gameRoom: {
+            host: data.host,
+            guest: data.guest,
+            game_start: data.game_start,
+          },
+        })
+      );
       router.push(
-        { pathname: "/Page/Game", query: { isHost: "Guest" } },
+        {
+          pathname: "/Page/Game",
+          query: {
+            isHost: "Guest",
+            hostId: data.host,
+            guestId: data.guest,
+            normal: data.isNormal,
+          },
+        },
         undefined,
         { shallow: false }
       );
     });
-  }, [chatRoomRefetch, dispatch, isMute, router]);
+  }, [chatRoomRefetch, dispatch, isMute, owner, router]);
 
   const onAlba = async (uid: number) => {
     setIsBlba(true);

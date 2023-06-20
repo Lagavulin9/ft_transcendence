@@ -14,12 +14,12 @@ const GameMode = ({ close, gameMode }: Props) => {
   const screens = useBreakpoint();
 
   const selectNormal = () => {
-    gameMode(false);
+    gameMode(true);
     close();
   };
 
   const selectSpecial = () => {
-    gameMode(true);
+    gameMode(false);
     close();
   };
 
