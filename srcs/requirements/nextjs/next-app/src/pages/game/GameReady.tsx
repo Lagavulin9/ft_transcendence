@@ -9,7 +9,7 @@ const GameReady = () => {
   useEffect(() => {
     const timer = setInterval(() => {
       setReadyTime((prev) => {
-        if (prev >= 10) {
+        if (prev >= 100) {
           clearInterval(timer);
           setIsNo(true);
           return prev;

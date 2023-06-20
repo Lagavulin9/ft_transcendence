@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Map from "./Map";
 import GameClose from "./Close";
 import GameScore from "./Score";
+import { GameRoomDto } from "@/types/GameDto";
 
 const ballRadius = 10; // 공의 반지름
 const paddleHeight = 80; // 패들의 높이
@@ -9,7 +10,13 @@ const paddleWidth = 10; // 패들의 너비
 const canvasWidth = 500; // 게임 영역의 너비
 const canvasHeight = 300; // 게임 영역의 높이
 
-const InGame: React.FC = () => {
+interface InGameProps {
+  isHost: boolean;
+  isNormal: boolean;
+  room: GameRoomDto;
+}
+
+const InGame = ({ isHost, isNormal, room }: InGameProps) => {
   const initialDirection = Math.random() > 0.5 ? -1 : 1;
   const [ballPosition, setBallPosition] = useState({ x: 250, y: 150 });
   const [ballSpeed, setBallSpeed] = useState({ x: 4 * initialDirection, y: 4 });
