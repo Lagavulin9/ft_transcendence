@@ -39,14 +39,19 @@ export class socketGateway implements OnModuleInit {
   }
 
   @SubscribeMessage('create')
-  handleCreateReq(client: Socket, req: ReqSocketDto): Chat | undefined {
+  handleCreateReq(client: Socket, req: ReqSocketDto): Promise<Chat | undefined> {
     console.log(req);
     return this.chatService.createChatroom(client, req);
   }
 
   @SubscribeMessage('join')
-  handleJoinReq(client: Socket, req: ReqSocketDto): Chat | undefined {
+  handleJoinReq(client: Socket, req: ReqSocketDto): Promise<Chat | undefined> {
     return this.chatService.joinChatroom(client, req);
+  }
+
+  @SubscribeMessage('password')
+  handlePassword(client: Socket, req: ReqSocketDto): Promise<Chat | undefined> {
+    return this.chatService.passCheck(client, req);
   }
 
   @SubscribeMessage('leave')
