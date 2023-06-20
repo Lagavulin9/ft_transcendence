@@ -121,6 +121,11 @@ export class socketGateway implements OnModuleInit {
     return this.gameService.gameOver(client, data);
   }
 
+  @SubscribeMessage('finish')
+  handleFinish(client:Socket, data:GameStateDto){
+    return this.gameService.finish(client, data);
+  }
+
   @SubscribeMessage('host2guest')
   handleHost2Guest(client:Socket, data:GameStateDto){
     return this.gameService.host2guest(client, data);
