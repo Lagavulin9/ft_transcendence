@@ -7,8 +7,8 @@ import { GameLogDto, LogDto } from "src/dto/log.dto";
 import { plainToInstance } from "class-transformer";
 import { Socket } from "socket.io";
 import { GameRoom } from "./gameroom.entity";
-import { ReqSocketDto } from "src/dto/reqSocket.dto";
 import { GameStateDto } from "src/dto/gameState.dto";
+import { ReqGameDto } from "src/dto/reqGame.dto";
 
 @Injectable()
 export class GameService{
@@ -87,14 +87,9 @@ export class GameService{
 		return true;
 	}
 
-	async createNewGame(client:Socket, req:ReqSocketDto):Promise<boolean>{
-		const hostUid = this.Clients.getKey(client);
-		if (!hostUid){
-			console.log('no such user. bind first');
-			return false
-		}
-		const host = await this.userRepository.findOne({where:{uid:hostUid}});
-		const guest = await this.userRepository.findOne({where:{uid:req.target}})
+	async createNewGame(client:Socket, req:ReqGameDto):Promise<boolean>{
+		const host = await this.userRepository.findOne({where:{uid:req.host}});
+		const guest = await this.userRepository.findOne({where:{uid:req.guest}})
 		if (!guest){
 			console.log('no such target');
 			return false;
@@ -113,20 +108,20 @@ export class GameService{
 		this.GameRooms.set(host.uid, gameroom);
 		setTimeout(()=>{
 			if (gameroom.game_start === true){
-				this.GameRooms.delete(hostUid);
+				this.GameRooms.delete(host.uid);
 			}
 		}, 1000 * 15);
 		console.log(this.GameRooms);
 		return true;
 	}
 
-	acceptInvitation(client:Socket, req:ReqSocketDto):boolean{
+	acceptInvitation(client:Socket, req:ReqGameDto):boolean{
 		const guestUid = this.Clients.getKey(client);
 		if (!guestUid){
 			console.log('guest is offline');
 			return false;
 		}
-		if (req.msg == 'ok'){
+		if (req.game_start === true){
 			for (const [key, gameroom] of this.GameRooms.entries()){
 				if (gameroom.guest.uid == guestUid){
 					gameroom.game_start = true;
