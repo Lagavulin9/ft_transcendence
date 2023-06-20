@@ -29,6 +29,7 @@ export interface User {
   totalWin: number;
   uid: number;
   profileURL: string;
+  state: string;
 }
 
 export interface ReqUserDto {

@@ -98,24 +98,14 @@ const FriendList = () => {
               {activeTab === 0 && data?.friendList && (
                 <>
                   {data.friendList.map((user, index) => (
-                    <FriendUser
-                      key={index}
-                      userNickName={user.nickname}
-                      state={0} // TODO: 나중에 상태값으로 변경
-                      uId={user.uid}
-                    />
+                    <FriendUser key={index} uId={user} />
                   ))}
                 </>
               )}
               {activeTab === 1 && data?.blockedList && (
                 <>
                   {data.blockedList.map((user, index) => (
-                    <BlockUser
-                      key={index}
-                      userNickName={user.nickname}
-                      uId={user.uid}
-                      func={cancelBlock}
-                    />
+                    <BlockUser key={index} uId={user} />
                   ))}
                 </>
               )}

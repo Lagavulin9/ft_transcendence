@@ -1,5 +1,6 @@
 import {
   useCheckNicknameMutation,
+  useGetUserQuery,
   useProfileUpdateMutation,
 } from "@/redux/Api/Profile";
 import { ReqUserDto } from "@/types/UserType";
@@ -21,8 +22,13 @@ const ProfileUpdate = ({ uid }: Props) => {
   const [isCheck, setIsCheck] = useState(false);
   const nickCheck = ["중복체크완료.", "사용할 수 없습니다."];
 
-  const [nickCheckMutation, { data: userData }] = useCheckNicknameMutation();
+  const [nickCheckMutation, { data: nickData }] = useCheckNicknameMutation();
   const [profileUpdate, { data: profileData }] = useProfileUpdateMutation();
+  const {
+    data: userData,
+    isFetching: userFetching,
+    refetch: userRefetch,
+  } = useGetUserQuery(uid);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -50,8 +56,8 @@ const ProfileUpdate = ({ uid }: Props) => {
   const nickNameCheck = () => {
     setIsSkip(false);
     nickCheckMutation(nickname);
-    if (userData === true) {
-      setIsCheck(userData);
+    if (nickData === true) {
+      setIsCheck(nickData);
     } else {
       setIsCheck(false);
     }

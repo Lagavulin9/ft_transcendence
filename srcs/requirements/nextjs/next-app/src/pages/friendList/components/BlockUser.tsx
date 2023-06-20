@@ -1,25 +1,44 @@
+import H3 from "@/pages/PostComponents/H3";
 import { useUnBlockFriendMutation } from "@/redux/Api/Friend";
+import { useGetUserQuery } from "@/redux/Api/Profile";
 import { RootState } from "@/redux/RootStore";
+import { data } from "autoprefixer";
 import React, { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { Button } from "react95";
 
 interface User {
-  userNickName: string;
   uId: number;
-  func: () => void;
 }
 
-const BlockUser = ({ userNickName, uId, func }: User) => {
+const BlockUser = ({ uId }: User) => {
   const [BlockUser] = useUnBlockFriendMutation();
   const { uId: owner } = useSelector(
     (state: RootState) => state.rootReducers.global
   );
+  const {
+    data: userData,
+    isFetching: userIsFetching,
+    refetch: userRefetch,
+  } = useGetUserQuery(uId);
 
   const cancelBlock = async () => {
     await BlockUser({ uid: owner, target: uId });
-    func();
   };
+
+  useEffect(() => {
+    const refetchInterval = setInterval(() => {
+      userRefetch();
+    }, 1000);
+
+    return () => {
+      clearInterval(refetchInterval);
+    };
+  }, [userRefetch]);
+
+  if (userIsFetching) {
+    return <H3>...로딩중</H3>;
+  }
 
   return (
     <div
@@ -43,7 +62,7 @@ const BlockUser = ({ userNickName, uId, func }: User) => {
             alignItems: "center",
           }}
         >
-          {userNickName ? userNickName : "user1"}
+          {userData && userData.nickname}
         </div>
         <Button style={{ width: "10vw" }} onClick={cancelBlock}>
           해제

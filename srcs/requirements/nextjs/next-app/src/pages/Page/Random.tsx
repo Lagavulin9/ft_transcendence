@@ -5,7 +5,8 @@ import { useRouter } from "next/router";
 import { Button, WindowContent } from "react95";
 import H3 from "../PostComponents/H3";
 import { useSelector } from "react-redux";
-import RootState from "@/redux/RootReducer";
+import { RootState } from "@/redux/RootStore";
+import { useGetUserQuery } from "@/redux/Api/Profile";
 
 interface User {
   uId: number;
@@ -16,7 +17,11 @@ const Random = () => {
   const router = useRouter();
   const [isMatch, setIsMatch] = useState(false);
   const [guestUser, setGuestUser] = useState<User>({ uId: 0, uNickName: "" });
-  const host = useSelector((state: RootState) => state.user);
+
+  const { uId: owner } = useSelector(
+    (state: RootState) => state.rootReducers.global
+  );
+  const { data, isFetching, refetch } = useGetUserQuery(owner);
 
   const close = () => {
     router.back();
@@ -35,52 +40,49 @@ const Random = () => {
     <AppLayout>
       <MyModal hName="랜덤매칭" close={close}>
         <WindowContent style={{ marginTop: "150px" }}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-around",
-              alignItems: "center",
-            }}
-          >
-            <div>
-              <H3>{host.nickName === "" ? `플레이어1` : `${host.nickName}`}</H3>
-            </div>
-            <div>
-              <H3>
-                {guestUser.uNickName === ""
-                  ? `플레이어?`
-                  : `${guestUser.uNickName}`}
-              </H3>
-            </div>
-          </div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              marginTop: "40px",
-            }}
-          >
-            {isMatch ? (
-              <Button
+          {data && (
+            <>
+              <div
                 style={{
-                  width: "10vw",
+                  display: "flex",
+                  justifyContent: "space-around",
+                  alignItems: "center",
                 }}
-                onClick={Start}
               >
-                <H3>시작</H3>
-              </Button>
-            ) : (
-              <Button
+                <div>
+                  <H3>
+                    {data.nickname === "" ? `플레이어1` : `${data.nickname}`}
+                  </H3>
+                </div>
+                <div>
+                  <H3>
+                    {guestUser.uNickName === ""
+                      ? `플레이어?`
+                      : `${guestUser.uNickName}`}
+                  </H3>
+                </div>
+              </div>
+              <div
                 style={{
-                  width: "10vw",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  marginTop: "40px",
                 }}
-                onClick={Match}
               >
-                <H3>매칭</H3>
-              </Button>
-            )}
-          </div>
+                {isMatch && (
+                  <Button
+                    style={{
+                      width: "10vw",
+                    }}
+                    onClick={Start}
+                  >
+                    <H3>시작</H3>
+                  </Button>
+                )}
+              </div>
+            </>
+          )}
         </WindowContent>
       </MyModal>
     </AppLayout>
