@@ -35,6 +35,7 @@ const ChatRoom = () => {
   const [comment, setComment] = useState("");
   const [password, setPassword] = useState("");
   const [success, setSuccess] = useState(false);
+  const [isDm, setIsDm] = useState(false);
   const [room, setRoom] = useState<resChatDto>();
 
   const router = useRouter();
@@ -42,11 +43,6 @@ const ChatRoom = () => {
   const { uId: owner } = useSelector(
     (state: RootState) => state.rootReducers.global
   );
-  const { success: roomState } = useSelector(
-    (state: RootState) => state.rootReducers.room
-  );
-
-  const dispatch = useAppdispatch();
 
   if (roomName === undefined || roomName === null) {
     return null;
@@ -76,18 +72,44 @@ const ChatRoom = () => {
   };
 
   const sendMsg = () => {
-    if (input.length === 0) {
+    if (input.length === 0 || chatRoomData === undefined) {
       return;
     }
-    if (chatRoomData) {
-      const tmp = {
+    const inputArray = input.split(" ");
+    const dm = {
+      cmd: inputArray[0],
+      target: inputArray[1],
+      content: inputArray.slice(2).join(" "),
+    };
+    const currentUser = chatRoomData.participants.find(
+      (user) => user.nickname === dm.target
+    );
+    if (dm.cmd === "/w") {
+      if (currentUser) {
+        setIsDm(true);
+      } else {
+        setIsDm(false);
+      }
+    }
+
+    if (isDm === true) {
+      console.log(dm);
+      emitEvent("DM", {
+        roomName: chatRoomData.roomName,
+        roomType: chatRoomData.roomType,
+        target: currentUser?.uid,
+        msg: dm.content,
+        password: "",
+      });
+      setInput("");
+    } else {
+      emitEvent("message", {
         roomName: chatRoomData.roomName,
         roomType: chatRoomData.roomType,
         target: "",
         msg: input,
         password: "",
-      } as ReqSocketDto;
-      emitEvent("message", tmp);
+      });
       setInput("");
     }
   };
@@ -199,6 +221,10 @@ const ChatRoom = () => {
     socket.on("wrongpass", () => {
       console.log("wrongpass");
     });
+
+    socket.on("already", () => {
+      setSuccess(true);
+    });
   }, [chatRoomRefetch, isMute]);
 
   const onAlba = async (uid: number) => {
@@ -240,7 +266,6 @@ const ChatRoom = () => {
   };
 
   const onMute = async (uid: number) => {
-    setIsMute(!isMute);
     await emitEvent("mute", {
       roomName: chatRoomData?.roomName,
       roomType: chatRoomData?.roomType,

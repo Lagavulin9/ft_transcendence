@@ -31,6 +31,7 @@ const ChatInput = ({ input, func, click, isMute }: Props) => {
         />
       </div>
       <Button
+        disabled={input.length === 0 || isMute}
         style={{
           fontFamily: "dunggeunmo-bold",
           fontSize: "20px",
