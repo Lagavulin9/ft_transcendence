@@ -30,4 +30,7 @@ export class User{
 
 	@Column({default:1})
 	level: number;
+
+	@Column({default:'offline'})
+	status: string;
 }

@@ -10,6 +10,7 @@ import { GameRoom } from './gameroom.entity';
 import { GameStateDto } from 'src/dto/gameState.dto';
 import { ReqGameDto } from 'src/dto/reqGame.dto';
 import { gameKeyPressDto } from 'src/dto/gameKeyPress.dto';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class GameService {
@@ -82,10 +83,14 @@ export class GameService {
       }
       if (gameroom.host.uid == uid) {
         const guestSocket = this.Clients.getValue(gameroom.guest.uid);
-        guestSocket.emit('game-over', undefined);
+        if (guestSocket){
+          guestSocket.emit('game-over', undefined);
+        }
       } else if (gameroom.guest.uid == uid) {
         const hostSocket = this.Clients.getValue(gameroom.host.uid);
-        hostSocket.emit('game-over', undefined);
+        if (hostSocket){
+          hostSocket.emit('game-over', undefined);
+        }
       }
     }
     return true;
@@ -129,7 +134,7 @@ export class GameService {
     return true;
   }
 
-  acceptInvitation(client: Socket, req: ReqGameDto): boolean {
+  async acceptInvitation(client: Socket, req: ReqGameDto): Promise<boolean> {
     const guestUid = this.Clients.getKey(client);
     if (!guestUid) {
       console.log('guest is offline');
@@ -146,6 +151,12 @@ export class GameService {
           }
           hostSocket.emit('game-start', gameroom);
           client.emit('game-start', gameroom);
+          const host = await this.userRepository.findOne({where:{uid:gameroom.host.uid}})
+          host.status = 'inGame';
+          const guest = await this.userRepository.findOne({where:{uid:gameroom.guest.uid}})
+          guest.status = 'inGame';
+          await this.userRepository.save(host);
+          await this.userRepository.save(guest);
           break;
         }
       }
@@ -193,7 +204,7 @@ export class GameService {
   }
 
   //비정상 종료인경우만..
-  gameOver(client: Socket, data: GameStateDto) {
+  async gameOver(client: Socket, data: GameStateDto) {
     this.GameRooms.delete(data.gameroom.host);
     const hostSocket = this.Clients.getValue(data.gameroom.host);
     const guestSocket = this.Clients.getValue(data.gameroom.guest);
@@ -210,16 +221,28 @@ export class GameService {
       } else if (client == guestSocket) {
         hostSocket.emit('game-over');
       }
+      const host = await this.userRepository.findOne({where:{uid:data.gameroom.host}})
+      host.status = 'offline';
+      const guest = await this.userRepository.findOne({where:{uid:data.gameroom.guest}})
+      guest.status = 'offline';
+      await this.userRepository.save(host);
+      await this.userRepository.save(guest);
     }
   }
 
   //정상종료인경우
-  finish(client: Socket, data: GameStateDto) {
+  async finish(client: Socket, data: GameStateDto) {
     const hostSocket = this.Clients.getValue(data.gameroom.host);
     const guestSocket = this.Clients.getValue(data.gameroom.guest);
     hostSocket.emit('finish', true);
     guestSocket.emit('finish', true);
     this.GameRooms.delete(data.gameroom.host);
+    const host = await this.userRepository.findOne({where:{uid:data.gameroom.host}})
+    host.status = 'online';
+    const guest = await this.userRepository.findOne({where:{uid:data.gameroom.guest}})
+    guest.status = 'online';
+    await this.userRepository.save(host);
+    await this.userRepository.save(guest);
   }
 
   async randomMatch(client: Socket) {
@@ -247,6 +270,15 @@ export class GameService {
       this.GameQueue.push(user);
       client.emit('waiting', 'waiting for another user');
     }
+  }
+
+  isUserInGame(uid:number){
+    for (const [hostuid, gameroom] of this.GameRooms.entries()){
+      if (gameroom.host.uid == uid || gameroom.guest.uid == uid){
+        return true;
+      }
+    }
+    return false;
   }
 }
 

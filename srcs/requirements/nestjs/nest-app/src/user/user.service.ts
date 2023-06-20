@@ -5,7 +5,6 @@ import { Repository } from "typeorm";
 import { createUserDto } from "src/dto/createUser.dto";
 import { ResUserDto } from "src/dto/resUser.dto";
 import { plainToInstance } from "class-transformer";
-import { LogDto, GameLogDto } from "src/dto/log.dto";
 import { Log } from "src/game/log.entity";
 import { FriendList } from "src/friend/friend.entity";
 import { ReqUserDto } from "src/dto/reqUser.dto";
@@ -72,6 +71,17 @@ export class UserService{
 		}
 		return true;
 	}
+
+	async updateUserStatus(uid:number, status:string){
+		const user = await this.userRepository.findOne({where:{uid:uid}});
+		if (!user){
+			return false;
+		}
+		user.status = status;
+		await this.userRepository.save(user);
+		return true;
+	}
+
 /*
 	async updateProfileUrl(uid: number, profileUrl: string):Promise<User>{
 		const toUpdate =  await this.userRepository.findOne({where:{uid:uid}});

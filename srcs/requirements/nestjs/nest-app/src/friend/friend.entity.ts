@@ -1,5 +1,4 @@
 import { IsNotEmpty, IsNumber } from "class-validator";
-import { blockedUserDto, friendUserDto } from "src/dto/friend.dto";
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
@@ -9,9 +8,9 @@ export class FriendList{
 	@IsNotEmpty()
 	uid: number
 
-	@Column({type:'json', default:[]})
-	friendList: friendUserDto[]
+	@Column({type:'integer', array:true ,default:[]})
+	friendList: number[]
 
-	@Column({type:'json', default:[]})
-	blockedList: blockedUserDto[]
+	@Column({type:'integer', array:true ,default:[]})
+	blockedList: number[]
 }
