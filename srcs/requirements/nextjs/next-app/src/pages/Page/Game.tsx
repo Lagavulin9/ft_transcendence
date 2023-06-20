@@ -39,9 +39,10 @@ const Game = () => {
   };
 
   const Mode = (mode: boolean) => {
-    emitEvent("game-invate", {
+    console.log(`host: ${owner}, guest: ${uId}, mode: ${mode}`);
+    emitEvent("game-invite", {
       host: owner,
-      guest: uId,
+      guest: Number(uId),
       game_start: false,
     });
     setIsNormal(mode);

@@ -6,7 +6,7 @@ import { Log } from './log.entity';
 import { GameLogDto, LogDto } from 'src/dto/log.dto';
 import { plainToInstance } from 'class-transformer';
 import { Socket } from 'socket.io';
-import { GameRoom } from './gameroom.entity';
+import { GameRoom, reqGameRoom } from './gameroom.entity';
 import { ReqSocketDto } from 'src/dto/reqSocket.dto';
 import { GameStateDto } from 'src/dto/gameState.dto';
 
@@ -90,7 +90,7 @@ export class GameService {
     return true;
   }
 
-  async createNewGame(client: Socket, req: ReqSocketDto): Promise<boolean> {
+  async createNewGame(client: Socket, req: reqGameRoom): Promise<boolean> {
     const hostUid = this.Clients.getKey(client);
     if (!hostUid) {
       console.log('no such user. bind first');
@@ -98,7 +98,7 @@ export class GameService {
     }
     const host = await this.userRepository.findOne({ where: { uid: hostUid } });
     const guest = await this.userRepository.findOne({
-      where: { uid: req.target },
+      where: { uid: req.guest },
     });
     if (!guest) {
       console.log('no such target');
@@ -115,6 +115,7 @@ export class GameService {
     gameroom.guest = guest;
     gameroom.game_start = false;
     guestSocket.emit('game-invite', gameroom);
+    console.log(guest);
     client.emit('host-invite', 'invitation was sent');
     this.GameRooms.set(host.uid, gameroom);
     setTimeout(() => {
@@ -169,6 +170,8 @@ export class GameService {
       // this.GameRooms.delete(data.gameroom.host.uid);
       return false;
     }
+    console.log('host2guest');
+    console.log(data);
     guestSocket.emit('host2guest', data);
     return true;
   }
@@ -184,6 +187,8 @@ export class GameService {
       // this.GameRooms.delete(data.gameroom.host.uid);
       return false;
     }
+    console.log('guest2host');
+    console.log(data);
     hostSocket.emit('guest2host', data);
     return true;
   }

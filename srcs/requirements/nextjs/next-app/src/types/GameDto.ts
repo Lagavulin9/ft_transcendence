@@ -5,3 +5,22 @@ export interface GameRoomDto {
   guest: User;
   game_start: boolean;
 }
+
+export interface GameRoom {
+  host: number;
+  guest: number;
+  game_start: boolean;
+}
+
+export interface GameStateDto {
+  gameroom: GameRoom;
+  ballPosition: { x: number; y: number };
+  paddlePositions: {
+    player1: { x: number; y: number };
+    player2: { x: number; y: number };
+  };
+  timeStemp: string;
+  isVisible: boolean;
+  score: number[]; // [host, guest]
+  gameTime: number; // s
+}
