@@ -18,7 +18,7 @@ export const fetchRoom = createAsyncThunk<
       resolve({
         host: gameRoom.host,
         guest: gameRoom.guest,
-        game_start: false,
+        game_start: gameRoom.game_start,
       });
     });
     return response;

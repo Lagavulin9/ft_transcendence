@@ -6,7 +6,7 @@ import store from "@/redux/RootStore";
 import Home from ".";
 import { useEffect } from "react";
 import { io } from "socket.io-client";
-import { connectSocket, socket } from "@/utils/socket";
+import { connectSocket, emitEvent, socket } from "@/utils/socket";
 
 export default function App({ Component, pageProps }: AppProps) {
   useEffect(() => {

@@ -64,13 +64,11 @@ const ChatRoom = () => {
     }
   }, [scrollBottomRef]);
 
-  const openGameMode = () => {
+  const openGameMode = (uid: number) => {
     router.push(
-      { pathname: "/Page/Game", query: { isHost: "Host" } },
+      { pathname: "/Page/Game", query: { isHost: "Host", uId: uid } },
       undefined,
-      {
-        shallow: false,
-      }
+      { shallow: false }
     );
   };
 
@@ -190,16 +188,25 @@ const ChatRoom = () => {
     // 컴포넌트가 언마운트될 때 이벤트 리스너 해제
     onEvent("DM", handleDM);
 
-    onEvent("game-invite", (data: GameRoomDto) => {
-      // 상태 업데이트 이벤트 핸들링
-      console.log(data);
-      dispatch(fetchRoom({ gameRoom: data }));
-      router.push(
-        { pathname: "/Page/Game", query: { isHost: "Guest" } },
-        undefined,
-        { shallow: false }
-      );
-    });
+    // onEvent("game-invite", (data: GameRoomDto) => {
+    //   // 상태 업데이트 이벤트 핸들링
+    //   console.log(`guestGameInvite: ${data}`);
+    //   dispatch(fetchRoom({ gameRoom: data }));
+    //   router.push(
+    //     { pathname: "/Page/Game", query: { isHost: "Guest" } },
+    //     undefined,
+    //     { shallow: false }
+    //   );
+    // });
+
+    // onEvent("host-invite", () => {
+    //   console.log(`hostGameInvite`);
+    //   router.push(
+    //     { pathname: "/Page/Game", query: { isHost: "Host" } },
+    //     undefined,
+    //     { shallow: false }
+    //   );
+    // });
   }, [chatRoomRefetch, dispatch, isMute, router]);
 
   const onAlba = async (uid: number) => {
@@ -461,7 +468,7 @@ const ChatRoom = () => {
                                 fontFamily: "dunggeunmo-bold",
                                 fontSize: "17px",
                               }}
-                              onClick={openGameMode}
+                              onClick={() => openGameMode(User.uid)}
                             >
                               게임하기
                             </Button>
