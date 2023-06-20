@@ -7,6 +7,7 @@ import { Response } from 'express';
 import { ResUserDto } from "src/dto/resUser.dto";
 import axios from "axios";
 import { JwtService } from "@nestjs/jwt";
+import { JwtAuthGuard } from "./jwt.guard";
 
 @Controller('auth')
 export class AuthController{
@@ -62,5 +63,11 @@ export class AuthController{
   @Get('test')
   async jwtGenerate(@Res({passthrough:true}) res:Response){
     return this.authService.signUp(res);
+  }
+
+  @Get('test2')
+  @UseGuards(JwtAuthGuard)
+  test(){
+    return 'hello world';
   }
 }
