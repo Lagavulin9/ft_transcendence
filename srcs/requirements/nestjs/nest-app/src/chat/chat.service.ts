@@ -23,13 +23,13 @@ export class ChatService {
   getAllChatroom(): Chat[] {
     const chatArray = [];
     for (const [roomName, chatroom] of this.ChatRooms) {
-      const resdto = new resChatDto();
-      resdto.roomId = chatroom.roomId;
-      resdto.roomName = chatroom.roomName;
-      resdto.roomType = chatroom.roomType;
-      resdto.roomOwner = chatroom.roomOwner;
-      resdto.roomAlba = chatroom.roomAlba;
-      resdto.participants = chatroom.participants;
+      const resdto = new resChatDto(chatroom);
+      // resdto.roomId = chatroom.roomId;
+      // resdto.roomName = chatroom.roomName;
+      // resdto.roomType = chatroom.roomType;
+      // resdto.roomOwner = chatroom.roomOwner;
+      // resdto.roomAlba = chatroom.roomAlba;
+      // resdto.participants = chatroom.participants;
       chatArray.push(resdto);
     }
     return chatArray;
@@ -153,11 +153,6 @@ export class ChatService {
       client.emit('room404', `No such chatroom ${req.roomName}`);
       return undefined;
     }
-    //패스워드 틀림
-    else if (!await bcrypt.compare(req.password, chatroom.hashedPassword)) {
-      client.emit('wrongpass', `incorrect password`);
-      return undefined;
-    }
     //밴당함
     else if (chatroom.banned.find((u) => u == user)) {
       client.emit('banned', `You are banned by channel's admin`);
@@ -165,11 +160,28 @@ export class ChatService {
     } else if (chatroom.participants.find((u) => u == user)) {
       client.emit('already', `You are already in ${req.roomName}`);
     }
-    chatroom.participants.push(user);
-    client.join(chatroom.roomName);
     client.emit('notice', `You have joined ${chatroom.roomName}`);
     client.to(chatroom.roomName).emit('notice', `${user.nickname} has joined`);
-    client.emit('join', plainToInstance(resChatDto, chatroom));
+    client.emit('join', new resChatDto(chatroom));
+    return chatroom;
+  }
+
+  async passCheck(client:Socket, req:ReqSocketDto): Promise<Chat | undefined> {
+    const user = this.Clients.getKey(client);
+    const chatroom = this.ChatRooms.get(req.roomName);
+    if (!chatroom) {
+      //에러:채팅방 낫 파운드
+      client.emit('room404', `No such chatroom ${req.roomName}`);
+      return undefined;
+    }
+    //패스워드 틀림
+    else if (!await bcrypt.compare(req.password, chatroom.hashedPassword)) {
+      client.emit('wrongpass', `incorrect password`);
+      return undefined;
+    }
+    chatroom.participants.push(user);
+    client.join(chatroom.roomName);
+    client.emit('passok', new resChatDto(chatroom));
     return chatroom;
   }
 

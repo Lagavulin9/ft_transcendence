@@ -49,6 +49,11 @@ export class socketGateway implements OnModuleInit {
     return this.chatService.joinChatroom(client, req);
   }
 
+  @SubscribeMessage('password')
+  handlePassword(client: Socket, req: ReqSocketDto): Promise<Chat | undefined> {
+    return this.chatService.passCheck(client, req);
+  }
+
   @SubscribeMessage('leave')
   handleLeaveReq(client: Socket, req: ReqSocketDto): boolean {
     return this.chatService.leaveChatroom(client, req);
