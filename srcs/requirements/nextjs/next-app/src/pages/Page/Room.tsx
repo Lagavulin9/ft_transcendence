@@ -92,12 +92,12 @@ const ChatRoom = () => {
       }
     }
 
-    if (isDm === true) {
+    if (isDm === true && currentUser) {
       console.log(dm);
       emitEvent("DM", {
         roomName: chatRoomData.roomName,
         roomType: chatRoomData.roomType,
-        target: currentUser?.uid,
+        target: currentUser.uid,
         msg: dm.content,
         password: "",
       });
@@ -150,25 +150,6 @@ const ChatRoom = () => {
     await offEvent("DM");
     router.back();
   }, [chatRoomData, router]);
-
-  useEffect(() => {
-    // 메시지 이벤트 리스너 등록
-    const handleMessage = (data: ResMsgDto) => {
-      data.isDm = false;
-      setMsg((prevMsg) => [...prevMsg, data]);
-    };
-
-    const handleDM = (data: ResMsgDto) => {
-      data.isDm = true;
-      setMsg((prevMsg) => [...prevMsg, data]);
-    };
-
-    onEvent("message", handleMessage);
-    // 컴포넌트가 언마운트될 때 이벤트 리스너 해제
-    onEvent("DM", handleDM);
-
-    // 게임 게스트 입장 이벤트 리스너 등록
-  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -225,6 +206,20 @@ const ChatRoom = () => {
     socket.on("already", () => {
       setSuccess(true);
     });
+
+    const handleMessage = (data: ResMsgDto) => {
+      data.isDm = false;
+      setMsg((prevMsg) => [...prevMsg, data]);
+    };
+
+    const handleDM = (data: ResMsgDto) => {
+      data.isDm = true;
+      setMsg((prevMsg) => [...prevMsg, data]);
+    };
+
+    onEvent("message", handleMessage);
+    // 컴포넌트가 언마운트될 때 이벤트 리스너 해제
+    onEvent("DM", handleDM);
   }, [chatRoomRefetch, isMute]);
 
   const onAlba = async (uid: number) => {

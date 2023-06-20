@@ -39,8 +39,10 @@ export class socketGateway implements OnModuleInit {
   }
 
   @SubscribeMessage('create')
-  handleCreateReq(client: Socket, req: ReqSocketDto): Promise<Chat | undefined> {
-    console.log(req);
+  handleCreateReq(
+    client: Socket,
+    req: ReqSocketDto,
+  ): Promise<Chat | undefined> {
     return this.chatService.createChatroom(client, req);
   }
 
@@ -61,7 +63,6 @@ export class socketGateway implements OnModuleInit {
 
   @SubscribeMessage('message')
   handleMessage(client: Socket, req: ReqSocketDto): boolean {
-    console.log(req);
     return this.chatService.sendMessage(client, req);
   }
 
@@ -87,7 +88,6 @@ export class socketGateway implements OnModuleInit {
 
   @SubscribeMessage('usermod')
   handleUsermod(client: Socket, req: ReqSocketDto): boolean {
-    console.log(req);
     return this.chatService.addAdmin(client, req);
   }
 
