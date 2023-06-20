@@ -178,7 +178,8 @@ export class ChatService {
       return undefined;
     //이미 들어옴
     } else if (chatroom.participants.find((u) => u == user)) {
-      client.emit('already', `You are already in ${req.roomName}`);
+      client.emit('already', new resChatDto(chatroom));
+      return undefined;
     }
     chatroom.participants.push(user);
     client.join(chatroom.roomName);
