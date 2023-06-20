@@ -8,6 +8,7 @@ import { UserService } from 'src/user/user.service';
 import { FriendService } from 'src/friend/friend.service';
 import { ReqSocketDto } from 'src/dto/reqSocket.dto';
 import { ResMsgDto } from 'src/dto/msg.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class ChatService {
@@ -82,7 +83,6 @@ export class ChatService {
         //방에 아무도 없는경우 채팅방 삭제
         if (chatroom.participants.length == 0) {
           this.ChatRooms.delete(roomName);
-          console.log(this.ChatRooms);
         }
         //주딱이면 다른놈이 왕위계승
         else if (user == chatroom.roomOwner) {
@@ -111,7 +111,7 @@ export class ChatService {
     return true;
   }
 
-  createChatroom(client: Socket, req: ReqSocketDto): Chat | undefined {
+  async createChatroom(client: Socket, req: ReqSocketDto): Promise<Chat | undefined> {
     if (client.rooms.size >= 2) {
       //에러:채팅방 2개 이상 동시에 만들어서 들어가려할때
       client.emit('no2room', `cant join more than two rooms`);
@@ -128,7 +128,7 @@ export class ChatService {
     newChat.roomId = ++this.RoomIndex;
     newChat.roomName = req.roomName;
     newChat.roomType = req.roomType;
-    newChat.password = req.password;
+    newChat.hashedPassword = await bcrypt.hash(req.password, 10);
     newChat.roomAlba = [user];
     newChat.participants = [user];
     newChat.banned = [];
@@ -139,8 +139,8 @@ export class ChatService {
     client.emit('create', newChat);
     return newChat;
   }
-
-  joinChatroom(client: Socket, req: ReqSocketDto): Chat | undefined {
+  
+  async joinChatroom(client: Socket, req: ReqSocketDto): Promise<Chat | undefined> {
     if (client.rooms.size >= 2) {
       //에러:채팅방 2개 이상 동시에 들어가려할때
       client.emit('no2room', `cant join more than two rooms`);
@@ -154,7 +154,7 @@ export class ChatService {
       return undefined;
     }
     //패스워드 틀림
-    else if (chatroom.password != req.password) {
+    else if (!await bcrypt.compare(req.password, chatroom.hashedPassword)) {
       client.emit('wrongpass', `incorrect password`);
       return undefined;
     }
@@ -198,7 +198,6 @@ export class ChatService {
     //방에 아무도 없는경우 채팅방 삭제
     if (chatroom.participants.length == 0) {
       this.ChatRooms.delete(chatroom.roomName);
-      console.log(this.ChatRooms);
       return true;
     }
     //주딱이면 다른놈이 왕위계승
@@ -379,11 +378,9 @@ export class ChatService {
   }
 
   getClientChatroomName(client: Socket): string | undefined {
-    console.log(client.rooms);
     if (client.rooms.size < 2) {
       return undefined;
     }
-    console.log(Array.from(client.rooms)[1]);
     return Array.from(client.rooms)[1];
   }
 }

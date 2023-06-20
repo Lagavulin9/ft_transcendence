@@ -9,5 +9,5 @@ export class Chat{
 	banned: User[]
 	muted: User[]
 	roomType: string
-	password: string
+	hashedPassword: string
 }
