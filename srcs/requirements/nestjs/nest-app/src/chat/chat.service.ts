@@ -113,11 +113,13 @@ export class ChatService {
 
   createChatroom(client: Socket, req: ReqSocketDto): Chat | undefined {
     if (client.rooms.size >= 2) {
-      client.emit('error', `cant join more than two rooms`);
+      //에러:채팅방 2개 이상 동시에 만들어서 들어가려할때
+      client.emit('no2room', `cant join more than two rooms`);
       return undefined;
     }
     if (this.ChatRooms.get(req.roomName)) {
-      client.emit('error', `Chatroom ${req.roomName} already exist`);
+      //에러:이미 존재하는 채팅방
+      client.emit('roomexist', `Chatroom ${req.roomName} already exist`);
       return undefined;
     }
     const user = this.Clients.getKey(client);
@@ -140,26 +142,28 @@ export class ChatService {
 
   joinChatroom(client: Socket, req: ReqSocketDto): Chat | undefined {
     if (client.rooms.size >= 2) {
-      client.emit('error', `cant join more than two rooms`);
+      //에러:채팅방 2개 이상 동시에 들어가려할때
+      client.emit('no2room', `cant join more than two rooms`);
       return undefined;
     }
     const user = this.Clients.getKey(client);
     const chatroom = this.ChatRooms.get(req.roomName);
     if (!chatroom) {
-      client.emit('error', `No such chatroom ${req.roomName}`);
+      //에러:채팅방 낫 파운드
+      client.emit('room404', `No such chatroom ${req.roomName}`);
       return undefined;
     }
     //패스워드 틀림
     else if (chatroom.password != req.password) {
-      client.emit('error', `incorrect password`);
+      client.emit('wrongpass', `incorrect password`);
       return undefined;
     }
     //밴당함
     else if (chatroom.banned.find((u) => u == user)) {
-      client.emit('error', `You are banned by channel's admin`);
+      client.emit('banned', `You are banned by channel's admin`);
       return undefined;
     } else if (chatroom.participants.find((u) => u == user)) {
-      client.emit('error', `You are already in ${req.roomName}`);
+      client.emit('already', `You are already in ${req.roomName}`);
     }
     chatroom.participants.push(user);
     client.join(chatroom.roomName);
@@ -173,11 +177,13 @@ export class ChatService {
     const user = this.Clients.getKey(client);
     const chatroom = this.ChatRooms.get(req.roomName);
     if (!user || !chatroom) {
-      client.emit('error', 'failed');
+      //에러:유저가 이미 오프라인이거나 채팅방이 존재하지 않음
+      client.emit('nochat', 'failed');
       return false;
     }
     if (!chatroom.participants.find((u) => u == user)) {
-      client.emit('error', 'failed');
+      //에러:채팅방안에 없음
+      client.emit('notinchat', 'failed');
       return false;
     }
     client.emit('notice', `You have left ${chatroom.roomName}`);
@@ -239,7 +245,8 @@ export class ChatService {
     const sender = this.Clients.getKey(client);
     const target = await this.userService.getUserByID(req.target);
     if (!target) {
-      client.emit('error', `No such user: ${req.target}`);
+      //에러:dm대상이 존재하지 않음
+      client.emit('nodmtarget', `No such user: ${req.target}`);
       return false;
     }
     const targetSocket = this.Clients.getValue(target);
@@ -312,16 +319,19 @@ export class ChatService {
     const user = this.Clients.getKey(client);
     const chatroom = this.ChatRooms.get(req.roomName);
     if (user != chatroom.roomOwner) {
-      client.emit('error', 'You are not the owner of this chat');
+      //에러: 오너가 아님
+      client.emit('notowner', 'You are not the owner of this chat');
       return false;
     }
     const target = chatroom.participants.find((u) => u.uid == req.target);
     if (!target) {
-      client.emit('error', `No such user: ${req.target}`);
+      //에러: 어드민으로 추가할 대상이 채팅방에 없음
+      client.emit('notarget', `No such user: ${req.target}`);
       return false;
     }
     if (chatroom.roomAlba.find((u) => u == target)) {
-      client.emit('error', `${req.target} is already an admin`);
+      //에러: 이미 대상이 어드민임
+      client.emit('isadmin', `${req.target} is already an admin`);
       return false;
     }
     chatroom.roomAlba.push(target);
@@ -339,18 +349,18 @@ export class ChatService {
     const chatroom = this.ChatRooms.get(req.roomName);
     //채팅방이 없음
     if (!chatroom) {
-      client.emit('error', `You are not in chatting room`);
+      client.emit('nochat', `You are not in chatting room`);
       return false;
     }
     //관리자 권한이 없는 경우
     if (!chatroom.roomAlba.find((u) => u == user)) {
-      client.emit('error', 'You are not an admin of this channel');
+      client.emit('notadmin', 'You are not an admin of this channel');
       return false;
     }
     const target = chatroom.participants.find((u) => u.uid == req.target);
     //타겟이 없음
     if (!target) {
-      client.emit('error', `No such user: ${req.target}`);
+      client.emit('notarget', `No such user: ${req.target}`);
       return false;
     }
     //타겟이 오너, 어드민
@@ -361,7 +371,8 @@ export class ChatService {
       if (user == chatroom.roomOwner || target != chatroom.roomOwner) {
         return true;
       }
-      client.emit('error', 'You cannot kick, ban, or mute owner/admins');
+      //에러: 오너를 킥,밴,뮤트 할 수 없음
+      client.emit('cant', 'You cannot kick, ban, or mute owner/admins');
       return false;
     }
     return true;
