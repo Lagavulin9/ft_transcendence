@@ -44,7 +44,7 @@ export class ChatService {
       }
     }
     if (found) {
-      return plainToInstance(resChatDto, found);
+      return new resChatDto(found);
     }
     throw new NotFoundException(`Chatroom ID not found: ${roomId}`);
   }
@@ -52,7 +52,7 @@ export class ChatService {
   getChatByName(roomName: string): resChatDto {
     const found = this.ChatRooms.get(roomName);
     if (found) {
-      return plainToInstance(resChatDto, found);
+      return new resChatDto(found);
     }
     throw new NotFoundException(`Chatroom ID not found: ${roomName}`);
   }
