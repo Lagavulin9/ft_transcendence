@@ -257,7 +257,13 @@ export class ChatService {
 
   async sendDirectMessage(client: Socket, req: ReqSocketDto): Promise<boolean> {
     const sender = this.Clients.getKey(client);
-    const target = await this.userService.getUserByID(req.target);
+    let target:User;
+    for (const [user, socket] of this.Clients.getForwardMap()){
+      if (user.uid == req.target){
+        target = user;
+        break;
+      }
+    }
     if (!target) {
       //에러:dm대상이 존재하지 않음
       client.emit('nodmtarget', `No such user: ${req.target}`);
