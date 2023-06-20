@@ -265,7 +265,7 @@ export class ChatService {
     targetSocket.emit('kick', `You were kicked by channel's admin`);
     client
       .to(chatroom.roomName)
-      .emit('kickNotice', `${target.nickname} was kicked by channel's admin`);
+      .emit('kicknotice', `${target.nickname} was kicked by channel's admin`);
     client.emit('kicknotice', 'Success');
     return true;
   }
@@ -282,8 +282,8 @@ export class ChatService {
     targetSocket.emit('ban', `You were banned by channel's admin`);
     client
       .to(chatroom.roomName)
-      .emit('notice', `${target.nickname} was banned by channel's admin`);
-    client.emit('ban', 'Success');
+      .emit('bannotice', `${target.nickname} was banned by channel's admin`);
+    client.emit('bannotice', 'Success');
     chatroom.banned.push(target);
     return true;
   }
@@ -304,15 +304,15 @@ export class ChatService {
     targetSocket.emit('mute', `You are now muted for ${time / 1000}seconds`);
     client
       .to(chatroom.roomName)
-      .emit('notice', `${target.nickname} was muted by channel's admin`);
-    client.emit('mute', 'Success');
+      .emit('mutenotice', `${target.nickname} was muted by channel's admin`);
+    client.emit('mutenotice', 'Success');
   }
 
   addAdmin(client: Socket, req: ReqSocketDto): boolean {
     const user = this.Clients.getKey(client);
     const chatroom = this.ChatRooms.get(req.roomName);
     if (user != chatroom.roomOwner) {
-      client.emit('notice', 'You are now the owner of this chat');
+      client.emit('error', 'You are not the owner of this chat');
       return false;
     }
     const target = chatroom.participants.find((u) => u.uid == req.target);
@@ -326,11 +326,11 @@ export class ChatService {
     }
     chatroom.roomAlba.push(target);
     const targetSocket = this.Clients.getValue(target);
-    targetSocket.emit('notice', `You are now the channel's admin`);
+    targetSocket.emit('usermod', `You are now the channel's admin`);
     targetSocket
       .to(chatroom.roomName)
-      .emit('notice', `${target.nickname} is now the channel's admin`);
-    client.emit('usermod', 'Success');
+      .emit('usermodnotice', `${target.nickname} is now the channel's admin`);
+    client.emit('usermodnotice', 'Success');
     return true;
   }
 
