@@ -17,7 +17,7 @@ import MyModal from "../globalComponents/MyModal";
 import { useRouter } from "next/router";
 import { useGetAllQuery, useGetChatRoomQuery } from "@/redux/Api/ChatRoom";
 import { emitEvent, offEvent, onError, onEvent } from "@/utils/socket";
-import { ReqSocketDto, ResMsgDto } from "@/types/ChatDto";
+import { ReqSocketDto, ResMsgDto, resChatDto } from "@/types/ChatDto";
 import { RootState } from "@/redux/RootStore";
 import { socket } from "@/utils/socket";
 import H3 from "../PostComponents/H3";
@@ -35,12 +35,18 @@ const ChatRoom = () => {
   const [comment, setComment] = useState("");
   const [password, setPassword] = useState("");
   const [success, setSuccess] = useState(false);
+  const [room, setRoom] = useState<resChatDto>();
 
   const router = useRouter();
   const { roomName } = router.query;
   const { uId: owner } = useSelector(
     (state: RootState) => state.rootReducers.global
   );
+  const { success: roomState } = useSelector(
+    (state: RootState) => state.rootReducers.room
+  );
+
+  const dispatch = useAppdispatch();
 
   if (roomName === undefined || roomName === null) {
     return null;
@@ -104,7 +110,6 @@ const ChatRoom = () => {
 
   const close = useCallback(async () => {
     setIsRoomAction(false);
-    console.log("close");
     if (chatRoomData) {
       const tmp = {
         roomName: chatRoomData.roomName,
@@ -180,14 +185,19 @@ const ChatRoom = () => {
       setComment("차단당함 이제 못들어옴 ㅋㅋ");
     });
 
-    socket.on("room404", () => {
-      setIsRoomAction(true);
-      setComment("방이 없음 나가세요 ~");
+    socket.on("wrongpass", () => {
+      setPassword("");
+      setTimeout(() => alert("비밀번호가 틀렸습니다."), 2);
+    });
+
+    socket.on("passok", (data: resChatDto) => {
+      console.log(data);
+      setRoom(data);
+      setSuccess(true);
     });
 
     socket.on("wrongpass", () => {
-      setPassword("");
-      alert("비밀번호가 틀렸습니다.");
+      console.log("wrongpass");
     });
   }, [chatRoomRefetch, isMute]);
 
@@ -240,6 +250,16 @@ const ChatRoom = () => {
     });
   };
 
+  const onPassword = async () => {
+    await emitEvent("password", {
+      roomName: chatRoomData?.roomName,
+      roomType: chatRoomData?.roomType,
+      target: "",
+      msg: "",
+      password: password,
+    });
+  };
+
   if (chatRoomData?.roomType === "Protected" && success === false) {
     return (
       <AppLayout>
@@ -261,7 +281,9 @@ const ChatRoom = () => {
               style={{ width: "300px" }}
             />
             <Button
+              disabled={password.length === 0}
               style={{ marginLeft: "20px", fontSize: "23px", width: "80px" }}
+              onClick={onPassword}
             >
               확인
             </Button>
@@ -271,8 +293,53 @@ const ChatRoom = () => {
     );
   }
 
-  if (chatRoomData?.roomType !== "Private" && success === false) {
-    socket.on("join", {});
+  if (chatRoomData?.roomType !== "Protected" && success === false) {
+    socket.emit("password", {
+      roomName: chatRoomData?.roomName,
+      roomType: chatRoomData?.roomType,
+      target: "",
+      msg: "",
+      password: "",
+    });
+    return (
+      <AppLayout>
+        <MyModal hName={chatRoomData?.roomName ?? "채팅룸"} close={close}>
+          <div
+            style={{
+              display: "flex",
+              fontFamily: "dunggeunmo-bold",
+              fontSize: "20px",
+              marginTop: "200px",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            로딩중...
+          </div>
+        </MyModal>
+      </AppLayout>
+    );
+  }
+
+  if (isRoomAction === true) {
+    return (
+      <AppLayout>
+        <MyModal hName={chatRoomData?.roomName ?? "채팅룸"} close={close}>
+          <div
+            style={{
+              display: "flex",
+              fontFamily: "dunggeunmo-bold",
+              fontSize: "20px",
+              marginTop: "200px",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <RoomAction comment={comment} />
+          </div>
+        </MyModal>
+      </AppLayout>
+    );
   }
 
   return (
@@ -428,3 +495,6 @@ const ChatRoom = () => {
 };
 
 export default ChatRoom;
+function useAppdispatch() {
+  throw new Error("Function not implemented.");
+}

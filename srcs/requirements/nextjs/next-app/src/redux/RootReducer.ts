@@ -4,6 +4,7 @@ import UserSlice from "./Slice/User";
 import { ChatSlice } from "./Slice/Chat";
 import ProfileSlice from "./Slice/Profile";
 import LoadingSlice from "./Slice/Loading";
+import roomSlice from "./Slice/Room";
 
 export const rootReducer = combineReducers({
   global: GlobalSlice.reducer,
@@ -11,6 +12,7 @@ export const rootReducer = combineReducers({
   chat: ChatSlice.reducer,
   profile: ProfileSlice,
   loading: LoadingSlice.reducer,
+  room: roomSlice.reducer,
 });
 
 type RootState = ReturnType<typeof rootReducer>;

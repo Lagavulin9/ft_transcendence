@@ -1,9 +1,11 @@
 import ChatRoom from "@/pages/Page/Room";
 import { useGetAllQuery } from "@/redux/Api/ChatRoom";
+import { resChatDto } from "@/types/ChatDto";
 import { emitEvent, onEvent } from "@/utils/socket";
 import { Row } from "antd";
 import { useRouter } from "next/router";
 import React, { useState } from "react";
+import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { Button, GroupBox, Radio, TextInput } from "react95";
 
@@ -21,21 +23,40 @@ const RoomCreate = () => {
   } = useGetAllQuery();
 
   const onClickCreate = async () => {
-    console.log("create");
-    emitEvent("create", {
-      roomName: input,
-      roomType: state,
-      target: "",
-      msg: "",
-      password: "",
-    });
+    if (state === "Protected") {
+      emitEvent("create", {
+        roomName: input,
+        roomType: state,
+        target: "",
+        msg: "",
+        password: password,
+      });
+    } else {
+      emitEvent("create", {
+        roomName: input,
+        roomType: state,
+        target: "",
+        msg: "",
+        password: "",
+      });
+    }
+
     await refetch();
-    router.push(
-      { pathname: "/Page/Room", query: { roomName: input } },
-      undefined,
-      { shallow: false }
-    );
   };
+
+  useEffect(() => {
+    onEvent("create", (data: resChatDto) => {
+      router.push(
+        { pathname: "/Page/Room", query: { roomName: data.roomName } },
+        undefined,
+        { shallow: false }
+      );
+    });
+    onEvent("roomexist", (data: string) => {
+      setInput("");
+      setPassword("");
+    });
+  }, [input, refetch, router]);
 
   return (
     <>
