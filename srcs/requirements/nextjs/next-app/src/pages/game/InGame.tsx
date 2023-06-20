@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import Map from "./Map";
 import GameClose from "./Close";
 import GameScore from "./Score";
+import { GameRoomDto, GameStateDto } from "@/types/GameDto";
+import { emitEvent, onEvent } from "@/utils/socket";
 
 const ballRadius = 10; // 공의 반지름
 const paddleHeight = 80; // 패들의 높이
@@ -9,7 +11,13 @@ const paddleWidth = 10; // 패들의 너비
 const canvasWidth = 500; // 게임 영역의 너비
 const canvasHeight = 300; // 게임 영역의 높이
 
-const InGame: React.FC = () => {
+interface InGameProps {
+  isHost: boolean;
+  isNormal: boolean;
+  room: GameRoomDto;
+}
+
+const InGame = ({ isHost, isNormal, room }: InGameProps) => {
   const initialDirection = Math.random() > 0.5 ? -1 : 1;
   const [ballPosition, setBallPosition] = useState({ x: 250, y: 150 });
   const [ballSpeed, setBallSpeed] = useState({ x: 4 * initialDirection, y: 4 });
@@ -29,6 +37,7 @@ const InGame: React.FC = () => {
   const [gameTime, setGameTime] = useState(0); // Add gameTime state
   const [isEnd, setIsEnd] = useState(false);
   const [playerIndex, setPlayerIndex] = useState(0);
+  const [delay, setDelay] = useState(0);
 
   useEffect(() => {
     if (isEnd) {
@@ -68,7 +77,7 @@ const InGame: React.FC = () => {
         return;
       }
       // Handle paddle movements
-      if (isGuest) {
+      if (isHost) {
         if (keysPressed.w && paddlePositions.player1.y > 0) {
           setPaddlePositions((prev) => ({
             ...prev,
@@ -106,13 +115,16 @@ const InGame: React.FC = () => {
 
       // Handle ball movement and collision
       let newBallPosition = {
-        x: ballPosition.x + ballSpeed.x,
-        y: ballPosition.y + ballSpeed.y,
+        x: ballPosition.x + ballSpeed.x * delay,
+        y: ballPosition.y + ballSpeed.y * delay,
       };
 
       // Check if the ball hits the top or bottom wall
       if (newBallPosition.y <= 0 || newBallPosition.y >= canvasHeight) {
-        setBallSpeed((prev) => ({ x: prev.x, y: -prev.y }));
+        setBallSpeed((prev) => ({
+          x: prev.x,
+          y: -prev.y,
+        }));
       }
 
       // Check if the ball hits a paddle
@@ -125,7 +137,10 @@ const InGame: React.FC = () => {
           newBallPosition.y >= paddlePositions.player2.y &&
           newBallPosition.y <= paddlePositions.player2.y + paddleHeight)
       ) {
-        setBallSpeed((prev) => ({ x: -prev.x, y: prev.y }));
+        setBallSpeed((prev) => ({
+          x: -prev.x,
+          y: prev.y,
+        }));
       }
 
       // Update ball position
@@ -153,6 +168,27 @@ const InGame: React.FC = () => {
         // TODO: Declare the winner
         // TODO: 여기서 보내고
       }
+      if (isHost) {
+        emitEvent("host2guest", {
+          gameroom: room,
+          ballPosition: ballPosition,
+          paddlePositions: paddlePositions,
+          timeStamp: new Date().toISOString(), // 예시입니다. 실제로는 고유한 타임스탬프를 생성해야 합니다.
+          isVisible: false, // 필요에 따라 변경하십시오.
+          score: [score.player1, score.player2],
+          gameTime: gameTime,
+        });
+      } else {
+        emitEvent("guest2host", {
+          gameroom: room,
+          ballPosition: ballPosition,
+          paddlePositions: paddlePositions,
+          timeStamp: new Date().toISOString(), // 예시입니다. 실제로는 고유한 타임스탬프를 생성해야 합니다.
+          isVisible: false, // 필요에 따라 변경하십시오.
+          score: [score.player1, score.player2],
+          gameTime: gameTime,
+        });
+      }
     }, 16);
 
     return () => {
@@ -166,6 +202,12 @@ const InGame: React.FC = () => {
     initialDirection,
     isEnd,
     isGuest,
+    isHost,
+    delay,
+    room,
+    score.player1,
+    score.player2,
+    gameTime,
   ]);
 
   useEffect(() => {
@@ -179,10 +221,39 @@ const InGame: React.FC = () => {
       });
     }, 1000);
 
+    if (isHost) {
+      onEvent("guest2host", (data: GameStateDto) => {
+        setPaddlePositions((prev) => ({
+          ...prev,
+          player2: {
+            x: data.paddlePositions.player2.x,
+            y: data.paddlePositions.player2.y,
+          },
+        }));
+      });
+    } else {
+      onEvent("host2guest", (data: GameStateDto) => {
+        setPaddlePositions((prev) => ({
+          player1: {
+            x: data.paddlePositions.player1.x,
+            y: data.paddlePositions.player1.y,
+          },
+          player2: {
+            x: data.paddlePositions.player2.x,
+            y: data.paddlePositions.player2.y,
+          },
+        }));
+        setBallPosition({ x: data.ballPosition.x, y: data.ballPosition.y });
+        setDelay(new Date(data.timeStemp).getTime() - new Date().getTime());
+        setScore({ player1: data.score[0], player2: data.score[1] });
+        setGameTime(data.gameTime);
+      });
+    }
+
     return () => {
       clearInterval(timer);
     };
-  }, [isEnd]);
+  }, [isEnd, isHost]);
 
   useEffect(() => {
     if (score.player1 === 5 || score.player2 === 5 || gameTime > 100) {

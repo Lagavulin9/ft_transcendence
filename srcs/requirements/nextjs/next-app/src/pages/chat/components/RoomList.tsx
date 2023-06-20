@@ -5,7 +5,8 @@ import H3 from "@/pages/PostComponents/H3";
 import { useGetAllQuery, useGetChatRoomQuery } from "@/redux/Api/ChatRoom";
 import { useGetUserQuery } from "@/redux/Api/Profile";
 import { RootState } from "@/redux/RootStore";
-import { emitEvent, onError } from "@/utils/socket";
+import { resChatDto } from "@/types/ChatDto";
+import { emitEvent, onError, onEvent } from "@/utils/socket";
 import { data } from "autoprefixer";
 import { useRouter } from "next/router";
 import React, { useEffect, useRef } from "react";
@@ -26,29 +27,15 @@ const RoomList = () => {
     refetch,
   } = useGetAllQuery(owner);
 
-  const ChatRoomJoin = (index: number) => {
-    emitEvent("join", {
+  const ChatRoomJoin = async (index: number) => {
+    console.log(chatData?.[index].roomName);
+    await emitEvent("join", {
       roomName: chatData?.[index].roomName,
       roomType: chatData?.[index].roomType,
       target: "",
       msg: "",
       password: "",
     });
-    onError("error", () => {
-      return;
-    });
-
-    if (chatData?.[index].roomType === 2) {
-      // TODO 비밀번호 받고, 서버에 validation 요청
-    }
-    router.push(
-      {
-        pathname: "/Page/Room",
-        query: { roomName: chatData?.[index].roomName },
-      },
-      undefined,
-      { shallow: false }
-    );
   };
 
   useEffect(() => {
@@ -60,6 +47,20 @@ const RoomList = () => {
       clearInterval(refetchInterval);
     };
   }, [refetch]);
+
+  useEffect(() => {
+    onEvent("join", (data: resChatDto) => {
+      console.log(data);
+      router.push(
+        {
+          pathname: "/Page/Room",
+          query: { roomName: data.roomName },
+        },
+        undefined,
+        { shallow: false }
+      );
+    });
+  }, [router]);
 
   if (chatRoomIsFetching) {
     return <H3>...로딩중</H3>;
@@ -74,32 +75,38 @@ const RoomList = () => {
     >
       <ScrollView style={{ width: "100%", height: "430px" }}>
         {chatData?.map((chat, index) => {
-          return (
-            <>
-              <div
-                key={index}
-                style={{
-                  display: "flex",
-                  fontFamily: "dunggeunmo-bold",
-                  fontSize: "22px",
-                  margin: "5px",
-                }}
-              >
-                <span style={{ width: "80%" }}>{chat.roomName}</span>
-                <Button
+          if (chat.roomType !== "Private") {
+            return (
+              <>
+                <div
+                  key={index}
                   style={{
-                    width: "20%",
+                    display: "flex",
+                    fontFamily: "dunggeunmo-bold",
+                    fontSize: "22px",
+                    margin: "5px",
                   }}
-                  onClick={() => ChatRoomJoin(index)}
                 >
-                  참가
-                </Button>
-              </div>
-              <div
-                style={{ width: "100", height: "2px", backgroundColor: "#999" }}
-              ></div>
-            </>
-          );
+                  <span style={{ width: "80%" }}>{chat.roomName}</span>
+                  <Button
+                    style={{
+                      width: "20%",
+                    }}
+                    onClick={() => ChatRoomJoin(index)}
+                  >
+                    참가
+                  </Button>
+                </div>
+                <div
+                  style={{
+                    width: "100",
+                    height: "2px",
+                    backgroundColor: "#999",
+                  }}
+                ></div>
+              </>
+            );
+          }
         })}
       </ScrollView>
     </div>

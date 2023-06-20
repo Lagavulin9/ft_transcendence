@@ -12,7 +12,7 @@ import { GameStateDto } from 'src/dto/gameState.dto';
 import { ReqGameDto } from 'src/dto/reqGame.dto';
 import { ReqSocketDto } from 'src/dto/reqSocket.dto';
 import { GameService } from 'src/game/game.service';
-import { GameRoom } from 'src/game/gameroom.entity';
+import { GameRoom, reqGameRoom } from 'src/game/gameroom.entity';
 import { UserService } from 'src/user/user.service';
 
 // @WebSocketGateway({cors:{origin:['nextjs']}})
@@ -21,7 +21,7 @@ export class socketGateway implements OnModuleInit {
   constructor(
     private chatService: ChatService,
     private userService: UserService,
-    private gameService: GameService
+    private gameService: GameService,
   ) {}
 
   @WebSocketServer()
@@ -41,12 +41,17 @@ export class socketGateway implements OnModuleInit {
   //소켓이 열릴때 훅을 걸어서 바인드
   @SubscribeMessage('bind')
   handleBind(client: Socket, uid: number): Promise<boolean> {
-    return this.chatService.bindUser(client, uid) && this.gameService.bindUser(client, uid);
+    return (
+      this.chatService.bindUser(client, uid) &&
+      this.gameService.bindUser(client, uid)
+    );
   }
 
   @SubscribeMessage('create')
-  handleCreateReq(client: Socket, req: ReqSocketDto): Promise<Chat | undefined> {
-    console.log(req);
+  handleCreateReq(
+    client: Socket,
+    req: ReqSocketDto,
+  ): Promise<Chat | undefined> {
     return this.chatService.createChatroom(client, req);
   }
 
@@ -67,7 +72,6 @@ export class socketGateway implements OnModuleInit {
 
   @SubscribeMessage('message')
   handleMessage(client: Socket, req: ReqSocketDto): boolean {
-    console.log(req);
     return this.chatService.sendMessage(client, req);
   }
 
@@ -93,7 +97,6 @@ export class socketGateway implements OnModuleInit {
 
   @SubscribeMessage('usermod')
   handleUsermod(client: Socket, req: ReqSocketDto): boolean {
-    console.log(req);
     return this.chatService.addAdmin(client, req);
   }
 
@@ -113,32 +116,32 @@ export class socketGateway implements OnModuleInit {
   }
 
   @SubscribeMessage('game-decline')
-  handleGameDecline(client:Socket, req:GameRoom){
+  handleGameDecline(client: Socket, req: GameRoom) {
     return this.gameService.declineInvitation(client, req);
   }
 
   @SubscribeMessage('game-over')
-  handleGameOver(client:Socket, data:GameStateDto){
+  handleGameOver(client: Socket, data: GameStateDto) {
     return this.gameService.gameOver(client, data);
   }
 
   @SubscribeMessage('finish')
-  handleFinish(client:Socket, data:GameStateDto){
+  handleFinish(client: Socket, data: GameStateDto) {
     return this.gameService.finish(client, data);
   }
 
   @SubscribeMessage('host2guest')
-  handleHost2Guest(client:Socket, data:GameStateDto){
+  handleHost2Guest(client: Socket, data: GameStateDto) {
     return this.gameService.host2guest(client, data);
   }
 
   @SubscribeMessage('guest2host')
-  handleGuest2Host(client:Socket, data:GameStateDto){
+  handleGuest2Host(client: Socket, data: GameStateDto) {
     return this.gameService.guest2host(client, data);
   }
 
   @SubscribeMessage('random-matching')
-  handleRandomMatching(client:Socket){
+  handleRandomMatching(client: Socket) {
     return this.gameService.randomMatch(client);
   }
 }

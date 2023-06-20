@@ -13,7 +13,7 @@ interface Room {
 const SearchRoom = ({ room }: Room) => {
   const router = useRouter();
 
-  if (room === undefined) {
+  if (room === undefined || room.participants.length === 0) {
     return null;
   }
 
@@ -26,6 +26,8 @@ const SearchRoom = ({ room }: Room) => {
       }
     );
   };
+
+  console.log(room);
 
   return (
     <div
@@ -40,11 +42,12 @@ const SearchRoom = ({ room }: Room) => {
       {room.roomName.length > 0 ? (
         <div style={{ width: "70vw" }}>
           <p>Matching chat room found:</p>
-          <p>
-            {"Connect User: "}
-            {room.participants.map((user) => user.nickname).join(", ")}
-          </p>
-          <p>Type: {`${Room[room.roomType].type}`}</p>
+          {room.participants && (
+            <>
+              <p>{room.participants.map((user) => user.nickname).join(", ")}</p>
+              <p>Type: {`${room.roomType}`}</p>
+            </>
+          )}
         </div>
       ) : (
         <div style={{ fontSize: "30px", color: "red" }}>Not Found</div>

@@ -11,81 +11,84 @@ import { GameStateDto } from "src/dto/gameState.dto";
 import { ReqGameDto } from "src/dto/reqGame.dto";
 
 @Injectable()
-export class GameService{
-	constructor(
-		@InjectRepository(User)
-		private userRepository:Repository<User>,
-		@InjectRepository(Log)
-		private logRepository:Repository<Log>
-	){}
-	private Clients = new BidirectionalMap<number, Socket>();
-	private GameRooms = new Map<number, GameRoom>();
-	private GameQueue = [];
+export class GameService {
+  constructor(
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    @InjectRepository(Log)
+    private logRepository: Repository<Log>,
+  ) {}
+  private Clients = new BidirectionalMap<number, Socket>();
+  private GameRooms = new Map<number, GameRoom>();
+  private GameQueue = [];
 
-	async getUserGameLogs(uid:number): Promise<GameLogDto[]>{
-		const gamelog = []
-		gamelog.push(...await this.logRepository.find({where:{fromId:uid}}));
-		gamelog.push(...await this.logRepository.find({where:{toId:uid}}));
-		const gamelogdto = plainToInstance(GameLogDto, gamelog)
-		return gamelogdto;
-	}
+  async getUserGameLogs(uid: number): Promise<GameLogDto[]> {
+    const gamelog = [];
+    gamelog.push(
+      ...(await this.logRepository.find({ where: { fromId: uid } })),
+    );
+    gamelog.push(...(await this.logRepository.find({ where: { toId: uid } })));
+    const gamelogdto = plainToInstance(GameLogDto, gamelog);
+    return gamelogdto;
+  }
 
-	async saveGameLog(log:LogDto): Promise<Log>{
-		const newLog = this.logRepository.create(log);
-		console.log(newLog)
-		const host = await this.userRepository.findOne({where:{uid:log.fromId}});
-		const guest = await this.userRepository.findOne({where:{uid:log.toId}});
-		if (!host || !guest){
-			throw new NotFoundException('No such user');
-		}
-		if (newLog.fromScore > newLog.toScore){
-			host.totalWin++;
-			guest.totalLose++;
-		}
-		else{
-			host.totalLose++;
-			guest.totalWin++;
-		}
-		await this.logRepository.save(newLog);
-		this.userRepository.save(host);
-		this.userRepository.save(guest);
-		return newLog;
-	}
+  async saveGameLog(log: LogDto): Promise<Log> {
+    const newLog = this.logRepository.create(log);
+    console.log(newLog);
+    const host = await this.userRepository.findOne({
+      where: { uid: log.fromId },
+    });
+    const guest = await this.userRepository.findOne({
+      where: { uid: log.toId },
+    });
+    if (!host || !guest) {
+      throw new NotFoundException('No such user');
+    }
+    if (newLog.fromScore > newLog.toScore) {
+      host.totalWin++;
+      guest.totalLose++;
+    } else {
+      host.totalLose++;
+      guest.totalWin++;
+    }
+    await this.logRepository.save(newLog);
+    this.userRepository.save(host);
+    this.userRepository.save(guest);
+    return newLog;
+  }
 
-	async bindUser(client:Socket, uid:number): Promise<boolean>{
-		const user = await this.userRepository.findOne({where:{uid:uid}});
-		if (!user){
-			return false;
-		}
-		if (this.Clients.getValue(user.uid)){
-			return false;
-		}
-		this.Clients.set(user.uid, client);
-		client.emit('notice', user)
-		return true;
-	}
+  async bindUser(client: Socket, uid: number): Promise<boolean> {
+    const user = await this.userRepository.findOne({ where: { uid: uid } });
+    if (!user) {
+      return false;
+    }
+    if (this.Clients.getValue(user.uid)) {
+      return false;
+    }
+    this.Clients.set(user.uid, client);
+    client.emit('notice', user);
+    return true;
+  }
 
-	unbindUser(client:Socket): boolean{
-		const uid = this.Clients.getKey(client);
-		if (!uid){
-			return false;
-		}
-		for (const [key, gameroom] of this.GameRooms.entries())
-		{
-			if (gameroom.host.uid == uid || gameroom.guest.uid == uid){
-				this.Clients.delete(gameroom.host.uid);
-			}
-			if (gameroom.host.uid == uid){
-				const guestSocket = this.Clients.getValue(gameroom.guest.uid);
-				guestSocket.emit('game-over', undefined);
-			}
-			else if(gameroom.guest.uid == uid){
-				const hostSocket = this.Clients.getValue(gameroom.host.uid);
-				hostSocket.emit('game-over', undefined);
-			}
-		}
-		return true;
-	}
+  unbindUser(client: Socket): boolean {
+    const uid = this.Clients.getKey(client);
+    if (!uid) {
+      return false;
+    }
+    for (const [key, gameroom] of this.GameRooms.entries()) {
+      if (gameroom.host.uid == uid || gameroom.guest.uid == uid) {
+        this.Clients.delete(gameroom.host.uid);
+      }
+      if (gameroom.host.uid == uid) {
+        const guestSocket = this.Clients.getValue(gameroom.guest.uid);
+        guestSocket.emit('game-over', undefined);
+      } else if (gameroom.guest.uid == uid) {
+        const hostSocket = this.Clients.getValue(gameroom.host.uid);
+        hostSocket.emit('game-over', undefined);
+      }
+    }
+    return true;
+  }
 
 	async createNewGame(client:Socket, req:ReqGameDto):Promise<boolean>{
 		const host = await this.userRepository.findOne({where:{uid:req.host}});
@@ -138,15 +141,15 @@ export class GameService{
 		}
 	}
 
-	declineInvitation(client:Socket, req:GameRoom){
-		const hostSocket = this.Clients.getValue(req.host.uid);
-		this.GameRooms.delete(req.host.uid);
-		if (!hostSocket){
-			return false;
-		}
-		hostSocket.emit('game-decline', 'declined');
-		// client.emit('game-decline', 'declined');
-	}
+  declineInvitation(client: Socket, req: GameRoom) {
+    const hostSocket = this.Clients.getValue(req.host.uid);
+    this.GameRooms.delete(req.host.uid);
+    if (!hostSocket) {
+      return false;
+    }
+    hostSocket.emit('game-decline', 'declined');
+    // client.emit('game-decline', 'declined');
+  }
 
 	host2guest(client:Socket, data:GameStateDto){
 		const hostSocket = this.Clients.getValue(data.gameroom.host);
@@ -210,63 +213,65 @@ export class GameService{
 		this.GameRooms.delete(data.gameroom.host);
 	}
 
-	async randomMatch(client:Socket){
-		if (this.GameQueue.length){
-			const newGame = new GameRoom();
-			newGame.host = this.GameQueue.pop();
-			newGame.guest = await this.userRepository.findOne({where:{uid:this.Clients.getKey(client)}});
-			newGame.game_start = true;
-			this.GameRooms.set(newGame.host.uid, newGame);
-			const hostSocket = this.Clients.getValue(newGame.host.uid);
-			const guestSocket = this.Clients.getValue(newGame.guest.uid);
-			hostSocket.emit('game-start', newGame);
-			guestSocket.emit('game-start', newGame);
-		}
-		else{
-			const user = this.userRepository.findOne({where:{uid:this.Clients.getKey(client)}});
-			if (!user){
-				//에러: 서버에서 유저를 못찾음
-				client.emit('user404', 'user not found');
-				return;
-			}
-			this.GameQueue.push(user);
-			client.emit('waiting', 'waiting for another user');
-		}
-	}
+  async randomMatch(client: Socket) {
+    if (this.GameQueue.length) {
+      const newGame = new GameRoom();
+      newGame.host = this.GameQueue.pop();
+      newGame.guest = await this.userRepository.findOne({
+        where: { uid: this.Clients.getKey(client) },
+      });
+      newGame.game_start = true;
+      this.GameRooms.set(newGame.host.uid, newGame);
+      const hostSocket = this.Clients.getValue(newGame.host.uid);
+      const guestSocket = this.Clients.getValue(newGame.guest.uid);
+      hostSocket.emit('game-start', newGame);
+      guestSocket.emit('game-start', newGame);
+    } else {
+      const user = this.userRepository.findOne({
+        where: { uid: this.Clients.getKey(client) },
+      });
+      if (!user) {
+        //에러: 서버에서 유저를 못찾음
+        client.emit('user404', 'user not found');
+        return;
+      }
+      this.GameQueue.push(user);
+      client.emit('waiting', 'waiting for another user');
+    }
+  }
 }
 
-
 class BidirectionalMap<Key, Value> {
-	private forwardMap: Map<Key, Value>;
-	private reverseMap: Map<Value, Key>;
-  
-	constructor() {
-	  this.forwardMap = new Map<Key, Value>();
-	  this.reverseMap = new Map<Value, Key>();
-	}
-  
-	set(key: Key, value: Value) {
-	  this.forwardMap.set(key, value);
-	  this.reverseMap.set(value, key);
-	}
-  
-	getKey(value: Value): Key | undefined {
-	  return this.reverseMap.get(value);
-	}
-  
-	getValue(key: Key): Value | undefined {
-	  return this.forwardMap.get(key);
-	}
+  private forwardMap: Map<Key, Value>;
+  private reverseMap: Map<Value, Key>;
 
-	delete(key: Key) {
-		const value = this.forwardMap.get(key);
-		if (value !== undefined) {
-			this.forwardMap.delete(key);
-			this.reverseMap.delete(value);
-		}
-	}
+  constructor() {
+    this.forwardMap = new Map<Key, Value>();
+    this.reverseMap = new Map<Value, Key>();
+  }
 
-	getForwardMap(): Map<Key, Value> {
-		return this.forwardMap;
-	}
+  set(key: Key, value: Value) {
+    this.forwardMap.set(key, value);
+    this.reverseMap.set(value, key);
+  }
+
+  getKey(value: Value): Key | undefined {
+    return this.reverseMap.get(value);
+  }
+
+  getValue(key: Key): Value | undefined {
+    return this.forwardMap.get(key);
+  }
+
+  delete(key: Key) {
+    const value = this.forwardMap.get(key);
+    if (value !== undefined) {
+      this.forwardMap.delete(key);
+      this.reverseMap.delete(value);
+    }
+  }
+
+  getForwardMap(): Map<Key, Value> {
+    return this.forwardMap;
+  }
 }
