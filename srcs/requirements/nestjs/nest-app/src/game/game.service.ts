@@ -32,8 +32,7 @@ export class GameService{
 
 	async saveGameLog(log:LogDto): Promise<Log>{
 		const newLog = this.logRepository.create(log);
-		newLog.fromScore = log.score[0];
-		newLog.toScore = log.score[1];
+		console.log(newLog)
 		const host = await this.userRepository.findOne({where:{uid:log.fromId}});
 		const guest = await this.userRepository.findOne({where:{uid:log.toId}});
 		if (!host || !guest){
@@ -93,7 +92,7 @@ export class GameService{
 			return false
 		}
 		const host = await this.userRepository.findOne({where:{uid:hostUid}});
-		const guest = await this.userRepository.findOne({where:{nickname:req.target}})
+		const guest = await this.userRepository.findOne({where:{uid:req.target}})
 		if (!guest){
 			console.log('no such target');
 			return false;
