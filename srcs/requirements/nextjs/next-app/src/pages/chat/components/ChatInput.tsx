@@ -1,15 +1,84 @@
-import React from "react";
+import { resChatDto } from "@/types/ChatDto";
+import { emitEvent } from "@/utils/socket";
+import React, { useState } from "react";
 import { Button, TextInput } from "react95";
 
 interface Props {
-  input: string;
-  func: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  click: () => void;
+  chatRoomData: resChatDto;
   isMute: boolean;
 }
 
-const ChatInput = ({ input, func, click, isMute }: Props) => {
-  // TODO: 사용자인풋 최대 100글자만 작성되게해야함
+const ChatInput = ({ chatRoomData, isMute }: Props) => {
+  const [isDm, setIsDm] = useState(false);
+  const [input, setInput] = useState("");
+
+  const sendMsg = () => {
+    if (input.length === 0 || chatRoomData === undefined) {
+      return;
+    }
+    const inputArray = input.split(" ");
+    const dm = {
+      cmd: inputArray[0],
+      target: inputArray[1],
+      content: inputArray.slice(2).join(" "),
+    };
+    const currentUser = chatRoomData.participants.find(
+      (user) => user.nickname === dm.target
+    );
+
+    console.log(chatRoomData);
+    console.log(
+      `currentUser : ${currentUser}\n dm : ${dm.cmd}, ${dm.content}, ${dm.target}\n`
+    );
+    if (dm.cmd === "/w") {
+      if (currentUser) {
+        emitEvent("DM", {
+          roomName: chatRoomData.roomName,
+          roomType: chatRoomData.roomType,
+          target: currentUser.uid,
+          msg: dm.content,
+          password: "",
+        });
+        setInput("");
+      }
+    } else {
+      emitEvent("message", {
+        roomName: chatRoomData.roomName,
+        roomType: chatRoomData.roomType,
+        target: 0,
+        msg: input,
+        password: "",
+      });
+      setInput("");
+    }
+
+    // if (isDm === true && currentUser) {
+    //   console.log(dm);
+    //   emitEvent("DM", {
+    //     roomName: chatRoomData.roomName,
+    //     roomType: chatRoomData.roomType,
+    //     target: currentUser.uid,
+    //     msg: dm.content,
+    //     password: "",
+    //   });
+    //   setInput("");
+    // } else {
+    //   emitEvent("message", {
+    //     roomName: chatRoomData.roomName,
+    //     roomType: chatRoomData.roomType,
+    //     target: "",
+    //     msg: input,
+    //     password: "",
+    //   });
+    //   setInput("");
+    // }
+  };
+
+  const handleInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    value.length > 100 ? alert("100자 이내로 입력해주세요") : setInput(value);
+  };
+
   return (
     <div
       style={{
@@ -25,19 +94,19 @@ const ChatInput = ({ input, func, click, isMute }: Props) => {
         <TextInput
           disabled={isMute}
           value={input}
-          onChange={func}
+          onChange={handleInput}
           placeholder="Input..."
           style={{ fontFamily: "dunggeunmo" }}
         />
       </div>
       <Button
-        disabled={input.length === 0 || isMute}
+        disabled={isMute}
         style={{
           fontFamily: "dunggeunmo-bold",
           fontSize: "20px",
           width: "100px",
         }}
-        onClick={click}
+        onClick={sendMsg}
       >
         보내기
       </Button>

@@ -7,6 +7,7 @@ import { Row } from "antd";
 import SearchPage from "../chat/components/SearchPage";
 import RoomList from "../chat/components/RoomList";
 import RoomCreate from "../chat/components/RoomCreate";
+import { offEvent } from "@/utils/socket";
 
 const ChatList = () => {
   const [state, setState] = useState({ activeTab: 0 });
@@ -14,6 +15,7 @@ const ChatList = () => {
 
   const close = () => {
     router.back();
+    offEvent("join");
   };
   const handleChange = (
     value: number,

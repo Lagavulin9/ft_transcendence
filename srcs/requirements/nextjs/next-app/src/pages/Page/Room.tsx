@@ -11,20 +11,22 @@ import {
 import MessageCard from "../chat/components/MessageCard";
 import GameMode from "@/pages/game/GameMode";
 import ChatInput from "../chat/components/ChatInput";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import AppLayout from "../globalComponents/AppLayout";
 import MyModal from "../globalComponents/MyModal";
 import { useRouter } from "next/router";
 import { useGetAllQuery, useGetChatRoomQuery } from "@/redux/Api/ChatRoom";
 import { emitEvent, offEvent, onError, onEvent } from "@/utils/socket";
 import { ReqSocketDto, ResMsgDto, resChatDto } from "@/types/ChatDto";
-import { RootState } from "@/redux/RootStore";
+import { AppDispatch, RootState } from "@/redux/RootStore";
 import { socket } from "@/utils/socket";
 import H3 from "../PostComponents/H3";
 import RoomAction from "../chat/components/RoomAction";
+import { off } from "process";
+import { GameRoomDto } from "@/types/GameDto";
+import roomSlice, { fetchRoom } from "@/redux/Slice/Room";
 
 const ChatRoom = () => {
-  const [input, setInput] = useState("");
   const [state, setState] = useState({ activeTab: 0 });
   const [msg, setMsg] = useState<ResMsgDto[]>([]);
   const [isMute, setIsMute] = useState(false);
@@ -35,10 +37,10 @@ const ChatRoom = () => {
   const [comment, setComment] = useState("");
   const [password, setPassword] = useState("");
   const [success, setSuccess] = useState(false);
-  const [isDm, setIsDm] = useState(false);
   const [room, setRoom] = useState<resChatDto>();
 
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
   const { roomName } = router.query;
   const { uId: owner } = useSelector(
     (state: RootState) => state.rootReducers.global
@@ -63,55 +65,13 @@ const ChatRoom = () => {
   }, [scrollBottomRef]);
 
   const openGameMode = () => {
-    router.push("/Page/Game", "Page/Game", { shallow: false });
-  };
-
-  const handleInput = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value;
-    value.length > 100 ? alert("100자 이내로 입력해주세요") : setInput(value);
-  };
-
-  const sendMsg = () => {
-    if (input.length === 0 || chatRoomData === undefined) {
-      return;
-    }
-    const inputArray = input.split(" ");
-    const dm = {
-      cmd: inputArray[0],
-      target: inputArray[1],
-      content: inputArray.slice(2).join(" "),
-    };
-    const currentUser = chatRoomData.participants.find(
-      (user) => user.nickname === dm.target
-    );
-    if (dm.cmd === "/w") {
-      if (currentUser) {
-        setIsDm(true);
-      } else {
-        setIsDm(false);
+    router.push(
+      { pathname: "/Page/Game", query: { isHost: "Host" } },
+      undefined,
+      {
+        shallow: false,
       }
-    }
-
-    if (isDm === true && currentUser) {
-      console.log(dm);
-      emitEvent("DM", {
-        roomName: chatRoomData.roomName,
-        roomType: chatRoomData.roomType,
-        target: currentUser.uid,
-        msg: dm.content,
-        password: "",
-      });
-      setInput("");
-    } else {
-      emitEvent("message", {
-        roomName: chatRoomData.roomName,
-        roomType: chatRoomData.roomType,
-        target: "",
-        msg: input,
-        password: "",
-      });
-      setInput("");
-    }
+    );
   };
 
   const openProfile = (uId: number) => {
@@ -148,6 +108,13 @@ const ChatRoom = () => {
     await offEvent("usermod");
     await offEvent("message");
     await offEvent("DM");
+    await offEvent("banned");
+    await offEvent("wrongpass");
+    await offEvent("passok");
+    await offEvent("already");
+    await offEvent("message");
+    await offEvent("DM");
+
     router.back();
   }, [chatRoomData, router]);
 
@@ -208,11 +175,13 @@ const ChatRoom = () => {
     });
 
     const handleMessage = (data: ResMsgDto) => {
+      console.log(`message: ${data}`);
       data.isDm = false;
       setMsg((prevMsg) => [...prevMsg, data]);
     };
 
     const handleDM = (data: ResMsgDto) => {
+      console.log(`DM: ${data}`);
       data.isDm = true;
       setMsg((prevMsg) => [...prevMsg, data]);
     };
@@ -220,7 +189,18 @@ const ChatRoom = () => {
     onEvent("message", handleMessage);
     // 컴포넌트가 언마운트될 때 이벤트 리스너 해제
     onEvent("DM", handleDM);
-  }, [chatRoomRefetch, isMute]);
+
+    onEvent("game-invite", (data: GameRoomDto) => {
+      // 상태 업데이트 이벤트 핸들링
+      console.log(data);
+      dispatch(fetchRoom({ gameRoom: data }));
+      router.push(
+        { pathname: "/Page/Game", query: { isHost: "Guest" } },
+        undefined,
+        { shallow: false }
+      );
+    });
+  }, [chatRoomRefetch, dispatch, isMute, router]);
 
   const onAlba = async (uid: number) => {
     setIsBlba(true);
@@ -503,12 +483,9 @@ const ChatRoom = () => {
             </ScrollView>
           </Row>
         </WindowContent>
-        <ChatInput
-          input={input}
-          func={handleInput}
-          click={sendMsg}
-          isMute={isMute}
-        />
+        {chatRoomData && (
+          <ChatInput isMute={isMute} chatRoomData={chatRoomData} />
+        )}
       </MyModal>
     </AppLayout>
   );

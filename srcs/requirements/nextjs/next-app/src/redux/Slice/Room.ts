@@ -1,21 +1,25 @@
+import { GameRoomDto } from "@/types/GameDto";
+import { User } from "@/types/UserType";
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-interface RoomState {
-  succes: boolean;
-}
-
-const initialState: RoomState = {
-  succes: false,
+const initialState: GameRoomDto = {
+  host: {} as User,
+  guest: {} as User,
+  game_start: false,
 };
 
 export const fetchRoom = createAsyncThunk<
-  RoomState | null,
-  { state: boolean },
+  GameRoomDto | null,
+  { gameRoom: GameRoomDto },
   { rejectValue: string }
->("/room/fetchRoom", async ({ state }, thunkAPI) => {
+>("/room/fetchRoom", async ({ gameRoom }, thunkAPI) => {
   try {
-    const response = await new Promise<RoomState>((resolve) => {
-      resolve({ succes: state });
+    const response = await new Promise<GameRoomDto>((resolve) => {
+      resolve({
+        host: gameRoom.host,
+        guest: gameRoom.guest,
+        game_start: false,
+      });
     });
     return response;
   } catch (error) {
@@ -28,26 +32,24 @@ const roomSlice = createSlice({
   initialState,
   reducers: {
     resetRoom(state) {
-      state.succes = false;
+      state = initialState;
     },
   },
   extraReducers: (builder) => {
     builder
       .addCase(fetchRoom.pending, (state) => {
-        state.succes = false;
+        state.game_start = false;
       })
       .addCase(
         fetchRoom.fulfilled,
-        (state, action: PayloadAction<RoomState | null>) => {
+        (state, action: PayloadAction<GameRoomDto | null>) => {
           if (action.payload) {
-            state.succes = action.payload.succes;
-          } else {
-            state.succes = false;
+            state = action.payload;
           }
         }
       )
       .addCase(fetchRoom.rejected, (state) => {
-        state.succes = false;
+        state.game_start = false;
       });
   },
 });
