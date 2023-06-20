@@ -4,4 +4,5 @@ export class ResMsgDto{
 	profileURL:string
 	date:string
 	content:string
+	isDM:boolean
 }
