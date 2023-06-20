@@ -153,13 +153,6 @@ export class ChatService {
       client.emit('room404', `No such chatroom ${req.roomName}`);
       return undefined;
     }
-    //밴당함
-    else if (chatroom.banned.find((u) => u == user)) {
-      client.emit('banned', `You are banned by channel's admin`);
-      return undefined;
-    } else if (chatroom.participants.find((u) => u == user)) {
-      client.emit('already', `You are already in ${req.roomName}`);
-    }
     client.emit('notice', `You have joined ${chatroom.roomName}`);
     client.to(chatroom.roomName).emit('notice', `${user.nickname} has joined`);
     client.emit('join', new resChatDto(chatroom));
@@ -179,8 +172,15 @@ export class ChatService {
       client.emit('wrongpass', `incorrect password`);
       return undefined;
     }
-    if (!chatroom.participants.find((u)=>u.uid === user.uid))
-      chatroom.participants.push(user);
+    //밴당함
+    else if (chatroom.banned.find((u) => u == user)) {
+      client.emit('banned', `You are banned by channel's admin`);
+      return undefined;
+    //이미 들어옴
+    } else if (chatroom.participants.find((u) => u == user)) {
+      client.emit('already', `You are already in ${req.roomName}`);
+    }
+    chatroom.participants.push(user);
     client.join(chatroom.roomName);
     client.emit('passok', new resChatDto(chatroom));
     return chatroom;
