@@ -124,4 +124,9 @@ export class socketGateway implements OnModuleInit {
   handleGuest2Host(client:Socket, data:GameStateDto){
     return this.gameService.guest2host(client, data);
   }
+
+  @SubscribeMessage('random-matching')
+  handleRandomMatching(client:Socket){
+    return this.gameService.randomMatch(client);
+  }
 }

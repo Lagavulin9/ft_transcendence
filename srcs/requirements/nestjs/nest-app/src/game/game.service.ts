@@ -20,6 +20,7 @@ export class GameService{
 	){}
 	private Clients = new BidirectionalMap<number, Socket>();
 	private GameRooms = new Map<number, GameRoom>();
+	private GameQueue = [];
 
 	async getUserGameLogs(uid:number): Promise<GameLogDto[]>{
 		const gamelog = []
@@ -168,6 +169,32 @@ export class GameService{
 		hostSocket.emit('game-over', data);
 		guestSocket.emit('game-over', data);
 		this.GameRooms.delete(data.gameroom.host.uid);
+		console.log(this.GameRooms);
+	}
+
+	async randomMatch(client:Socket){
+		if (this.GameQueue.length){
+			const newGame = new GameRoom();
+			newGame.host = this.GameQueue.pop();
+			newGame.guest = await this.userRepository.findOne({where:{uid:this.Clients.getKey(client)}});
+			newGame.game_start = true;
+			this.GameRooms.set(newGame.host.uid, newGame);
+			const hostSocket = this.Clients.getValue(newGame.host.uid);
+			const guestSocket = this.Clients.getValue(newGame.guest.uid);
+			hostSocket.emit('game-start', newGame);
+			guestSocket.emit('game-start', newGame);
+		}
+		else{
+			const user = this.userRepository.findOne({where:{uid:this.Clients.getKey(client)}});
+			if (!user){
+				//에러: 서버에서 유저를 못찾음
+				client.emit('user404', 'user not found');
+				return;
+			}
+			this.GameQueue.push(user);
+			client.emit('waiting', 'waiting for another user');
+		}
+		console.log(this.GameQueue);
 		console.log(this.GameRooms);
 	}
 }
