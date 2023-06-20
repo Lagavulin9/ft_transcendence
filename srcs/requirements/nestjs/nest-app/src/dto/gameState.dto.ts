@@ -1,7 +1,7 @@
-import { GameRoom } from "src/game/gameroom.entity";
+import { ReqGameDto } from "./reqGame.dto";
 
 export class GameStateDto {
-	gameroom: GameRoom
+	gameroom: ReqGameDto
 	ballPosition: { x: number; y: number };
   paddlePositions: {
     player1: { x: number; y: number };

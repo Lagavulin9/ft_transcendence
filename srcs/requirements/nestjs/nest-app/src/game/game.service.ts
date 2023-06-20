@@ -149,8 +149,8 @@ export class GameService{
 	}
 
 	host2guest(client:Socket, data:GameStateDto){
-		const hostSocket = this.Clients.getValue(data.gameroom.host.uid);
-		const guestSocket = this.Clients.getValue(data.gameroom.guest.uid);
+		const hostSocket = this.Clients.getValue(data.gameroom.host);
+		const guestSocket = this.Clients.getValue(data.gameroom.guest);
 		if (!guestSocket){
 			console.log('guest is offline');
 			// if (hostSocket){
@@ -164,8 +164,8 @@ export class GameService{
 	}
 
 	guest2host(client:Socket, data:GameStateDto){
-		const guestSocket = this.Clients.getValue(data.gameroom.guest.uid);
-		const hostSocket = this.Clients.getValue(data.gameroom.host.uid);
+		const guestSocket = this.Clients.getValue(data.gameroom.guest);
+		const hostSocket = this.Clients.getValue(data.gameroom.host);
 		if (!hostSocket){
 			console.log('host is offline');
 			// if (guestSocket){
@@ -180,9 +180,9 @@ export class GameService{
 
 	//비정상 종료인경우만..
 	gameOver(client:Socket, data:GameStateDto){
-		this.GameRooms.delete(data.gameroom.host.uid);
-		const hostSocket = this.Clients.getValue(data.gameroom.host.uid);
-		const guestSocket = this.Clients.getValue(data.gameroom.guest.uid);
+		this.GameRooms.delete(data.gameroom.host);
+		const hostSocket = this.Clients.getValue(data.gameroom.host);
+		const guestSocket = this.Clients.getValue(data.gameroom.guest);
 		if (data.gameroom.game_start === false){
 			if (hostSocket){
 				hostSocket.emit('game-decline', true);
@@ -203,11 +203,11 @@ export class GameService{
 
 	//정상종료인경우
 	finish(client:Socket, data:GameStateDto){
-		const hostSocket = this.Clients.getValue(data.gameroom.host.uid);
-		const guestSocket = this.Clients.getValue(data.gameroom.guest.uid);
+		const hostSocket = this.Clients.getValue(data.gameroom.host);
+		const guestSocket = this.Clients.getValue(data.gameroom.guest);
 		hostSocket.emit('finish', true);
 		guestSocket.emit('finish', true);
-		this.GameRooms.delete(data.gameroom.host.uid);
+		this.GameRooms.delete(data.gameroom.host);
 	}
 
 	async randomMatch(client:Socket){
