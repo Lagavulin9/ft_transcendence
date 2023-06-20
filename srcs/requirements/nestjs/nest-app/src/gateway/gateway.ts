@@ -9,6 +9,7 @@ import { Server, Socket } from 'socket.io';
 import { Chat } from 'src/chat/chat.entity';
 import { ChatService } from 'src/chat/chat.service';
 import { GameStateDto } from 'src/dto/gameState.dto';
+import { ReqGameDto } from 'src/dto/reqGame.dto';
 import { ReqSocketDto } from 'src/dto/reqSocket.dto';
 import { GameService } from 'src/game/game.service';
 import { GameRoom, reqGameRoom } from 'src/game/gameroom.entity';
@@ -105,12 +106,12 @@ export class socketGateway implements OnModuleInit {
   }
 
   @SubscribeMessage('game-invite')
-  handleGameInvite(client: Socket, req: reqGameRoom) {
+  handleGameInvite(client:Socket, req:ReqGameDto){
     return this.gameService.createNewGame(client, req);
   }
 
   @SubscribeMessage('game-accept')
-  handleGameAccept(client: Socket, req: ReqSocketDto) {
+  handleGameAccept(client:Socket, req:ReqGameDto){
     return this.gameService.acceptInvitation(client, req);
   }
 

@@ -1,14 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/user/user.entity';
-import { Repository } from 'typeorm';
-import { Log } from './log.entity';
-import { GameLogDto, LogDto } from 'src/dto/log.dto';
-import { plainToInstance } from 'class-transformer';
-import { Socket } from 'socket.io';
-import { GameRoom, reqGameRoom } from './gameroom.entity';
-import { ReqSocketDto } from 'src/dto/reqSocket.dto';
-import { GameStateDto } from 'src/dto/gameState.dto';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { User } from "src/user/user.entity";
+import { Repository } from "typeorm";
+import { Log } from "./log.entity";
+import { GameLogDto, LogDto } from "src/dto/log.dto";
+import { plainToInstance } from "class-transformer";
+import { Socket } from "socket.io";
+import { GameRoom } from "./gameroom.entity";
+import { GameStateDto } from "src/dto/gameState.dto";
+import { ReqGameDto } from "src/dto/reqGame.dto";
 
 @Injectable()
 export class GameService {
@@ -90,64 +90,56 @@ export class GameService {
     return true;
   }
 
-  async createNewGame(client: Socket, req: reqGameRoom): Promise<boolean> {
-    const hostUid = this.Clients.getKey(client);
-    if (!hostUid) {
-      console.log('no such user. bind first');
-      return false;
-    }
-    const host = await this.userRepository.findOne({ where: { uid: hostUid } });
-    const guest = await this.userRepository.findOne({
-      where: { uid: req.guest },
-    });
-    if (!guest) {
-      console.log('no such target');
-      return false;
-    }
-    const guestSocket = this.Clients.getValue(guest.uid);
-    if (!guestSocket) {
-      console.log('guest is offline');
-      return false;
-    }
-    console.log(req);
-    const gameroom = new GameRoom();
-    gameroom.host = host;
-    gameroom.guest = guest;
-    gameroom.game_start = false;
-    guestSocket.emit('game-invite', gameroom);
-    console.log(guest);
-    client.emit('host-invite', 'invitation was sent');
-    this.GameRooms.set(host.uid, gameroom);
-    setTimeout(() => {
-      if (gameroom.game_start === true) {
-        this.GameRooms.delete(hostUid);
-      }
-    }, 1000 * 15);
-    return true;
-  }
+	async createNewGame(client:Socket, req:ReqGameDto):Promise<boolean>{
+		const host = await this.userRepository.findOne({where:{uid:req.host}});
+		const guest = await this.userRepository.findOne({where:{uid:req.guest}})
+		if (!guest){
+			console.log('no such target');
+			return false;
+		}
+		const guestSocket = this.Clients.getValue(guest.uid);
+		if (!guestSocket){
+			console.log('guest is offline');
+			return false;
+		}
+		const gameroom = new GameRoom();
+		gameroom.host = host;
+		gameroom.guest = guest;
+		gameroom.game_start = false;
+		guestSocket.emit('game-invite', gameroom);
+		client.emit('notice', 'invitation was sent');
+		this.GameRooms.set(host.uid, gameroom);
+		setTimeout(()=>{
+			if (gameroom.game_start === true){
+				this.GameRooms.delete(host.uid);
+			}
+		}, 1000 * 15);
+		console.log(this.GameRooms);
+		return true;
+	}
 
-  acceptInvitation(client: Socket, req: ReqSocketDto): boolean {
-    const guestUid = this.Clients.getKey(client);
-    if (!guestUid) {
-      console.log('guest is offline');
-      return false;
-    }
-    if (req.msg == 'ok') {
-      for (const [key, gameroom] of this.GameRooms.entries()) {
-        if (gameroom.guest.uid == guestUid) {
-          gameroom.game_start = true;
-          const hostSocket = this.Clients.getValue(gameroom.host.uid);
-          if (!hostSocket) {
-            console.log('host is offline');
-            return false;
-          }
-          hostSocket.emit('game-start', gameroom);
-          client.emit('game-start', gameroom);
-          break;
-        }
-      }
-    }
-  }
+	acceptInvitation(client:Socket, req:ReqGameDto):boolean{
+		const guestUid = this.Clients.getKey(client);
+		if (!guestUid){
+			console.log('guest is offline');
+			return false;
+		}
+		if (req.game_start === true){
+			for (const [key, gameroom] of this.GameRooms.entries()){
+				if (gameroom.guest.uid == guestUid){
+					gameroom.game_start = true;
+					const hostSocket = this.Clients.getValue(gameroom.host.uid);
+					if (!hostSocket){
+						console.log('host is offline');
+						return false;
+					}
+					hostSocket.emit('game-start', gameroom);
+					client.emit('game-start', gameroom);
+					break ;
+				}
+			}
+		}
+	}
 
   declineInvitation(client: Socket, req: GameRoom) {
     const hostSocket = this.Clients.getValue(req.host.uid);
@@ -159,69 +151,67 @@ export class GameService {
     // client.emit('game-decline', 'declined');
   }
 
-  host2guest(client: Socket, data: GameStateDto) {
-    const hostSocket = this.Clients.getValue(data.gameroom.host.uid);
-    const guestSocket = this.Clients.getValue(data.gameroom.guest.uid);
-    if (!guestSocket) {
-      console.log('guest is offline');
-      // if (hostSocket){
-      // 	hostSocket.emit('game-over', data);
-      // }
-      // this.GameRooms.delete(data.gameroom.host.uid);
-      return false;
-    }
-    console.log('host2guest');
-    console.log(data);
-    guestSocket.emit('host2guest', data);
-    return true;
-  }
+	host2guest(client:Socket, data:GameStateDto){
+		const hostSocket = this.Clients.getValue(data.gameroom.host);
+		const guestSocket = this.Clients.getValue(data.gameroom.guest);
+		if (!guestSocket){
+			console.log('guest is offline');
+			// if (hostSocket){
+			// 	hostSocket.emit('game-over', data);
+			// }
+			// this.GameRooms.delete(data.gameroom.host.uid);
+			return false;
+		}
+		guestSocket.emit('host2guest', data);
+		return true;
+	}
 
-  guest2host(client: Socket, data: GameStateDto) {
-    const guestSocket = this.Clients.getValue(data.gameroom.guest.uid);
-    const hostSocket = this.Clients.getValue(data.gameroom.host.uid);
-    if (!hostSocket) {
-      console.log('host is offline');
-      // if (guestSocket){
-      // 	guestSocket.emit('game-over', data);
-      // }
-      // this.GameRooms.delete(data.gameroom.host.uid);
-      return false;
-    }
-    console.log('guest2host');
-    console.log(data);
-    hostSocket.emit('guest2host', data);
-    return true;
-  }
+	guest2host(client:Socket, data:GameStateDto){
+		const guestSocket = this.Clients.getValue(data.gameroom.guest);
+		const hostSocket = this.Clients.getValue(data.gameroom.host);
+		if (!hostSocket){
+			console.log('host is offline');
+			// if (guestSocket){
+			// 	guestSocket.emit('game-over', data);
+			// }
+			// this.GameRooms.delete(data.gameroom.host.uid);
+			return false;
+		}
+		hostSocket.emit('guest2host', data);
+		return true;
+	}
 
-  //비정상 종료인경우만..
-  gameOver(client: Socket, data: GameStateDto) {
-    this.GameRooms.delete(data.gameroom.host.uid);
-    const hostSocket = this.Clients.getValue(data.gameroom.host.uid);
-    const guestSocket = this.Clients.getValue(data.gameroom.guest.uid);
-    if (data.gameroom.game_start === false) {
-      if (hostSocket) {
-        hostSocket.emit('game-decline', true);
-      }
-      if (guestSocket) {
-        guestSocket.emit('game-declien', true);
-      }
-    } else {
-      if (client == hostSocket) {
-        guestSocket.emit('game-over');
-      } else if (client == guestSocket) {
-        hostSocket.emit('game-over');
-      }
-    }
-  }
+	//비정상 종료인경우만..
+	gameOver(client:Socket, data:GameStateDto){
+		this.GameRooms.delete(data.gameroom.host);
+		const hostSocket = this.Clients.getValue(data.gameroom.host);
+		const guestSocket = this.Clients.getValue(data.gameroom.guest);
+		if (data.gameroom.game_start === false){
+			if (hostSocket){
+				hostSocket.emit('game-decline', true);
+			}
+			if (guestSocket){
+				guestSocket.emit('game-declien', true);
+			}
+		}
+		else {
+			if (client == hostSocket){
+				guestSocket.emit('game-over');
+			}
+			else if (client == guestSocket){
+				hostSocket.emit('game-over');
+			}
+		}
+	}
 
-  //정상종료인경우
-  finish(client: Socket, data: GameStateDto) {
-    const hostSocket = this.Clients.getValue(data.gameroom.host.uid);
-    const guestSocket = this.Clients.getValue(data.gameroom.guest.uid);
-    hostSocket.emit('finish', true);
-    guestSocket.emit('finish', true);
-    this.GameRooms.delete(data.gameroom.host.uid);
-  }
+	//정상종료인경우
+	finish(client:Socket, data:GameStateDto){
+		const hostSocket = this.Clients.getValue(data.gameroom.host);
+		const guestSocket = this.Clients.getValue(data.gameroom.guest);
+		hostSocket.emit('finish', true);
+		guestSocket.emit('finish', true);
+		this.GameRooms.delete(data.gameroom.host);
+	}
 
   async randomMatch(client: Socket) {
     if (this.GameQueue.length) {
