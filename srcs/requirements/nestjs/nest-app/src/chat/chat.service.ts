@@ -130,7 +130,7 @@ export class ChatService {
     newChat.roomType = req.roomType;
     newChat.hashedPassword = await bcrypt.hash(req.password, 10);
     newChat.roomAlba = [user];
-    newChat.participants = [user];
+    newChat.participants = [];
     newChat.banned = [];
     newChat.muted = [];
     this.ChatRooms.set(req.roomName, newChat);
@@ -179,7 +179,8 @@ export class ChatService {
       client.emit('wrongpass', `incorrect password`);
       return undefined;
     }
-    chatroom.participants.push(user);
+    if (!chatroom.participants.find((u)=>u.uid === user.uid))
+      chatroom.participants.push(user);
     client.join(chatroom.roomName);
     client.emit('passok', new resChatDto(chatroom));
     return chatroom;
