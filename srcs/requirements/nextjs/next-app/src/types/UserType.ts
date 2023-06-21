@@ -20,7 +20,7 @@ export interface GameLogDto {
 }
 
 export interface User {
-  gameLog: GameLogDto; // TODO : gameLog 해당 타입으로 대체 해야함
+  gameLog: LogDto[]; // TODO : gameLog 해당 타입으로 대체 해야함
   isAvatar: boolean;
   isOTP: boolean;
   level: number;
@@ -29,7 +29,7 @@ export interface User {
   totalWin: number;
   uid: number;
   profileURL: string;
-  state: string;
+  status: string;
 }
 
 export interface ReqUserDto {

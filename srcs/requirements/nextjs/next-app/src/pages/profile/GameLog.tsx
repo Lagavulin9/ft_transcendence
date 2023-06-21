@@ -26,19 +26,16 @@ const GameLog = ({ uid }: GameLogProps) => {
   return (
     <div>
       {userData &&
-        userData.gameLog.log.map((log, index) => {
-          console.log("userData", log);
-          return (
-            <LogCard
-              key={index}
-              fromId={log.fromId}
-              toId={log.toId}
-              fromScore={log.fromScore}
-              toScore={log.toScore}
-              score={log.score}
-            />
-          );
-        })}
+        userData.gameLog.map((log, index) => (
+          <LogCard
+            key={index}
+            fromId={log.fromId}
+            toId={log.toId}
+            fromScore={log.fromScore}
+            toScore={log.toScore}
+            score={log.score}
+          />
+        ))}
     </div>
   );
 };

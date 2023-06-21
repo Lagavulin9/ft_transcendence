@@ -11,6 +11,7 @@ import { GameStateDto } from 'src/dto/gameState.dto';
 import { ReqGameDto } from 'src/dto/reqGame.dto';
 import { gameKeyPressDto } from 'src/dto/gameKeyPress.dto';
 import { UserService } from 'src/user/user.service';
+import console from 'console';
 
 @Injectable()
 export class GameService {
@@ -28,7 +29,9 @@ export class GameService {
     const newLog = new GameLogDto();
     newLog.uId = uid;
     const gamelogs = [];
-    gamelogs.push(...(await this.logRepository.find({ where: { fromId: uid } })));
+    gamelogs.push(
+      ...(await this.logRepository.find({ where: { fromId: uid } })),
+    );
     gamelogs.push(...(await this.logRepository.find({ where: { toId: uid } })));
     newLog.log = gamelogs;
     return newLog;
@@ -83,12 +86,12 @@ export class GameService {
       }
       if (gameroom.host.uid == uid) {
         const guestSocket = this.Clients.getValue(gameroom.guest.uid);
-        if (guestSocket){
+        if (guestSocket) {
           guestSocket.emit('game-over', undefined);
         }
       } else if (gameroom.guest.uid == uid) {
         const hostSocket = this.Clients.getValue(gameroom.host.uid);
-        if (hostSocket){
+        if (hostSocket) {
           hostSocket.emit('game-over', undefined);
         }
       }
@@ -151,9 +154,13 @@ export class GameService {
           }
           hostSocket.emit('game-start', gameroom);
           client.emit('game-start', gameroom);
-          const host = await this.userRepository.findOne({where:{uid:gameroom.host.uid}})
+          const host = await this.userRepository.findOne({
+            where: { uid: gameroom.host.uid },
+          });
           host.status = 'inGame';
-          const guest = await this.userRepository.findOne({where:{uid:gameroom.guest.uid}})
+          const guest = await this.userRepository.findOne({
+            where: { uid: gameroom.guest.uid },
+          });
           guest.status = 'inGame';
           await this.userRepository.save(host);
           await this.userRepository.save(guest);
@@ -223,9 +230,13 @@ export class GameService {
       } else if (client == guestSocket) {
         hostSocket.emit('game-over');
       }
-      const host = await this.userRepository.findOne({where:{uid:data.gameroom.host}})
+      const host = await this.userRepository.findOne({
+        where: { uid: data.gameroom.host },
+      });
       host.status = 'offline';
-      const guest = await this.userRepository.findOne({where:{uid:data.gameroom.guest}})
+      const guest = await this.userRepository.findOne({
+        where: { uid: data.gameroom.guest },
+      });
       guest.status = 'offline';
       await this.userRepository.save(host);
       await this.userRepository.save(guest);
@@ -239,9 +250,13 @@ export class GameService {
     hostSocket.emit('finish', true);
     guestSocket.emit('finish', true);
     this.GameRooms.delete(data.gameroom.host);
-    const host = await this.userRepository.findOne({where:{uid:data.gameroom.host}})
+    const host = await this.userRepository.findOne({
+      where: { uid: data.gameroom.host },
+    });
     host.status = 'online';
-    const guest = await this.userRepository.findOne({where:{uid:data.gameroom.guest}})
+    const guest = await this.userRepository.findOne({
+      where: { uid: data.gameroom.guest },
+    });
     guest.status = 'online';
     await this.userRepository.save(host);
     await this.userRepository.save(guest);
@@ -249,6 +264,7 @@ export class GameService {
 
   async randomMatch(client: Socket) {
     if (this.GameQueue.length) {
+      console.log(this.GameQueue.length);
       const newGame = new GameRoom();
       newGame.host = this.GameQueue.pop();
       newGame.guest = await this.userRepository.findOne({
@@ -269,14 +285,15 @@ export class GameService {
         client.emit('user404', 'user not found');
         return;
       }
+      console.log('push');
       this.GameQueue.push(user);
       client.emit('waiting', 'waiting for another user');
     }
   }
 
-  isUserInGame(uid:number){
-    for (const [hostuid, gameroom] of this.GameRooms.entries()){
-      if (gameroom.host.uid == uid || gameroom.guest.uid == uid){
+  isUserInGame(uid: number) {
+    for (const [hostuid, gameroom] of this.GameRooms.entries()) {
+      if (gameroom.host.uid == uid || gameroom.guest.uid == uid) {
         return true;
       }
     }

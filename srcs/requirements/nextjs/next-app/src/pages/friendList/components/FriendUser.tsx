@@ -26,7 +26,7 @@ const FriendUser = ({ uId }: User) => {
     (state: RootState) => state.rootReducers.global
   );
   const [BlockUser] = useBlockFriendMutation();
-  const { refetch } = useGetFriendQuery(owner);
+  const { data: friendData, refetch } = useGetFriendQuery(owner);
   // TODO: 차단할때 사용할 API콜함수
 
   const {
@@ -43,16 +43,13 @@ const FriendUser = ({ uId }: User) => {
   useEffect(() => {
     const refetchInterval = setInterval(() => {
       userRefetch();
+      refetch();
     }, 1000);
 
     return () => {
       clearInterval(refetchInterval);
     };
-  }, [userRefetch]);
-
-  if (userFetching) {
-    return <H3>...로딩중</H3>;
-  }
+  }, [refetch, userRefetch]);
 
   return (
     <div
@@ -81,9 +78,9 @@ const FriendUser = ({ uId }: User) => {
             style={{
               marginRight: "8px",
               backgroundColor:
-                userData && userData.state === "online"
+                userData && userData.status === "online"
                   ? "green"
-                  : userData && userData.state === "offline"
+                  : userData && userData.status === "offline"
                   ? "red"
                   : "yellow",
               width: "10px",

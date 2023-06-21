@@ -32,24 +32,7 @@ const FriendList = () => {
     await refetch();
   };
 
-  const cancelBlock = async () => {
-    await refetch();
-  };
-
   const { activeTab } = state;
-
-  useEffect(() => {
-    const refetchInterval = setInterval(() => {
-      refetch();
-    }, 1000);
-    return () => {
-      clearInterval(refetchInterval);
-    };
-  }, [refetch]);
-
-  if (isFetching) {
-    return <H3>...로딩중</H3>;
-  }
 
   return (
     <AppLayout>

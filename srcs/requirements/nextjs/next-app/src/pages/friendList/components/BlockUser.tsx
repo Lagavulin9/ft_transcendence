@@ -1,5 +1,8 @@
 import H3 from "@/pages/PostComponents/H3";
-import { useUnBlockFriendMutation } from "@/redux/Api/Friend";
+import {
+  useGetFriendQuery,
+  useUnBlockFriendMutation,
+} from "@/redux/Api/Friend";
 import { useGetUserQuery } from "@/redux/Api/Profile";
 import { RootState } from "@/redux/RootStore";
 import { data } from "autoprefixer";
@@ -12,7 +15,7 @@ interface User {
 }
 
 const BlockUser = ({ uId }: User) => {
-  const [BlockUser] = useUnBlockFriendMutation();
+  const [BlockUsers, { data }] = useUnBlockFriendMutation();
   const { uId: owner } = useSelector(
     (state: RootState) => state.rootReducers.global
   );
@@ -21,24 +24,23 @@ const BlockUser = ({ uId }: User) => {
     isFetching: userIsFetching,
     refetch: userRefetch,
   } = useGetUserQuery(uId);
+  const { data: friendData, refetch } = useGetFriendQuery(owner);
 
   const cancelBlock = async () => {
-    await BlockUser({ uid: owner, target: uId });
+    await BlockUsers({ uid: owner, target: uId });
+    console.log(data);
   };
 
   useEffect(() => {
     const refetchInterval = setInterval(() => {
       userRefetch();
-    }, 1000);
+      refetch();
+    }, 2000);
 
     return () => {
       clearInterval(refetchInterval);
     };
-  }, [userRefetch]);
-
-  if (userIsFetching) {
-    return <H3>...로딩중</H3>;
-  }
+  }, [refetch, userRefetch]);
 
   return (
     <div

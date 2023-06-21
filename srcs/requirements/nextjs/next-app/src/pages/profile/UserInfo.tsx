@@ -26,7 +26,7 @@ const UserInfo = ({ user }: Props) => {
         <div style={{ marginTop: "80px" }}>
           <H1>{`${user.nickname}`}</H1>
         </div>
-        <Avatar src={user.profileURL} size={200} />
+        <Avatar src={`http://localhost/${user.profileURL}`} size={200} />
       </div>
       <Div />
       <div
