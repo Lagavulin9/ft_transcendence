@@ -29,12 +29,13 @@ export class UserController {
 
   @Get('/check/nick')
   checkUniqueNick(@Query('nickname') nickname: string): Promise<boolean> {
-    console.log(nickname);
     return this.userService.checkUniqueNick(nickname);
   }
 
   @Patch('/:uid')
-  updateUser(@Param('uid', ParseIntPipe) uid:number, @Body() req:ReqUserDto){
+  updateUser(@Param('uid', ParseIntPipe) uid: number, @Body() req: ReqUserDto) {
+    console.log(uid);
+    console.log(req);
     return this.userService.updateUser(uid, req);
   }
 }

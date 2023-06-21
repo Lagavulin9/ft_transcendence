@@ -6,7 +6,8 @@ import {
 } from "@/redux/Api/Profile";
 import { ReqUserDto } from "@/types/UserType";
 import { data } from "autoprefixer";
-import React, { useRef, useState } from "react";
+import { useRouter } from "next/router";
+import React, { useEffect, useRef, useState } from "react";
 import { Avatar, Button, GroupBox, Radio, Select, TextInput } from "react95";
 import { SelectOption } from "react95/dist/Select/Select.types";
 import H3 from "../PostComponents/H3";
@@ -19,10 +20,12 @@ const ProfileUpdate = ({ uid }: Props) => {
   const [nickname, setNickname] = useState("");
   const [isOtp, setIsOtp] = useState(false);
   const [image, setImage] = useState("");
-  const [isSkip, setIsSkip] = useState(true);
   const [isCheck, setIsCheck] = useState(false);
-  const nickCheck = ["중복체크완료.", "사용할 수 없습니다."];
-
+  const [isVisible, setIsVisible] = useState(false);
+  const router = useRouter();
+  const [newNicknameMessage, setNewNicknameMessage] = useState<string | null>(
+    null
+  );
   const [nickCheckMutation, { data: nickData }] = useCheckNicknameMutation();
   const [profileUpdate, { data: profileData }] = useProfileUpdateMutation();
   const {
@@ -46,32 +49,49 @@ const ProfileUpdate = ({ uid }: Props) => {
     }
   };
 
-  const nickNameCheck = () => {
-    setIsSkip(false);
-    nickCheckMutation(nickname);
-    if (nickData === true) {
-      setIsCheck(nickData);
-    } else {
-      setIsCheck(false);
-    }
-    setIsSkip(true);
+  const nickNameCheck = async () => {
+    await nickCheckMutation(nickname);
   };
 
   const handleSubmit = async () => {
     const form = new FormData();
+    console.log(userData);
     if (fileInputRef.current?.files?.[0]) {
       form.append("file", fileInputRef.current?.files?.[0]);
       await imageUpload(form);
     }
 
-    const req: ReqUserDto = {
-      nickname: nickname,
-      isOTP: isOtp,
-      profileURL: imageData,
-    };
-
-    await profileUpdate({ uid: uid, user: req });
+    if (userData) {
+      const req: ReqUserDto = {
+        nickname: isCheck === true ? nickname : userData.nickname,
+        isOTP: isOtp !== userData.isOTP ? isOtp : userData.isOTP,
+        profileURL: imageData !== undefined ? imageData : userData.profileURL,
+      };
+      await profileUpdate({ uid: uid, user: req });
+      setNewNicknameMessage("수정완료.");
+      setIsOtp(false);
+      setIsCheck(false);
+    }
   };
+
+  useEffect(() => {
+    if (nickData === true) {
+      setNewNicknameMessage("중복체크완료.");
+      setIsCheck(true);
+      setIsVisible(true);
+      setTimeout(() => {
+        setIsVisible(false);
+      }, 2000);
+    } else if (nickData === false) {
+      setNewNicknameMessage("사용할 수 없습니다.");
+      setIsCheck(false);
+      setIsVisible(true);
+      setNickname("");
+      setTimeout(() => {
+        setIsVisible(false);
+      }, 2000);
+    }
+  }, [nickData]);
 
   return (
     <div>
@@ -88,7 +108,7 @@ const ProfileUpdate = ({ uid }: Props) => {
           <Button onClick={nickNameCheck} style={{ marginRight: "10px" }}>
             중복체크
           </Button>
-          {nickname && <H3>{isCheck ? nickCheck[0] : nickCheck[1]}</H3>}
+          {isVisible && <H3>{newNicknameMessage}</H3>}
         </div>
       </GroupBox>
       <GroupBox
