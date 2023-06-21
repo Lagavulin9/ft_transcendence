@@ -1,4 +1,11 @@
-import { HttpException, HttpStatus, Injectable, NotFoundException, Res, UnauthorizedException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+  Res,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { MailerService } from '@nestjs-modules/mailer';
 import * as cookie from 'cookie';
@@ -13,14 +20,17 @@ import { InjectRepository } from '@nestjs/typeorm';
 export class AuthService {
   constructor(
     @InjectRepository(User)
-    private userRepository:Repository<User>,
-    private jwtService:JwtService,
-    private mailerService:MailerService){}
-  
+    private userRepository: Repository<User>,
+    private jwtService: JwtService,
+    private mailerService: MailerService,
+  ) {}
+
   private otpMap = new Map<number, number>();
 
   async redirect(data, res: Response): Promise<void> {
-    const user = await this.userRepository.findOne({where:{uid:data.uid}})
+    const user = await this.userRepository.findOne({
+      where: { uid: data.id },
+    });
     if (!user) {
       return this.signUp(data, res);
     } else if (user.isOTP) {
@@ -31,18 +41,24 @@ export class AuthService {
   }
 
   twoFactor(uid: number, res: Response): void {
-    const accessToken = this.jwtService.sign({ status: TokenStatusEnum.TWO_FACTOR, uid:uid });
+    const accessToken = this.jwtService.sign({
+      status: TokenStatusEnum.TWO_FACTOR,
+      uid: uid,
+    });
     res.cookie('Auth', accessToken, {
       httpOnly: true,
     });
     res.redirect('/Page/2fa');
   }
 
-  signIn(user:User , res: Response): void {
+  signIn(user: User, res: Response): void {
     if (user.status == 'online') {
       throw new UnauthorizedException('user already connected');
     }
-    const accessToken = this.jwtService.sign({ status: TokenStatusEnum.SUCCESS, uid: user.uid });
+    const accessToken = this.jwtService.sign({
+      status: TokenStatusEnum.SUCCESS,
+      uid: user.uid,
+    });
     res.cookie('Auth', accessToken, {
       httpOnly: true,
     });
@@ -50,46 +66,52 @@ export class AuthService {
   }
 
   signUp(data, res: Response): void {
-    const accessToken = this.jwtService.sign({ status: TokenStatusEnum.SIGNUP, uid: data.uid, login: data.login, email: data.email });
+    const accessToken = this.jwtService.sign({
+      status: TokenStatusEnum.SIGNUP,
+      id: data.id,
+      login: data.login,
+      email: data.email,
+    });
     res.cookie('Auth', accessToken, {
       httpOnly: true,
     });
-    res.redirect('/Page/signUp');
+    res.redirect('/Page/SignUp');
   }
 
-  async sendEmail(uid:number):Promise<boolean>{
-    const to = await this.userRepository.findOne({where:{uid:uid}});
-    if (!to){
+  async sendEmail(uid: number): Promise<boolean> {
+    const to = await this.userRepository.findOne({ where: { uid: uid } });
+    if (!to) {
       throw new NotFoundException(`Could not find user id:${uid}`);
     }
-    if (!to.isOTP){
+    if (!to.isOTP) {
       return false;
     }
     const otp = this.generateRandomNumber();
-    this.mailerService.sendMail({
-      to: to.email,
-      from: '"No Reply"<noreply@gmail.com>',
-      subject: 'Verify your login',
-      text: '',
-      html: `<h4>Your verification code is: <h3><b>${otp}</b></h3></h4>`
-    })
-    .then((result)=>{
-      this.otpMap.set(uid, otp);
-      setTimeout(()=>{
-        this.otpMap.delete(uid);
-      }, 1000*60*10);
-    })
-    .catch((error)=>{
-      console.log(error);
-      throw new HttpException('internal server error', 500);
-    })
+    this.mailerService
+      .sendMail({
+        to: to.email,
+        from: '"No Reply"<noreply@gmail.com>',
+        subject: 'Verify your login',
+        text: '',
+        html: `<h4>Your verification code is: <h3><b>${otp}</b></h3></h4>`,
+      })
+      .then((result) => {
+        this.otpMap.set(uid, otp);
+        setTimeout(() => {
+          this.otpMap.delete(uid);
+        }, 1000 * 60 * 10);
+      })
+      .catch((error) => {
+        console.log(error);
+        throw new HttpException('internal server error', 500);
+      });
     return true;
   }
 
-  async verifyPasscode(uid:number, passcode:number, res:Response){
-    const user = await this.userRepository.findOne({where:{uid:uid}})
+  async verifyPasscode(uid: number, passcode: number, res: Response) {
+    const user = await this.userRepository.findOne({ where: { uid: uid } });
     const answer = this.otpMap.get(uid);
-    if (!answer || answer != passcode){
+    if (!answer || answer != passcode) {
       return this.signIn(user, res);
     }
     throw new UnauthorizedException('invalid passcode');
@@ -98,9 +120,8 @@ export class AuthService {
   private generateRandomNumber(): number {
     const min = 100000; // Minimum 6-digit number
     const max = 999999; // Maximum 6-digit number
-  
+
     const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
     return randomNumber;
   }
 }
-

@@ -18,7 +18,6 @@ interface InGameProps {
   isHost: boolean;
   isNormal: boolean;
   room: GameRoom;
-  setFinish: (data: LogDto) => void;
 }
 
 interface keyPress {
@@ -36,7 +35,7 @@ interface gameKeyPressDto {
   s: boolean;
 }
 
-const InGame = ({ isHost, isNormal, room, setFinish }: InGameProps) => {
+const InGame = ({ isHost, isNormal, room }: InGameProps) => {
   const initialDirection = Math.random() > 0.5 ? -1 : 1;
   const [ballPosition, setBallPosition] = useState({ x: 250, y: 150 });
   const [ballSpeed, setBallSpeed] = useState({ x: 4 * initialDirection, y: 4 });

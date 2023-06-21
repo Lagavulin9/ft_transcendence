@@ -50,18 +50,20 @@ export class UserService {
     return res;
   }
 
-	async createUser(user:createUserDto, data): Promise<User> {
-		const newUser = new User();
-		newUser.uid = data.uid;
-		newUser.email = data.email;
-		newUser.status = 'offline';
-		newUser.nickname = user.nickname;
-		await this.userRepository.save(newUser).catch(err=>{throw new HttpException(JSON.stringify(err.detail), HttpStatus.CONFLICT)});
-		const newFriendList = new FriendList();
-		newFriendList.uid = newUser.uid;
-		await this.friendRepository.save(newFriendList);
-		return newUser;
-	}
+  async createUser(user: createUserDto, data): Promise<User> {
+    const newUser = new User();
+    newUser.uid = data.id;
+    newUser.email = data.email;
+    newUser.status = 'offline';
+    newUser.nickname = user.nickname;
+    await this.userRepository.save(newUser).catch((err) => {
+      throw new HttpException(JSON.stringify(err.detail), HttpStatus.CONFLICT);
+    });
+    const newFriendList = new FriendList();
+    newFriendList.uid = newUser.uid;
+    await this.friendRepository.save(newFriendList);
+    return newUser;
+  }
 
   async updateUser(uid: number, req: ReqUserDto): Promise<User> {
     const toUpdate = await this.userRepository.findOne({ where: { uid: uid } });

@@ -81,7 +81,6 @@ const GameReady = ({ isNormal, gameRoom, setFinish }: GameReadyProps) => {
                     isHost={true}
                     isNormal={room.isNormal as boolean}
                     room={room}
-                    setFinish={setFinish}
                   />
                 </div>
               )}

@@ -1,11 +1,26 @@
-import { Controller, Get, Post, Body, Param, ParseIntPipe, UsePipes, ValidationPipe, Query, Patch, Req } from "@nestjs/common";
-import { UserService } from "./user.service";
-import { createUserDto } from "src/dto/createUser.dto";
-import { JoiValidationPipe } from "../validation.pipe";
-import { ResUserDto } from "src/dto/resUser.dto";
-import { createUserSchema } from "src/schema/createUser.schema";
-import { User } from "./user.entity";
-import { ReqUserDto } from "src/dto/reqUser.dto";
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  ParseIntPipe,
+  UsePipes,
+  ValidationPipe,
+  Query,
+  Patch,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import { UserService } from './user.service';
+import { createUserDto } from 'src/dto/createUser.dto';
+import { JoiValidationPipe } from '../validation.pipe';
+import { ResUserDto } from 'src/dto/resUser.dto';
+import { createUserSchema } from 'src/schema/createUser.schema';
+import { User } from './user.entity';
+import { ReqUserDto } from 'src/dto/reqUser.dto';
+import { UserCreationGuard } from 'src/auth/userCreation.guard';
+import { GetGuardData } from 'src/auth/getGuardData.decorator';
 
 @Controller('user')
 export class UserController {
@@ -22,9 +37,10 @@ export class UserController {
   }
 
   @Post()
-  @UsePipes(new JoiValidationPipe(createUserSchema))
-  createUser(@Body(new ValidationPipe()) body: createUserDto, @Req() req): Promise<User> {
-    return this.userService.createUser(body, req.user);
+  @UseGuards(UserCreationGuard)
+  createUser(@Body() body: createUserDto, @GetGuardData() data): Promise<User> {
+    console.log('createUser');
+    return this.userService.createUser(body, data);
   }
 
   @Get('/check/nick')
@@ -34,8 +50,6 @@ export class UserController {
 
   @Patch('/:uid')
   updateUser(@Param('uid', ParseIntPipe) uid: number, @Body() req: ReqUserDto) {
-    console.log(uid);
-    console.log(req);
     return this.userService.updateUser(uid, req);
   }
 }

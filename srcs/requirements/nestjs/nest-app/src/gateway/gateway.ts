@@ -42,6 +42,7 @@ export class socketGateway implements OnModuleInit {
   //소켓이 열릴때 훅을 걸어서 바인드
   @SubscribeMessage('bind')
   handleBind(client: Socket, uid: number): Promise<boolean> {
+    console.log(`bind request from ${uid}`);
     return (
       this.chatService.bindUser(client, uid) &&
       this.gameService.bindUser(client, uid)

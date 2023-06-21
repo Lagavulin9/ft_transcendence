@@ -22,7 +22,6 @@ export class ChatController {
 
   @Get('/all')
   getAllChatrooms(): resChatDto[] {
-    console.log('getAllChatrooms');
     return this.chatService.getAllChatroom();
   }
 

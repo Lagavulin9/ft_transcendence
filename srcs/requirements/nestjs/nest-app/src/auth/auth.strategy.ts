@@ -1,11 +1,11 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-oauth2';
-import axios from 'axios'
+import axios from 'axios';
 
 @Injectable()
-export class FtAuthStrategy extends PassportStrategy(Strategy, 'ft'){
-    constructor() {
+export class FtAuthStrategy extends PassportStrategy(Strategy, 'ft') {
+  constructor() {
     super({
       authorizationURL: `https://api.intra.42.fr/oauth/authorize?
                           client_id=${process.env.FT_APP_UID}
@@ -21,17 +21,16 @@ export class FtAuthStrategy extends PassportStrategy(Strategy, 'ft'){
   async validate(accessToken: string, refreshToken: string) {
     console.log(`[${Date.now()}] GET TOKEN : '${accessToken}'`);
     try {
-        const { data } = await axios.get('https://api.intra.42.fr/v2/me', {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-        const login = data.login;
-        const id = data.id;
-        const email = data.email;
-        console.log(id, login, email);
-        return { id: id, login: login, email: email };
+      const { data } = await axios.get('https://api.intra.42.fr/v2/me', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const login = data.login;
+      const id = data.id;
+      const email = data.email;
+      return { id: id, login: login, email: email };
     } catch (e) {
       console.error(e);
-      return (false);  
+      return false;
     }
   }
 }

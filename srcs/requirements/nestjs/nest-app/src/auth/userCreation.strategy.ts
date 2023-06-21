@@ -5,7 +5,10 @@ import { Request } from 'express';
 import { TokenStatusEnum } from './tokenState.enum';
 
 @Injectable()
-export class UserCreationStrategy extends PassportStrategy(Strategy, 'JwtCreationStrategy') {
+export class UserCreationStrategy extends PassportStrategy(
+  Strategy,
+  'JwtCreationStrategy',
+) {
   constructor() {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
@@ -14,11 +17,16 @@ export class UserCreationStrategy extends PassportStrategy(Strategy, 'JwtCreatio
         },
       ]),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_UC_SECRET,
+      secretOrKey: process.env.JWT_SECRET,
     });
   }
 
-  validate(payload:{uid:number, login:string, email:string, status:TokenStatusEnum}) {
+  validate(payload: {
+    status?: TokenStatusEnum;
+    id: number;
+    login: string;
+    email: string;
+  }) {
     if (payload) {
       if (payload.status === TokenStatusEnum.SIGNUP) {
         return payload;

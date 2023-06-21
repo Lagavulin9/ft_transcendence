@@ -26,6 +26,8 @@ import { useDispatch, useSelector } from "react-redux";
 import store, { AppDispatch, RootState } from "@/redux/RootStore";
 import { fetchProfile } from "@/redux/Slice/Profile";
 import Image from "next/image";
+import { useLoginMutation, useSignupMutation } from "@/redux/Api/Auth";
+import { SignIn } from "@/utils/SignIn";
 
 const { useBreakpoint } = Grid;
 type Props = {
@@ -41,6 +43,7 @@ const AppLayout = ({ children }: Props) => {
   const { uId, isLoading } = useSelector(
     (state: RootState) => state.rootReducers.global
   );
+  const [isLogin, setIsLogin] = useState(false);
 
   const openProfile = async () => {
     document.body.style.overflow = "hidden";
@@ -52,9 +55,9 @@ const AppLayout = ({ children }: Props) => {
     setIsOpen(!isOpen);
   };
 
-  const login = () => {
-    document.body.style.overflow = "hidden";
-    router.push("/Page/Login", "/Page/Login", { shallow: false });
+  const login = async () => {
+    setIsLogin(true);
+    await SignIn();
   };
 
   return (
@@ -131,7 +134,8 @@ const AppLayout = ({ children }: Props) => {
                         </MenuListItem>
                         <MenuListItem
                           onClick={() =>
-                            (window.location.href = "https://github.com/9utty")
+                            (window.location.href =
+                              "https://github.com/Lagavulin9/ft_transcendence")
                           }
                         >
                           <span role="img" aria-label="📁">

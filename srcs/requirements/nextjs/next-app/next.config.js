@@ -1,14 +1,21 @@
-/** @type {import('next').NextConfig} */
-
+// next.config.js
 module.exports = {
-  experimental: {
-    appDir: true,
-  },
-  async rewrites() {
+  async headers() {
     return [
       {
-        source: "/sitemap.xml",
-        destination: "/sitemap.xml",
+        // 경로만 사용해 주세요, 전체 URL은 아닙니다.
+        source: "/oauth/authorize/:path*",
+        headers: [
+          { key: "Access-Control-Allow-Origin", value: "*" },
+          {
+            key: "Access-Control-Allow-Methods",
+            value: "GET, PUT, POST, DELETE, PATCH",
+          },
+          {
+            key: "Access-Control-Allow-Headers",
+            value: "Content-Type, Authorization",
+          },
+        ],
       },
     ];
   },

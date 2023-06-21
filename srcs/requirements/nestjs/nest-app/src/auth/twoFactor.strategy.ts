@@ -5,16 +5,19 @@ import { Request } from 'express';
 import { TokenStatusEnum } from './tokenState.enum';
 
 @Injectable()
-export class TwoFactorStrategy extends PassportStrategy(Strategy, 'JwtTwoFactorStrategy') {
+export class TwoFactorStrategy extends PassportStrategy(
+  Strategy,
+  'JwtTwoFactorStrategy',
+) {
   constructor() {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (req: Request): string => {
-          return req?.cookies?.Authentication;
+          return req?.cookies?.Auth;
         },
       ]),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_2FA_SECRET,
+      secretOrKey: process.env.JWT_SECRET,
     });
   }
 

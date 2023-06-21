@@ -9,17 +9,26 @@ export const AuthApi = createApi({
     baseUrl: "/",
   }),
   endpoints: (bundler) => ({
-    getAuth: bundler.query<User, void>({
+    getAuth: bundler.query<void, void>({
       query() {
-        return `http://localhost/api/auth/login`;
+        return `http://localhost/api/auth`;
       },
     }),
-    login: bundler.mutation<User, number>({
-      query(id: number) {
-        return `http://localhost/api/user/${id}`; //로그인이라고 가정
+    login: bundler.mutation<User, void>({
+      query() {
+        return `http://localhost/api/auth`; //로그인이라고 가정
+      },
+    }),
+    signup: bundler.mutation<User, string>({
+      query(nickname: string) {
+        return {
+          url: `http://localhost/api/user`,
+          method: "POST",
+          body: { nickname: nickname },
+        };
       },
     }),
   }),
 });
 
-export const { useGetAuthQuery, useLoginMutation } = AuthApi;
+export const { useGetAuthQuery, useLoginMutation, useSignupMutation } = AuthApi;
