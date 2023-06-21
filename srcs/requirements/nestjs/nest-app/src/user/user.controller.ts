@@ -1,22 +1,11 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  ParseIntPipe,
-  UsePipes,
-  ValidationPipe,
-  Query,
-  Patch,
-} from '@nestjs/common';
-import { UserService } from './user.service';
-import { createUserDto } from 'src/dto/createUser.dto';
-import { JoiValidationPipe } from '../validation.pipe';
-import { ResUserDto } from 'src/dto/resUser.dto';
-import { createUserSchema } from 'src/schema/createUser.schema';
-import { User } from './user.entity';
-import { ReqUserDto } from 'src/dto/reqUser.dto';
+import { Controller, Get, Post, Body, Param, ParseIntPipe, UsePipes, ValidationPipe, Query, Patch, Req } from "@nestjs/common";
+import { UserService } from "./user.service";
+import { createUserDto } from "src/dto/createUser.dto";
+import { JoiValidationPipe } from "../validation.pipe";
+import { ResUserDto } from "src/dto/resUser.dto";
+import { createUserSchema } from "src/schema/createUser.schema";
+import { User } from "./user.entity";
+import { ReqUserDto } from "src/dto/reqUser.dto";
 
 @Controller('user')
 export class UserController {
@@ -34,8 +23,8 @@ export class UserController {
 
   @Post()
   @UsePipes(new JoiValidationPipe(createUserSchema))
-  createUser(@Body(new ValidationPipe()) user: createUserDto): Promise<User> {
-    return this.userService.createUser(user);
+  createUser(@Body(new ValidationPipe()) body: createUserDto, @Req() req): Promise<User> {
+    return this.userService.createUser(body, req.user);
   }
 
   @Get('/check/nick')
