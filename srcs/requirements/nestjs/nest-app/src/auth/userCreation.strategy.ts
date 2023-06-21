@@ -5,8 +5,7 @@ import { Request } from 'express';
 import { TokenStatusEnum } from './tokenState.enum';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
-  // passport-jwt strategy 를 통해서 jwt token 을 검증 & payload 를 추출
+export class UserCreationStrategy extends PassportStrategy(Strategy, 'JwtCreationStrategy') {
   constructor() {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
@@ -15,15 +14,17 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         },
       ]),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET,
+      secretOrKey: process.env.JWT_UC_SECRET,
     });
   }
 
-  async validate(payload) {
-    if (payload.status === TokenStatusEnum.SUCCESS) {
-      return payload;
-    } else {
-      return false;
+  validate(payload:{uid:number, login:string, email:string, status:TokenStatusEnum}) {
+    if (payload) {
+      if (payload.status === TokenStatusEnum.SIGNUP) {
+        return payload;
+      } else {
+        return false;
+      }
     }
   }
 }

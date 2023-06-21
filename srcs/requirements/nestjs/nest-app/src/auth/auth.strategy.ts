@@ -8,6 +8,7 @@ export class FtAuthStrategy extends PassportStrategy(Strategy, 'ft'){
     constructor() {
     super({
       authorizationURL: `https://api.intra.42.fr/oauth/authorize?
+                          client_id=${process.env.FT_APP_UID}
                           &redirect_uri=${process.env.FT_APP_CALLBACK}
                           &response_type=code`,
       tokenURL: 'https://api.intra.42.fr/oauth/token',

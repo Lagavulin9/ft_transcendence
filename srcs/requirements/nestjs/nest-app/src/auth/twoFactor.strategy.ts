@@ -5,25 +5,26 @@ import { Request } from 'express';
 import { TokenStatusEnum } from './tokenState.enum';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
-  // passport-jwt strategy 를 통해서 jwt token 을 검증 & payload 를 추출
+export class TwoFactorStrategy extends PassportStrategy(Strategy, 'JwtTwoFactorStrategy') {
   constructor() {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (req: Request): string => {
-          return req?.cookies?.Auth;
+          return req?.cookies?.Authentication;
         },
       ]),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET,
+      secretOrKey: process.env.JWT_2FA_SECRET,
     });
   }
 
-  async validate(payload) {
-    if (payload.status === TokenStatusEnum.SUCCESS) {
-      return payload;
-    } else {
-      return false;
+  validate(payload) {
+    if (payload) {
+      if (payload.status === TokenStatusEnum.TWO_FACTOR) {
+        return payload;
+      } else {
+        return false;
+      }
     }
   }
 }

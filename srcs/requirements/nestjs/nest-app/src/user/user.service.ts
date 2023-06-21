@@ -43,8 +43,12 @@ export class UserService{
 		return res;
 	}
 
-	async createUser(user:createUserDto): Promise<User> {
-		const newUser = this.userRepository.create(user);
+	async createUser(user:createUserDto, data): Promise<User> {
+		const newUser = new User();
+		newUser.uid = data.uid;
+		newUser.email = data.email;
+		newUser.status = 'offline';
+		newUser.nickname = user.nickname;
 		await this.userRepository.save(newUser).catch(err=>{throw new HttpException(JSON.stringify(err.detail), HttpStatus.CONFLICT)});
 		const newFriendList = new FriendList();
 		newFriendList.uid = newUser.uid;
