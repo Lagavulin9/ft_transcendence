@@ -1,12 +1,13 @@
 import type { AppProps } from "next/app";
 import Head from "next/head";
 import "./app.css";
-import { Provider, useSelector } from "react-redux";
-import store from "@/redux/RootStore";
+import { Provider, useDispatch, useSelector } from "react-redux";
+import store, { AppDispatch } from "@/redux/RootStore";
 import Home from ".";
 import { useEffect } from "react";
 import { io } from "socket.io-client";
-import { connectSocket, emitEvent, socket } from "@/utils/socket";
+import { connectSocket, emitEvent, onEvent, socket } from "@/utils/socket";
+import { fetchGlobal } from "@/redux/Slice/Global";
 
 export default function App({ Component, pageProps }: AppProps) {
   useEffect(() => {
@@ -15,6 +16,7 @@ export default function App({ Component, pageProps }: AppProps) {
       socket.disconnect();
     };
   }, []);
+
   return (
     <>
       <Provider store={store}>

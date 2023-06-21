@@ -15,14 +15,22 @@ import { ReqSocketDto } from 'src/dto/reqSocket.dto';
 import { GameService } from 'src/game/game.service';
 import { GameRoom, reqGameRoom } from 'src/game/gameroom.entity';
 import { UserService } from 'src/user/user.service';
+import * as cookie from 'cookie';
+import { JwtService } from '@nestjs/jwt';
 
 // @WebSocketGateway({cors:{origin:['nextjs']}})
-@WebSocketGateway({ cors: true })
+@WebSocketGateway({
+  cors: {
+    origin: 'http://localhost', // 클라이언트 도메인으로 변경
+    credentials: true,
+  },
+})
 export class socketGateway implements OnModuleInit {
   constructor(
     private chatService: ChatService,
     private userService: UserService,
     private gameService: GameService,
+    private jwtService: JwtService,
   ) {}
 
   @WebSocketServer()
@@ -30,6 +38,17 @@ export class socketGateway implements OnModuleInit {
 
   onModuleInit() {
     this.server.on('connection', (client) => {
+      // 클라이언트로부터 받은 쿠키 추출
+      const cookies = cookie.parse(client.handshake.headers.cookie || '');
+      const authenticationCookie = cookies['Auth'];
+      if (authenticationCookie) {
+        const decoded = this.jwtService.verify(authenticationCookie);
+        client.emit('bind', decoded.uid);
+      }
+
+      // 필요한 경우 사용자 인증 및 쿠키 처리를 여기에서 수행하십시오
+      // ...
+
       console.log(`client connected. id: ${client.id}`);
       client.on('disconnect', () => {
         console.log(`client disconnected. id: ${client.id}`);

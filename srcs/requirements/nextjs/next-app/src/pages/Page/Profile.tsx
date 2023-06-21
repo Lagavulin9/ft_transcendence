@@ -40,15 +40,11 @@ const Profile = () => {
     router.back();
   };
 
-  if (userFetching) {
-    return (
-      <AppLayout>
-        <MyModal hName="프로필" close={close}>
-          <H1>...로딩중</H1>
-        </MyModal>
-      </AppLayout>
-    );
-  }
+  useEffect(() => {
+    setInterval(() => {
+      userRefetch();
+    }, 2000);
+  }, [userRefetch]);
 
   if (userData) {
     return (

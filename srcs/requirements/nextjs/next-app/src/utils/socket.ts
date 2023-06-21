@@ -3,6 +3,7 @@ import { io } from "socket.io-client";
 const createSocket = () => {
   return io("http://localhost:8080", {
     autoConnect: false,
+    withCredentials: true,
   });
 };
 

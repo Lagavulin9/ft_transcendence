@@ -28,7 +28,7 @@ export class AuthController {
     private authService: AuthService,
     private jwtService: JwtService,
   ) {}
-
+  ß;
   @Get()
   @UseGuards(FtAuthGuard)
   authCheck() {}
@@ -39,17 +39,18 @@ export class AuthController {
     @GetGuardData() data,
     @Res({ passthrough: true }) res: Response,
   ): Promise<any> {
-    try {
-      return await this.authService.redirect(data, res);
-    } catch (e) {
-      if (e instanceof UnauthorizedException) {
-        return 'duplicate login';
-        // res.redirect('/signin_duplicated');
-      } else {
-        return 'signin failed';
-        // res.redirect('/signin_fail');
-      }
-    }
+    return await this.authService.redirect(data, res);
+    // try {
+    // return await this.authService.redirect(data, res);
+    // } catch (e) {
+    //   if (e instanceof UnauthorizedException) {
+    //     return 'duplicate login';
+    //     // res.redirect('/signin_duplicated');
+    //   } else {
+    //     return 'signin failed';
+    //     // res.redirect('/signin_fail');
+    //   }
+    // }
   }
 
   @Post('send-email')
