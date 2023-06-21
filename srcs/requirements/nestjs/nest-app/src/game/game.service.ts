@@ -163,6 +163,8 @@ export class GameService {
   }
 
   host2guest(client: Socket, data: GameStateDto) {
+    console.log('host2guest');
+    console.log(data);
     const hostSocket = this.Clients.getValue(data.gameroom.host);
     const guestSocket = this.Clients.getValue(data.gameroom.guest);
     if (!guestSocket) {

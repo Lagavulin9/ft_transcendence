@@ -15,15 +15,16 @@ import { GameRoom } from "@/types/GameDto";
 const Game = () => {
   const [isNormal, setIsNormal] = useState(true);
   const [isVisible, setIsVisible] = useState(false);
+  const [mode, setMode] = useState(true);
 
   const gameRoom = useSelector((state: RootState) => state.rootReducers.room);
 
   const router = useRouter();
   const { isHost, hostId, guestId, normal } = router.query;
 
-  console.log(`Game: ${isHost}, ${hostId}, ${guestId}, ${typeof normal}`);
+  console.log(`Game: ${isHost}, ${hostId}`);
 
-  const room = {
+  let room = {
     host: Number(hostId),
     guest: Number(guestId),
     game_start: false,
@@ -47,13 +48,14 @@ const Game = () => {
   };
 
   const Mode = (mode: boolean) => {
-    const tmp = {
+    setMode(mode);
+    room = {
       host: Number(hostId),
       guest: Number(guestId),
       game_start: false,
       isNormal: mode,
     };
-    emitEvent("game-invite", tmp);
+    emitEvent("game-invite", room);
     setIsNormal(mode);
     setIsVisible(true);
   };
@@ -65,7 +67,7 @@ const Game = () => {
           {isHost === "Host" ? (
             <>
               {isVisible ? (
-                <GameReady isNormal={room.isNormal} gameRoom={room} />
+                <GameReady isNormal={mode} gameRoom={room} />
               ) : (
                 <ModeSelect func={Mode} />
               )}

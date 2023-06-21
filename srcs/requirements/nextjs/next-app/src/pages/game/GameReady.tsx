@@ -17,7 +17,9 @@ const GameReady = ({ isNormal, gameRoom }: GameReadyProps) => {
   const [isVisible, setIsVisible] = useState(false);
   const [readyTime, setReadyTime] = useState(0);
   const [isEnd, setIsEnd] = useState(false);
+  const [mode, setMode] = useState(true);
   const dispatch = useDispatch<AppDispatch>();
+  const [room, setRoom] = useState<GameRoom>({} as GameRoom);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -32,18 +34,20 @@ const GameReady = ({ isNormal, gameRoom }: GameReadyProps) => {
       });
     }, 1000);
 
-    onEvent("game-start", () => {
+    onEvent("game-start", (data: GameRoomDto) => {
       const arg: GameRoom = {
-        host: gameRoom.host,
-        guest: gameRoom.guest,
+        host: data.host.uid,
+        guest: data.guest.uid,
         game_start: true,
+        isNormal: isNormal,
       };
-      console.log(`game-start: ${arg}`);
+      setRoom(arg);
       dispatch(
         fetchRoom({
           gameRoom: arg,
         })
       );
+      setMode(arg.isNormal as boolean);
       setIsVisible(true);
     });
 
@@ -69,9 +73,17 @@ const GameReady = ({ isNormal, gameRoom }: GameReadyProps) => {
       ) : (
         <>
           {isVisible ? (
-            <div>
-              <InGame isHost={true} isNormal={isNormal} room={gameRoom} />
-            </div>
+            <>
+              {room && (
+                <div>
+                  <InGame
+                    isHost={true}
+                    isNormal={room.isNormal as boolean}
+                    room={room}
+                  />
+                </div>
+              )}
+            </>
           ) : (
             <div
               style={{

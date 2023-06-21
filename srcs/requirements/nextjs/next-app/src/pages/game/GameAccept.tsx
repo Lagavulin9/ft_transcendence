@@ -20,13 +20,14 @@ const GameAccept = ({ isNormal, room }: GameAcceptProps) => {
   const [isEnd, setIsEnd] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
 
-  console.log(`GameAccept: ${isNormal}`);
-
   const onAccept = () => {
+    console.log("accept");
+    console.log(room);
     emitEvent("game-accept", {
       host: room.host,
       guest: room.guest,
       game_start: true,
+      isNormal: room.isNormal,
     });
   };
 
@@ -52,21 +53,15 @@ const GameAccept = ({ isNormal, room }: GameAcceptProps) => {
       });
     }, 1000);
 
-    onEvent("game-start", () => {
-      const arg: GameRoom = {
-        host: room.host,
-        guest: room.guest,
-        game_start: true,
-      };
+    onEvent("game-start", (data: GameRoom) => {
       dispatch(
         fetchRoom({
-          gameRoom: arg,
+          gameRoom: data,
         })
       );
-      offEvent("game-accept");
       setIsVisible(true);
     });
-  }, [dispatch, room.guest, room.host]);
+  }, [dispatch, room.guest, room.host, room.isNormal]);
 
   return (
     <>

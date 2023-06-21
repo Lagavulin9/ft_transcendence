@@ -261,6 +261,8 @@ const InGame = ({ isHost, isNormal, room }: InGameProps) => {
       });
     }, 1000);
 
+    console.log("isHost");
+    console.log(isHost);
     if (isHost) {
       onEvent("guest2host", (data: gameKeyPressDto) => {
         setKeysPressed({
@@ -270,7 +272,7 @@ const InGame = ({ isHost, isNormal, room }: InGameProps) => {
           w: data.w,
         });
       });
-    } else {
+    } else if (!isHost) {
       onEvent("host2guest", (data: GameStateDto) => {
         setPaddlePositions(() => ({
           player1: {
@@ -306,6 +308,9 @@ const InGame = ({ isHost, isNormal, room }: InGameProps) => {
         } else if (score.player1 > score.player2) {
           setPlayerIndex(1);
         }
+      }
+      if (isHost === false) {
+        return;
       }
       emitEvent("host2guest", {
         gameroom: { host: room.host, guest: room.guest, game_start: true },
@@ -345,6 +350,7 @@ const InGame = ({ isHost, isNormal, room }: InGameProps) => {
     paddlePositions,
     isVisible,
     postLogMutation,
+    isHost,
   ]);
 
   useEffect(() => {
@@ -352,10 +358,6 @@ const InGame = ({ isHost, isNormal, room }: InGameProps) => {
       setIsEnd(true);
     });
   }, []);
-
-  const ballVisible = (value: boolean) => {
-    setIsVisible(value);
-  };
 
   return (
     <div>
@@ -376,9 +378,6 @@ const InGame = ({ isHost, isNormal, room }: InGameProps) => {
           room={room}
           score={[score.player1, score.player2]}
           gameTime={gameTime}
-          isHost={isHost}
-          setVisible={ballVisible}
-          isVisible={isVisible}
         />
       </div>
       <GameScore
