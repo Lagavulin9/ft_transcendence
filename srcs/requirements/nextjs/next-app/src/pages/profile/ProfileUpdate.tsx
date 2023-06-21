@@ -1,6 +1,7 @@
 import {
   useCheckNicknameMutation,
   useGetUserQuery,
+  useImageUploadMutation,
   useProfileUpdateMutation,
 } from "@/redux/Api/Profile";
 import { ReqUserDto } from "@/types/UserType";
@@ -29,6 +30,7 @@ const ProfileUpdate = ({ uid }: Props) => {
     isFetching: userFetching,
     refetch: userRefetch,
   } = useGetUserQuery(uid);
+  const [imageUpload, { data: imageData }] = useImageUploadMutation();
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -44,15 +46,6 @@ const ProfileUpdate = ({ uid }: Props) => {
     }
   };
 
-  const readImageAsBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = () => reject(reader.error);
-      reader.readAsDataURL(file);
-    });
-  };
-
   const nickNameCheck = () => {
     setIsSkip(false);
     nickCheckMutation(nickname);
@@ -65,14 +58,16 @@ const ProfileUpdate = ({ uid }: Props) => {
   };
 
   const handleSubmit = async () => {
-    const base64Image = fileInputRef.current?.files?.[0]
-      ? await readImageAsBase64(fileInputRef.current.files[0])
-      : null;
+    const form = new FormData();
+    if (fileInputRef.current?.files?.[0]) {
+      form.append("file", fileInputRef.current?.files?.[0]);
+      await imageUpload(form);
+    }
 
     const req: ReqUserDto = {
       nickname: nickname,
       isOTP: isOtp,
-      profileURL: base64Image,
+      profileURL: imageData,
     };
 
     await profileUpdate({ uid: uid, user: req });

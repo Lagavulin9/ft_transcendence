@@ -4,18 +4,17 @@ import H1 from "@/pages/PostComponents/H1";
 import H3 from "@/pages/PostComponents/H3";
 import { useGetAllQuery, useGetChatRoomQuery } from "@/redux/Api/ChatRoom";
 import { useGetUserQuery } from "@/redux/Api/Profile";
-import { RootState } from "@/redux/RootStore";
+import { AppDispatch, RootState } from "@/redux/RootStore";
 import { resChatDto } from "@/types/ChatDto";
 import { emitEvent, onError, onEvent } from "@/utils/socket";
 import { data } from "autoprefixer";
 import { useRouter } from "next/router";
 import React, { useEffect, useRef } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Button, ScrollView } from "react95";
 
 const RoomList = () => {
   const router = useRouter();
-
   const { uId: owner } = useSelector(
     (state: RootState) => state.rootReducers.global
   );
@@ -41,7 +40,7 @@ const RoomList = () => {
   useEffect(() => {
     const refetchInterval = setInterval(() => {
       refetch();
-    }, 5000);
+    }, 2000);
 
     return () => {
       clearInterval(refetchInterval);
@@ -61,10 +60,6 @@ const RoomList = () => {
       );
     });
   }, [router]);
-
-  if (chatRoomIsFetching) {
-    return <H3>...로딩중</H3>;
-  }
 
   return (
     <div

@@ -35,5 +35,5 @@ export interface User {
 export interface ReqUserDto {
   nickname: string;
   isOTP: boolean;
-  profileURL: string | null;
+  profileURL: string | undefined;
 }

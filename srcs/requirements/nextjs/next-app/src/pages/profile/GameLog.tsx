@@ -19,24 +19,26 @@ const GameLog = ({ uid }: GameLogProps) => {
     return <H3>...로딩중</H3>;
   }
 
-  if (userData?.gameLog.log === undefined) {
+  if (userData?.gameLog === undefined) {
     return <H3>로그데이터가 없습니다.</H3>;
   }
 
   return (
     <div>
       {userData &&
-        userData?.gameLog.log &&
-        userData?.gameLog.log.map((log: LogDto, index) => (
-          <LogCard
-            key={index}
-            fromId={log.fromId}
-            toId={log.toId}
-            fromScore={log.fromScore}
-            toScore={log.toScore}
-            score={log.score}
-          />
-        ))}
+        userData.gameLog.log.map((log, index) => {
+          console.log("userData", log);
+          return (
+            <LogCard
+              key={index}
+              fromId={log.fromId}
+              toId={log.toId}
+              fromScore={log.fromScore}
+              toScore={log.toScore}
+              score={log.score}
+            />
+          );
+        })}
     </div>
   );
 };

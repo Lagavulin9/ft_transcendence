@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Map from "./Map";
 import GameClose from "./Close";
 import GameScore from "./Score";
-import { GameRoom, GameRoomDto, GameStateDto } from "@/types/GameDto";
+import { GameRoom, GameRoomDto, GameStateDto, LogDto } from "@/types/GameDto";
 import { emitEvent, onEvent } from "@/utils/socket";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/RootStore";
@@ -18,6 +18,7 @@ interface InGameProps {
   isHost: boolean;
   isNormal: boolean;
   room: GameRoom;
+  setFinish: (data: LogDto) => void;
 }
 
 interface keyPress {
@@ -35,7 +36,7 @@ interface gameKeyPressDto {
   s: boolean;
 }
 
-const InGame = ({ isHost, isNormal, room }: InGameProps) => {
+const InGame = ({ isHost, isNormal, room, setFinish }: InGameProps) => {
   const initialDirection = Math.random() > 0.5 ? -1 : 1;
   const [ballPosition, setBallPosition] = useState({ x: 250, y: 150 });
   const [ballSpeed, setBallSpeed] = useState({ x: 4 * initialDirection, y: 4 });
@@ -312,34 +313,34 @@ const InGame = ({ isHost, isNormal, room }: InGameProps) => {
       if (isHost === false) {
         return;
       }
-      emitEvent("host2guest", {
-        gameroom: { host: room.host, guest: room.guest, game_start: true },
-        ballPosition: ballPosition,
-        paddlePositions: paddlePositions,
-        timeStamp: new Date().toISOString(),
-        isVisible: isVisible,
-        score: [score.player1, score.player2],
-        gameTime: gameTime,
-      });
-      emitEvent("finish", {
-        gameroom: { host: room.host, guest: room.guest, game_start: true },
-        ballPosition: ballPosition,
-        paddlePositions: paddlePositions,
-        timeStamp: new Date().toISOString(),
-        isVisible: isVisible,
-        score: [score.player1, score.player2],
-        gameTime: gameTime,
-      });
-      postLogMutation({
-        fromId: room.host,
-        toId: room.guest,
-        fromScore: score.player1,
-        toScore: score.player2,
-        score: [score.player1, score.player2],
-      });
-
-      setIsEnd(true);
-      console.log("Game over");
+      if (isEnd === false) {
+        emitEvent("host2guest", {
+          gameroom: { host: room.host, guest: room.guest, game_start: true },
+          ballPosition: ballPosition,
+          paddlePositions: paddlePositions,
+          timeStamp: new Date().toISOString(),
+          isVisible: isVisible,
+          score: [score.player1, score.player2],
+          gameTime: gameTime,
+        });
+        emitEvent("finish", {
+          gameroom: { host: room.host, guest: room.guest, game_start: true },
+          ballPosition: ballPosition,
+          paddlePositions: paddlePositions,
+          timeStamp: new Date().toISOString(),
+          isVisible: isVisible,
+          score: [score.player1, score.player2],
+          gameTime: gameTime,
+        });
+        postLogMutation({
+          fromId: room.host,
+          toId: room.guest,
+          fromScore: score.player1,
+          toScore: score.player2,
+          score: [score.player1, score.player2],
+        });
+        setIsEnd(true);
+      }
     }
   }, [
     score,
@@ -351,6 +352,8 @@ const InGame = ({ isHost, isNormal, room }: InGameProps) => {
     isVisible,
     postLogMutation,
     isHost,
+    setFinish,
+    isEnd,
   ]);
 
   useEffect(() => {
@@ -367,18 +370,20 @@ const InGame = ({ isHost, isNormal, room }: InGameProps) => {
           paddingLeft: "75px",
         }}
       >
-        <Map
-          ballPosition={ballPosition}
-          paddlePositions={paddlePositions}
-          ballRadius={ballRadius}
-          paddleHeight={paddleHeight}
-          paddleWidth={paddleWidth}
-          canvasWidth={canvasWidth}
-          canvasHeight={canvasHeight}
-          room={room}
-          score={[score.player1, score.player2]}
-          gameTime={gameTime}
-        />
+        {!isEnd && (
+          <Map
+            ballPosition={ballPosition}
+            paddlePositions={paddlePositions}
+            ballRadius={ballRadius}
+            paddleHeight={paddleHeight}
+            paddleWidth={paddleWidth}
+            canvasWidth={canvasWidth}
+            canvasHeight={canvasHeight}
+            room={room}
+            score={[score.player1, score.player2]}
+            gameTime={gameTime}
+          />
+        )}
       </div>
       <GameScore
         player1={score.player1}

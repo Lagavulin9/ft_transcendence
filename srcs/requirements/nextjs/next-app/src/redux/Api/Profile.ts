@@ -11,6 +11,7 @@ export const ProfileApi = createApi({
       query(userId: number) {
         return `http://localhost/api/user/${userId}`;
       },
+      keepUnusedDataFor: 2,
     }),
     profileUpdate: builder.mutation<User, { user: ReqUserDto; uid: number }>({
       query({ user, uid }) {
@@ -30,6 +31,15 @@ export const ProfileApi = createApi({
         };
       },
     }),
+    imageUpload: builder.mutation<string, FormData>({
+      query(formData: FormData) {
+        return {
+          url: `http://localhost/api/image`,
+          method: "POST",
+          body: formData,
+        };
+      },
+    }),
     checkNickname: builder.mutation<boolean, string>({
       query(nickname: string) {
         return `http://localhost/api/user/check/nick?nickname=${nickname}`;
@@ -42,4 +52,5 @@ export const {
   useGetUserQuery,
   useProfileUpdateMutation,
   useCheckNicknameMutation,
+  useImageUploadMutation,
 } = ProfileApi;

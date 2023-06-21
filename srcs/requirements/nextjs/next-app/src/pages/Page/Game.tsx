@@ -11,11 +11,15 @@ import { RootState } from "@/redux/RootStore";
 import GameAccept from "../game/GameAccept";
 import { emitEvent, offEvent, onError, onEvent } from "@/utils/socket";
 import { GameRoom } from "@/types/GameDto";
+import { usePostLogMutation } from "@/redux/Api/Game";
+import { LogDto } from "@/types/UserType";
 
 const Game = () => {
   const [isNormal, setIsNormal] = useState(true);
   const [isVisible, setIsVisible] = useState(false);
+  const [finish, setFinish] = useState<LogDto>({} as LogDto);
   const [mode, setMode] = useState(true);
+  const [postLogMutation] = usePostLogMutation();
 
   const gameRoom = useSelector((state: RootState) => state.rootReducers.room);
 
@@ -32,7 +36,7 @@ const Game = () => {
   };
 
   console.log(`host: ${hostId}, guest: ${guestId}`);
-  const close = () => {
+  const close = async () => {
     console.log(`GameClose : ${gameRoom.game_start}`);
     if (gameRoom.game_start === true) {
       emitEvent("game-over", {
@@ -44,6 +48,7 @@ const Game = () => {
     offEvent("game-start");
     offEvent("game-decline");
     offEvent("game-over");
+
     router.back();
   };
 
@@ -60,6 +65,10 @@ const Game = () => {
     setIsVisible(true);
   };
 
+  const from = (data: LogDto) => {
+    setFinish(data);
+  };
+
   return (
     <AppLayout>
       <MyModal hName="게임" close={close}>
@@ -67,7 +76,7 @@ const Game = () => {
           {isHost === "Host" ? (
             <>
               {isVisible ? (
-                <GameReady isNormal={mode} gameRoom={room} />
+                <GameReady isNormal={mode} gameRoom={room} setFinish={from} />
               ) : (
                 <ModeSelect func={Mode} />
               )}

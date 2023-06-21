@@ -14,6 +14,7 @@ import GameLog from "../profile/GameLog";
 
 const Profile = () => {
   const [state, setState] = useState({ activeTab: 0 });
+  const [isVisible, setIsVisible] = useState(false);
   const router = useRouter();
   const { uId: owner } = useSelector(
     (state: RootState) => state.rootReducers.global
@@ -25,6 +26,7 @@ const Profile = () => {
     data: userData,
     error: userError,
     isFetching: userFetching,
+    refetch: userRefetch,
   } = useGetUserQuery(uid);
 
   const handleChange = (

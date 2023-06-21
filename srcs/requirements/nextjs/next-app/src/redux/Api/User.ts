@@ -12,6 +12,7 @@ export const UserApi = createApi({
           method: "GET",
         };
       },
+      keepUnusedDataFor: 2,
     }),
   }),
 });
