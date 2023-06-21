@@ -34,8 +34,10 @@ export class FriendService{
 		if (!target){
 			throw new NotFoundException(`Could not find uid:${req.target}`)
 		}
-		current.friendList.push(target.uid)
-		await this.friendRepository.save(current);
+		if (!current.friendList.find((uid)=>uid==target.uid)){
+			current.friendList.push(target.uid)
+			await this.friendRepository.save(current);
+		}
 		return plainToClass(resFriendListDto, current);
 	}
 

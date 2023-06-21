@@ -122,7 +122,7 @@ export class socketGateway implements OnModuleInit {
   }
 
   @SubscribeMessage('game-over')
-  handleGameOver(client: Socket, data: GameStateDto) {
+  handleGameOver(client: Socket, data: any) {
     return this.gameService.gameOver(client, data);
   }
 
