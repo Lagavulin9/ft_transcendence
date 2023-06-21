@@ -18,7 +18,7 @@ export const ProfileApi = createApi({
         const requestBody = {
           nickname: user.nickname,
           isOTP: user.isOTP,
-          profileURL: user.profileURL, // 이미 base64로 변환된 문자열
+          profileURL: user.profileURL,
         };
 
         return {
@@ -27,7 +27,7 @@ export const ProfileApi = createApi({
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(requestBody),
+          body: requestBody,
         };
       },
     }),

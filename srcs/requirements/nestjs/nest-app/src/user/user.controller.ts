@@ -1,11 +1,22 @@
-import { Controller, Get, Post, Body, Param, ParseIntPipe, UsePipes, ValidationPipe, Query, Patch } from "@nestjs/common";
-import { UserService } from "./user.service";
-import { createUserDto } from "src/dto/createUser.dto";
-import { JoiValidationPipe } from "../validation.pipe";
-import { ResUserDto } from "src/dto/resUser.dto";
-import { createUserSchema } from "src/schema/createUser.schema";
-import { User } from "./user.entity";
-import { ReqUserDto } from "src/dto/reqUser.dto";
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  ParseIntPipe,
+  UsePipes,
+  ValidationPipe,
+  Query,
+  Patch,
+} from '@nestjs/common';
+import { UserService } from './user.service';
+import { createUserDto } from 'src/dto/createUser.dto';
+import { JoiValidationPipe } from '../validation.pipe';
+import { ResUserDto } from 'src/dto/resUser.dto';
+import { createUserSchema } from 'src/schema/createUser.schema';
+import { User } from './user.entity';
+import { ReqUserDto } from 'src/dto/reqUser.dto';
 
 @Controller('user')
 export class UserController {
@@ -29,12 +40,13 @@ export class UserController {
 
   @Get('/check/nick')
   checkUniqueNick(@Query('nickname') nickname: string): Promise<boolean> {
-    console.log(nickname);
     return this.userService.checkUniqueNick(nickname);
   }
 
   @Patch('/:uid')
-  updateUser(@Param('uid', ParseIntPipe) uid:number, @Body() req:ReqUserDto){
+  updateUser(@Param('uid', ParseIntPipe) uid: number, @Body() req: ReqUserDto) {
+    console.log(uid);
+    console.log(req);
     return this.userService.updateUser(uid, req);
   }
 }
