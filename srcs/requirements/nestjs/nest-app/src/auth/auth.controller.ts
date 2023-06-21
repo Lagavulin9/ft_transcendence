@@ -6,12 +6,15 @@ import { UserService } from "src/user/user.service";
 import { Response } from 'express';
 import { ResUserDto } from "src/dto/resUser.dto";
 import axios from "axios";
+import { JwtService } from "@nestjs/jwt";
+import { JwtAuthGuard } from "./jwt.guard";
 
 @Controller('auth')
 export class AuthController{
   constructor(
     private authService:AuthService,
     private userService:UserService,
+    private jwtService:JwtService
   ){}
 
   @Get()
@@ -23,14 +26,14 @@ export class AuthController{
   async redirect(@GetGuardData() data, @Res({passthrough: true}) res:Response):Promise<any>{
     const user = await this.userService.getUserByID(data.id).catch((e)=>{});
     if (!user){
-      console.log('no such user');
+      console.log('user not enrolled');
       //redirect to signup
     }
     else{
       console.log(user)
       //redirect to home
     }
-    return user
+    return 'redirected';
   }
 
   @Get('/login')
@@ -56,5 +59,15 @@ export class AuthController{
   verifyPasscode(@Body() req:{uid:number, passcode:number}){
     return this.authService.verifyPasscode(req.uid, req.passcode);
   }
-}
 
+  @Get('test')
+  async jwtGenerate(@Res({passthrough:true}) res:Response){
+    return this.authService.signUp(res);
+  }
+
+  @Get('test2')
+  @UseGuards(JwtAuthGuard)
+  test(){
+    return 'hello world';
+  }
+}

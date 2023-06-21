@@ -25,8 +25,9 @@ export class FtAuthStrategy extends PassportStrategy(Strategy, 'ft'){
         });
         const login = data.login;
         const id = data.id;
-        console.log(id, login);
-        return { id: id, login: login };
+        const email = data.email;
+        console.log(id, login, email);
+        return { id: id, login: login, email: email };
     } catch (e) {
       console.error(e);
       return (false);  
