@@ -11,7 +11,6 @@ import { GameStateDto } from 'src/dto/gameState.dto';
 import { ReqGameDto } from 'src/dto/reqGame.dto';
 import { gameKeyPressDto } from 'src/dto/gameKeyPress.dto';
 import { UserService } from 'src/user/user.service';
-import console from 'console';
 
 @Injectable()
 export class GameService {
@@ -181,8 +180,6 @@ export class GameService {
   }
 
   host2guest(client: Socket, data: GameStateDto) {
-    console.log('host2guest');
-    console.log(data);
     const hostSocket = this.Clients.getValue(data.gameroom.host);
     const guestSocket = this.Clients.getValue(data.gameroom.guest);
     if (!guestSocket) {
@@ -289,18 +286,19 @@ export class GameService {
         return;
       }
       const newGame = new GameRoom();
-      newGame.host = this.GameQueue.pop();
-      newGame.guest = await this.userRepository.findOne({
-        where: { uid: this.Clients.getKey(client) },
+      newGame.host = await this.userRepository.findOne({
+        where: { uid: this.GameQueue.pop() },
       });
-      newGame.game_start = true;
-      this.GameRooms.set(newGame.host.uid, newGame);
+      newGame.guest = await this.userRepository.findOne({
+        where: { uid: uid },
+      });
+      newGame.game_start = false;
       const hostSocket = this.Clients.getValue(newGame.host.uid);
       const guestSocket = this.Clients.getValue(newGame.guest.uid);
-      if (hostSocket){
+      if (hostSocket) {
         hostSocket.emit('game-start', newGame);
       }
-      if (guestSocket){
+      if (guestSocket) {
         guestSocket.emit('game-start', newGame);
       }
     } else {
