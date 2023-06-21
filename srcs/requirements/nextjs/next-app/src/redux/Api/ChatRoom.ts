@@ -12,6 +12,7 @@ export const ChatRoomApi = createApi({
       query(uid: number) {
         return `http://localhost/api/chat/all`;
       },
+      keepUnusedDataFor: 10,
     }),
     getChatRoom: bundler.query<resChatDto, string>({
       query(roomName: string) {

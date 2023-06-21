@@ -11,6 +11,7 @@ import { GameStateDto } from 'src/dto/gameState.dto';
 import { ReqGameDto } from 'src/dto/reqGame.dto';
 import { gameKeyPressDto } from 'src/dto/gameKeyPress.dto';
 import { UserService } from 'src/user/user.service';
+import console from 'console';
 
 @Injectable()
 export class GameService {
@@ -180,6 +181,8 @@ export class GameService {
   }
 
   host2guest(client: Socket, data: GameStateDto) {
+    console.log('host2guest');
+    console.log(data);
     const hostSocket = this.Clients.getValue(data.gameroom.host);
     const guestSocket = this.Clients.getValue(data.gameroom.guest);
     if (!guestSocket) {

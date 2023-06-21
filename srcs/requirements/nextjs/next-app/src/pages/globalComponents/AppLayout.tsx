@@ -203,15 +203,6 @@ const Components: Component[] = [
     Component: () => {
       return (
         <Col xs={12} sm={8} md={4}>
-          <GameIcon />
-        </Col>
-      );
-    },
-  },
-  {
-    Component: () => {
-      return (
-        <Col xs={12} sm={8} md={4}>
           <RandomMatch />
         </Col>
       );

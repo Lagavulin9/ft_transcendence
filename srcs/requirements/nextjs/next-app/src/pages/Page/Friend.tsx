@@ -32,24 +32,7 @@ const FriendList = () => {
     await refetch();
   };
 
-  const cancelBlock = async () => {
-    await refetch();
-  };
-
   const { activeTab } = state;
-
-  useEffect(() => {
-    const refetchInterval = setInterval(() => {
-      refetch();
-    }, 1000);
-    return () => {
-      clearInterval(refetchInterval);
-    };
-  }, [refetch]);
-
-  if (isFetching) {
-    return <H3>...로딩중</H3>;
-  }
 
   return (
     <AppLayout>
@@ -98,24 +81,14 @@ const FriendList = () => {
               {activeTab === 0 && data?.friendList && (
                 <>
                   {data.friendList.map((user, index) => (
-                    <FriendUser
-                      key={index}
-                      userNickName={user.nickname}
-                      state={0} // TODO: 나중에 상태값으로 변경
-                      uId={user.uid}
-                    />
+                    <FriendUser key={index} uId={user} />
                   ))}
                 </>
               )}
               {activeTab === 1 && data?.blockedList && (
                 <>
                   {data.blockedList.map((user, index) => (
-                    <BlockUser
-                      key={index}
-                      userNickName={user.nickname}
-                      uId={user.uid}
-                      func={cancelBlock}
-                    />
+                    <BlockUser key={index} uId={user} />
                   ))}
                 </>
               )}

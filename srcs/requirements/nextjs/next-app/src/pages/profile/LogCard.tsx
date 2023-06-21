@@ -23,18 +23,18 @@ const LogCard = ({ fromId, toId, fromScore, toScore }: LogCardProps) => {
     refetch: toRefetch,
   } = useGetUserQuery(toId);
 
-  fromIdRefetch();
-  toRefetch();
-
   if (fromFetching || toFetching) {
     return <H3>...로딩중</H3>;
   }
 
+  console.log("fromData", fromData);
   return (
     <div>
-      <H3>
-        {fromData?.nickname} {fromScore} : {toScore} {toData?.nickname}
-      </H3>
+      {fromData && toData && (
+        <H3>
+          {fromData.nickname} {fromScore} : {toScore} {toData.nickname}
+        </H3>
+      )}
     </div>
   );
 };

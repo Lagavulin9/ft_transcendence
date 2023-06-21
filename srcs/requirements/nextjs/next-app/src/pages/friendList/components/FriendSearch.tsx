@@ -13,18 +13,16 @@ const FriendSearch = () => {
     data: userData,
     error: userError,
     isFetching: userIsFetching,
-  } = useGetUserByNickQuery(input);
+  } = useGetUserByNickQuery(input, { skip: input === "" });
 
   const { uId: owner } = useSelector(
     (state: RootState) => state.rootReducers.global
   );
 
   const [addFriend] = useAddFriendMutation();
-  const { refetch } = useGetFriendQuery(owner);
 
   const clickAdd = async () => {
     await addFriend({ uid: owner, target: userData?.uid ?? 1 });
-    refetch();
   };
 
   return (

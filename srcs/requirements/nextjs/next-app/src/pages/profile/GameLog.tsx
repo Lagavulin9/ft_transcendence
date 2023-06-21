@@ -19,15 +19,14 @@ const GameLog = ({ uid }: GameLogProps) => {
     return <H3>...로딩중</H3>;
   }
 
-  if (userData?.gameLog.log === undefined) {
+  if (userData?.gameLog === undefined) {
     return <H3>로그데이터가 없습니다.</H3>;
   }
 
   return (
     <div>
       {userData &&
-        userData?.gameLog.log &&
-        userData?.gameLog.log.map((log: LogDto, index) => (
+        userData.gameLog.map((log, index) => (
           <LogCard
             key={index}
             fromId={log.fromId}

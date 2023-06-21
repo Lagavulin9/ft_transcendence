@@ -65,6 +65,8 @@ const ChatRoom = () => {
   }, [scrollBottomRef]);
 
   const openGameMode = (uid: number) => {
+    console.log(`openGameMode: ${uid}`);
+    console.log(chatRoomData);
     router.push(
       {
         pathname: "/Page/Game",
@@ -193,6 +195,7 @@ const ChatRoom = () => {
 
     onEvent("game-invite", (data: GameRoom) => {
       // 상태 업데이트 이벤트 핸들링
+      console.log(data);
       dispatch(
         fetchRoom({
           gameRoom: {

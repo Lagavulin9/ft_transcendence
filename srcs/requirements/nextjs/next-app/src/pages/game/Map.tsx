@@ -16,9 +16,6 @@ interface MapProps {
   room: GameRoom;
   score: number[];
   gameTime: number;
-  isHost: boolean;
-  setVisible: (value: boolean) => void;
-  isVisible: boolean;
 }
 
 const Map = ({
@@ -30,12 +27,11 @@ const Map = ({
   canvasWidth,
   canvasHeight,
   room,
-  isHost,
-  setVisible,
-  isVisible,
 }: MapProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [ballColor, setBallColor] = useState("#ffffff");
+
+  console.log(`Map: ${room.isNormal}`);
 
   useEffect(() => {
     const changeBallColor = () => {
@@ -92,7 +88,6 @@ const Map = ({
     ballRadius,
     paddleHeight,
     paddleWidth,
-    isVisible,
     ballColor,
   ]);
 
