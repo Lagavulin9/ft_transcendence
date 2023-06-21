@@ -19,7 +19,7 @@ export class User{
 	@Column({default:""})
 	email: string;
 	
-	@Column({default:'https://www.google.com/url?sa=i&url=https%3A%2F%2Fbrunch.co.kr%2F%40samsamvet%2F19&psig=AOvVaw12Uq43ff5rSZ60AX0hYHmb&ust=1686899734069000&source=images&cd=vfe&ved=0CBEQjRxqFwoTCNCX063dxP8CFQAAAAAdAAAAABAD'})
+	@Column({default:"api/image/default.jpeg"})
 	profileURL: string;
 
 	@Column({default:0})

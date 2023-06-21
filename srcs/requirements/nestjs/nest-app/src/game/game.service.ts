@@ -24,14 +24,14 @@ export class GameService {
   private GameRooms = new Map<number, GameRoom>();
   private GameQueue = [];
 
-  async getUserGameLogs(uid: number): Promise<GameLogDto[]> {
-    const gamelog = [];
-    gamelog.push(
-      ...(await this.logRepository.find({ where: { fromId: uid } })),
-    );
-    gamelog.push(...(await this.logRepository.find({ where: { toId: uid } })));
-    const gamelogdto = plainToInstance(GameLogDto, gamelog);
-    return gamelogdto;
+  async getUserGameLogs(uid: number): Promise<GameLogDto> {
+    const newLog = new GameLogDto();
+    newLog.uId = uid;
+    const gamelogs = [];
+    gamelogs.push(...(await this.logRepository.find({ where: { fromId: uid } })));
+    gamelogs.push(...(await this.logRepository.find({ where: { toId: uid } })));
+    newLog.log = gamelogs;
+    return newLog;
   }
 
   async saveGameLog(log: LogDto): Promise<Log> {

@@ -33,13 +33,8 @@ export class UserController {
     return this.userService.checkUniqueNick(nickname);
   }
 
-  /* 나중에 프로필을 Url로 대체 할 때 사용할 Patch 입니다.
-	@Patch('/profile')
-	updateProfileUrl(@Body() req:{'uid':number, 'profileUrl':string}):Promise<User> {
-		console.log(req.uid, req.profileUrl);
-		return this.userService.updateNickname(req.uid, req.profileUrl);
-	}
-	*/
+  @Patch('/:uid')
+  updateUser(@Param('uid', ParseIntPipe) uid:number, @Body() req:ReqUserDto){
+    return this.userService.updateUser(uid, req);
+  }
 }
-
-// Nickname -> User -> nickname
