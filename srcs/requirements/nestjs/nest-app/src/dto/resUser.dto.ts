@@ -1,4 +1,4 @@
-import { GameLogDto } from "./log.dto"
+import { LogDto } from "./log.dto"
 
 export class ResUserDto{
 	uid: number
@@ -9,5 +9,6 @@ export class ResUserDto{
 	totalWin: number // Defalut: 0
 	totalLose: number // Defalut: 0
 	level: number // Win의 10당 레벨 +1
-	gameLog: GameLogDto[]
+	status: string
+	gameLog: LogDto[]
 }

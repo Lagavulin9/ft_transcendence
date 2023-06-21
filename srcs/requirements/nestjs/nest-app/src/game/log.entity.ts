@@ -3,7 +3,9 @@ import { Column, Entity, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm"
 
 @Entity()
 export class Log{
-	@PrimaryGeneratedColumn()
+	@PrimaryGeneratedColumn('increment')
+	logID: number
+	@Column()
 	fromId: number
 	@Column()
 	toId: number

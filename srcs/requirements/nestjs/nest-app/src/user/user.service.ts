@@ -4,11 +4,12 @@ import { User } from './user.entity'
 import { Repository } from "typeorm";
 import { createUserDto } from "src/dto/createUser.dto";
 import { ResUserDto } from "src/dto/resUser.dto";
-import { plainToInstance } from "class-transformer";
+import { plainToClass, plainToInstance } from "class-transformer";
 import { Log } from "src/game/log.entity";
 import { FriendList } from "src/friend/friend.entity";
 import { ReqUserDto } from "src/dto/reqUser.dto";
 import { GameService } from "src/game/game.service";
+import { LogDto } from "src/dto/log.dto";
 
 @Injectable()
 export class UserService{
@@ -28,7 +29,7 @@ export class UserService{
 			throw new NotFoundException(`Could not find uid:${uid}`);
 		}
 		const res = plainToInstance(ResUserDto, found);
-		res.gameLog = await this.gameService.getUserGameLogs(uid);
+		res.gameLog = (await this.gameService.getUserGameLogs(uid)).log;
 		return res;
 	}
 
@@ -38,7 +39,7 @@ export class UserService{
 			throw new NotFoundException(`Could not find nickname:${nickname}`)
 		}
 		const res = plainToInstance(ResUserDto, found);
-		res.gameLog = await this.gameService.getUserGameLogs(found.uid);
+		const gamelogdto = await this.gameService.getUserGameLogs(found.uid);
 		return res;
 	}
 
@@ -60,7 +61,7 @@ export class UserService{
 		toUpdate.isOTP = req.isOTP;
 		toUpdate.email = req.email;
 		toUpdate.profileURL = req.profileURL;
-		this.userRepository.save(toUpdate);
+		await this.userRepository.save(toUpdate);
 		return toUpdate;
 	}
 
