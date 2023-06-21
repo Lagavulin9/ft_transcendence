@@ -64,6 +64,7 @@ export class ChatService {
     }
     const user = plainToInstance(User, userdto);
     this.Clients.set(user, client);
+    this.userService.updateUserStatus(uid, 'online');
     client.emit('notice', user);
     return true;
   }
@@ -108,6 +109,7 @@ export class ChatService {
     }
     client.to(roomName).emit('notice', `${user.nickname} has left the chat`);
     this.Clients.delete(user);
+    this.userService.updateUserStatus(user.uid, 'offline');
     return true;
   }
 
@@ -404,6 +406,15 @@ export class ChatService {
       return undefined;
     }
     return Array.from(client.rooms)[1];
+  }
+
+  isUserOnline(uid:number){
+    for (const [user, socket] of this.Clients.getForwardMap().entries()){
+      if (user.uid == uid){
+        return true
+      }
+    }
+    return false;
   }
 }
 

@@ -1,13 +1,3 @@
-export class friendUserDto {
-	uid: number
-	nickname: string
-	isOn: boolean
-}
-
-export class blockedUserDto {
-	uid: number
-	nickname: string
-}
 
 export class reqFriendDto {
 	uid: number //request를 보내는 유저
@@ -15,6 +5,7 @@ export class reqFriendDto {
 }
 
 export class resFriendListDto {
-	firendList: friendUserDto[]
-	blockedList: blockedUserDto[]
+	uid: number
+	firendList: number[]
+	blockedList: number[]
 }

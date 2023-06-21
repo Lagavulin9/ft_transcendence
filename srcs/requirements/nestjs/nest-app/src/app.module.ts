@@ -9,6 +9,7 @@ import { ChatModule } from './chat/chat.module';
 import { FriendModule } from './friend/friend.module';
 import { Gateway } from './gateway/gateway.module';
 import { AuthModule } from './auth/auth.module';
+import { ImageModule } from './image/image.module';
 
 @Module({
   imports: [ConfigModule.forRoot({isGlobal: true}),
@@ -18,6 +19,7 @@ import { AuthModule } from './auth/auth.module';
             FriendModule,
             Gateway,
             AuthModule,
+            ImageModule
           ],
   controllers: [AppController],
   providers: [AppService],
