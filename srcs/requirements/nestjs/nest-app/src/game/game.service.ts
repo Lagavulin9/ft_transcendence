@@ -28,7 +28,9 @@ export class GameService {
     const newLog = new GameLogDto();
     newLog.uId = uid;
     const gamelogs = [];
-    gamelogs.push(...(await this.logRepository.find({ where: { fromId: uid } })));
+    gamelogs.push(
+      ...(await this.logRepository.find({ where: { fromId: uid } })),
+    );
     gamelogs.push(...(await this.logRepository.find({ where: { toId: uid } })));
     newLog.log = gamelogs;
     return newLog;
@@ -83,12 +85,12 @@ export class GameService {
       }
       if (gameroom.host.uid == uid) {
         const guestSocket = this.Clients.getValue(gameroom.guest.uid);
-        if (guestSocket){
+        if (guestSocket) {
           guestSocket.emit('game-over', undefined);
         }
       } else if (gameroom.guest.uid == uid) {
         const hostSocket = this.Clients.getValue(gameroom.host.uid);
-        if (hostSocket){
+        if (hostSocket) {
           hostSocket.emit('game-over', undefined);
         }
       }
@@ -151,9 +153,13 @@ export class GameService {
           }
           hostSocket.emit('game-start', gameroom);
           client.emit('game-start', gameroom);
-          const host = await this.userRepository.findOne({where:{uid:gameroom.host.uid}})
+          const host = await this.userRepository.findOne({
+            where: { uid: gameroom.host.uid },
+          });
           host.status = 'inGame';
-          const guest = await this.userRepository.findOne({where:{uid:gameroom.guest.uid}})
+          const guest = await this.userRepository.findOne({
+            where: { uid: gameroom.guest.uid },
+          });
           guest.status = 'inGame';
           await this.userRepository.save(host);
           await this.userRepository.save(guest);
@@ -204,11 +210,19 @@ export class GameService {
   }
 
   //비정상 종료인경우만..
-  async gameOver(client: Socket, data: GameStateDto) {
-    this.GameRooms.delete(data.gameroom.host);
-    const hostSocket = this.Clients.getValue(data.gameroom.host);
-    const guestSocket = this.Clients.getValue(data.gameroom.guest);
-    if (data.gameroom.game_start === false) {
+  async gameOver(client: Socket, data: any) {
+    const left = this.Clients.getKey(client);
+    let gameroom: GameRoom;
+    for (const [hostuid, game] of this.GameRooms.entries()) {
+      if (game.host.uid == left || game.guest.uid == left) {
+        gameroom = game;
+        break;
+      }
+    }
+    this.GameRooms.delete(gameroom.host.uid);
+    const hostSocket = this.Clients.getValue(gameroom.host.uid);
+    const guestSocket = this.Clients.getValue(gameroom.guest.uid);
+    if (gameroom.game_start === false) {
       if (hostSocket) {
         hostSocket.emit('game-decline', true);
       }
@@ -221,12 +235,20 @@ export class GameService {
       } else if (client == guestSocket) {
         hostSocket.emit('game-over');
       }
-      const host = await this.userRepository.findOne({where:{uid:data.gameroom.host}})
-      host.status = 'offline';
-      const guest = await this.userRepository.findOne({where:{uid:data.gameroom.guest}})
-      guest.status = 'offline';
-      await this.userRepository.save(host);
-      await this.userRepository.save(guest);
+      const host = await this.userRepository.findOne({
+        where: { uid: gameroom.host.uid },
+      });
+      if (host && host.status == 'inGame') {
+        host.status = 'online';
+        await this.userRepository.save(host);
+      }
+      const guest = await this.userRepository.findOne({
+        where: { uid: gameroom.guest.uid },
+      });
+      if (guest && guest.status == 'inGame') {
+        guest.status = 'online';
+        await this.userRepository.save(guest);
+      }
     }
   }
 
@@ -234,19 +256,35 @@ export class GameService {
   async finish(client: Socket, data: GameStateDto) {
     const hostSocket = this.Clients.getValue(data.gameroom.host);
     const guestSocket = this.Clients.getValue(data.gameroom.guest);
-    hostSocket.emit('finish', true);
-    guestSocket.emit('finish', true);
+    if (hostSocket) {
+      hostSocket.emit('finish', true);
+    }
+    if (guestSocket) {
+      guestSocket.emit('finish', true);
+    }
     this.GameRooms.delete(data.gameroom.host);
-    const host = await this.userRepository.findOne({where:{uid:data.gameroom.host}})
-    host.status = 'online';
-    const guest = await this.userRepository.findOne({where:{uid:data.gameroom.guest}})
-    guest.status = 'online';
-    await this.userRepository.save(host);
-    await this.userRepository.save(guest);
+    const host = await this.userRepository.findOne({
+      where: { uid: data.gameroom.host },
+    });
+    if (host && host.status == 'inGame') {
+      host.status = 'online';
+      await this.userRepository.save(host);
+    }
+    const guest = await this.userRepository.findOne({
+      where: { uid: data.gameroom.guest },
+    });
+    if (guest && guest.status == 'inGame') {
+      guest.status = 'online';
+      await this.userRepository.save(guest);
+    }
   }
 
   async randomMatch(client: Socket) {
+    const uid = this.Clients.getKey(client);
     if (this.GameQueue.length) {
+      if (this.GameQueue.find((u) => u == uid)) {
+        return;
+      }
       const newGame = new GameRoom();
       newGame.host = this.GameQueue.pop();
       newGame.guest = await this.userRepository.findOne({
@@ -256,25 +294,26 @@ export class GameService {
       this.GameRooms.set(newGame.host.uid, newGame);
       const hostSocket = this.Clients.getValue(newGame.host.uid);
       const guestSocket = this.Clients.getValue(newGame.guest.uid);
-      hostSocket.emit('game-start', newGame);
-      guestSocket.emit('game-start', newGame);
+      if (hostSocket){
+        hostSocket.emit('game-start', newGame);
+      }
+      if (guestSocket){
+        guestSocket.emit('game-start', newGame);
+      }
     } else {
-      const user = this.userRepository.findOne({
-        where: { uid: this.Clients.getKey(client) },
-      });
-      if (!user) {
+      if (!uid) {
         //에러: 서버에서 유저를 못찾음
         client.emit('user404', 'user not found');
         return;
       }
-      this.GameQueue.push(user);
+      this.GameQueue.push(uid);
       client.emit('waiting', 'waiting for another user');
     }
   }
 
-  isUserInGame(uid:number){
-    for (const [hostuid, gameroom] of this.GameRooms.entries()){
-      if (gameroom.host.uid == uid || gameroom.guest.uid == uid){
+  isUserInGame(uid: number) {
+    for (const [hostuid, gameroom] of this.GameRooms.entries()) {
+      if (gameroom.host.uid == uid || gameroom.guest.uid == uid) {
         return true;
       }
     }
