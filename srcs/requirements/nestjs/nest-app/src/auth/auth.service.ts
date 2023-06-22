@@ -116,7 +116,7 @@ export class AuthService {
       return this.signIn(user, res);
     }
     res.redirect('/Page/OTP')
-    throw new UnauthorizedException('invalid passcode');
+    // throw new UnauthorizedException('invalid passcode');
   }
 
   private generateRandomNumber(): number {
