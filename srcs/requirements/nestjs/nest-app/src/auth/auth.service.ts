@@ -48,13 +48,13 @@ export class AuthService {
     res.cookie('Auth', accessToken, {
       httpOnly: true,
     });
-    res.redirect('/Page/2fa');
+    res.redirect('/Page/OTP');
   }
 
   signIn(user: User, res: Response): void {
-    if (user.status == 'online') {
-      throw new UnauthorizedException('user already connected');
-    }
+    // if (user.status == 'online') {
+    //   throw new UnauthorizedException('user already connected');
+    // }
     const accessToken = this.jwtService.sign({
       status: TokenStatusEnum.SUCCESS,
       uid: user.uid,
@@ -114,6 +114,7 @@ export class AuthService {
     if (!answer || answer != passcode) {
       return this.signIn(user, res);
     }
+    res.redirect('/Page/OTP')
     throw new UnauthorizedException('invalid passcode');
   }
 
