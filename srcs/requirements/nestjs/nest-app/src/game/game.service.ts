@@ -280,7 +280,6 @@ export class GameService {
   }
 
   async randomMatch(client: Socket) {
-    console.log(this.Clients.getForwardMap());
     const uid = this.Clients.getKey(client);
     if (this.GameQueue.length) {
       if (this.GameQueue.find((u) => u == uid)) {
