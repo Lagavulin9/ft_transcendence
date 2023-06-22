@@ -67,7 +67,7 @@ const SignUp = () => {
   return (
     <>
       <AppLayout>
-        <MyModal hName="로그인" close={close}>
+        <MyModal hName="회원가입" close={close}>
           <WindowContent>
             <div style={{ display: "flex" }}>
               <TextInput

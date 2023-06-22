@@ -123,7 +123,9 @@ const ChatRoom = () => {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      chatRoomRefetch();
+      if (chatRoomData) {
+        chatRoomRefetch();
+      }
     }, 3000);
     return () => clearInterval(timer);
   }, [chatRoomRefetch]);

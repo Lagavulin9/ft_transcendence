@@ -7,14 +7,16 @@ import { Grid, Row } from "antd";
 import UserInfo from "../profile/UserInfo";
 import MyModal from "../globalComponents/MyModal";
 import AppLayout from "../globalComponents/AppLayout";
-import { useGetUserQuery } from "@/redux/Api/Profile";
+import { useGetProfileMutation, useGetUserQuery } from "@/redux/Api/Profile";
 import { RootState } from "@/redux/RootStore";
 import ProfileUpdate from "../profile/ProfileUpdate";
 import GameLog from "../profile/GameLog";
+import H3 from "../PostComponents/H3";
 
 const Profile = () => {
   const [state, setState] = useState({ activeTab: 0 });
   const [isVisible, setIsVisible] = useState(false);
+  const [isUpdate, setIsUpdate] = useState(false);
   const router = useRouter();
   const { uId: owner } = useSelector(
     (state: RootState) => state.rootReducers.global
@@ -29,6 +31,9 @@ const Profile = () => {
     refetch: userRefetch,
   } = useGetUserQuery(uid);
 
+  const [useGetProfile, { data: ProfileData, isSuccess: ProfileFetching }] =
+    useGetProfileMutation();
+
   const handleChange = (
     value: number,
     event: React.MouseEvent<HTMLButtonElement>
@@ -36,15 +41,34 @@ const Profile = () => {
     setState({ activeTab: value });
   };
 
+  const onIsUpdate = (bool: boolean) => {
+    setIsUpdate(bool);
+  };
   const close = () => {
     router.back();
   };
 
   useEffect(() => {
-    setInterval(() => {
-      userRefetch();
-    }, 2000);
-  }, [userRefetch]);
+    const timer = setInterval(() => {
+      if (userData) {
+        userRefetch();
+      }
+    }, 1500);
+    useGetProfile(uid);
+    return () => {
+      clearInterval(timer);
+    };
+  }, [isUpdate]);
+
+  if (ProfileFetching) {
+    return (
+      <AppLayout>
+        <MyModal hName="프로필" close={close}>
+          <H3>...로딩중</H3>
+        </MyModal>
+      </AppLayout>
+    );
+  }
 
   if (userData) {
     return (
@@ -95,7 +119,9 @@ const Profile = () => {
               >
                 {state.activeTab === 0 && <UserInfo user={userData} />}
                 {state.activeTab === 1 && <GameLog uid={uid} />}
-                {state.activeTab === 2 && <ProfileUpdate uid={uid} />}
+                {state.activeTab === 2 && (
+                  <ProfileUpdate uid={uid} func={onIsUpdate} />
+                )}
               </ScrollView>
             </Row>
           </WindowContent>

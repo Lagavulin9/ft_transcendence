@@ -29,7 +29,9 @@ const FriendList = () => {
 
   const close = async () => {
     router.back();
-    await refetch();
+    if (data) {
+      await refetch();
+    }
   };
 
   const { activeTab } = state;

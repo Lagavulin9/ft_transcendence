@@ -13,6 +13,14 @@ export const ProfileApi = createApi({
       },
       keepUnusedDataFor: 2,
     }),
+    getProfile: builder.mutation<User, number>({
+      query(userId: number) {
+        return {
+          url: `http://localhost/api/user/${userId}`,
+          method: "GET",
+        };
+      },
+    }),
     profileUpdate: builder.mutation<User, { user: ReqUserDto; uid: number }>({
       query({ user, uid }) {
         const requestBody = {
@@ -45,12 +53,26 @@ export const ProfileApi = createApi({
         return `http://localhost/api/user/check/nick?nickname=${nickname}`;
       },
     }),
+    checkOtpCode: builder.mutation<Boolean, number>({
+      query(otpCode: number) {
+        const req = {
+          passcode: otpCode,
+        };
+        return {
+          url: `http://localhost/api/auth/verify`,
+          method: "POST",
+          body: req,
+        };
+      },
+    }),
   }),
 });
 
 export const {
   useGetUserQuery,
+  useGetProfileMutation,
   useProfileUpdateMutation,
   useCheckNicknameMutation,
   useImageUploadMutation,
+  useCheckOtpCodeMutation,
 } = ProfileApi;

@@ -14,9 +14,10 @@ import H3 from "../PostComponents/H3";
 
 interface Props {
   uid: number;
+  func: (bool: boolean) => void;
 }
 
-const ProfileUpdate = ({ uid }: Props) => {
+const ProfileUpdate = ({ uid, func }: Props) => {
   const [nickname, setNickname] = useState("");
   const [isOtp, setIsOtp] = useState(false);
   const [image, setImage] = useState("");
@@ -68,6 +69,7 @@ const ProfileUpdate = ({ uid }: Props) => {
         profileURL: imageData !== undefined ? imageData : userData.profileURL,
       };
       await profileUpdate({ uid: uid, user: req });
+      func(true);
       setNewNicknameMessage("수정완료.");
       setIsOtp(false);
       setIsCheck(false);
