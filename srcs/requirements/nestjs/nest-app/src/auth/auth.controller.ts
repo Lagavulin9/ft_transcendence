@@ -16,19 +16,19 @@ import { FtAuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
 import { GetGuardData } from './getGuardData.decorator';
 import { UserService } from 'src/user/user.service';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { ResUserDto } from 'src/dto/resUser.dto';
 import axios from 'axios';
 import { JwtService } from '@nestjs/jwt';
 import { JwtAuthGuard } from './jwt.guard';
+import { TwoFactorGuard } from './twoFactor.guard';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private authService: AuthService,
     private jwtService: JwtService,
-  ) {}
-  ß;
+  ) {};
   @Get()
   @UseGuards(FtAuthGuard)
   authCheck() {}
@@ -54,15 +54,23 @@ export class AuthController {
   }
 
   @Post('send-email')
+  @UseGuards(TwoFactorGuard)
   sendEmail(@Body() req: { uid: number }) {
     return this.authService.sendEmail(req.uid);
   }
 
   @Post('verify')
+  @UseGuards(TwoFactorGuard)
   verifyPasscode(
-    @Body() req: { uid: number; passcode: number },
+    @Req() req:Request,
+    @Body() passcode: number,
     @Res() res: Response,
   ) {
-    return this.authService.verifyPasscode(req.uid, req.passcode, res);
+    const token = req.cookies.Auth;
+    const decoded = this.jwtService.verify(token);
+    if (!decoded){
+      throw new UnauthorizedException('invalid token');
+    }
+    return this.authService.verifyPasscode(decoded.uid, passcode, res);
   }
 }
