@@ -21,6 +21,7 @@ import { ResUserDto } from 'src/dto/resUser.dto';
 import axios from 'axios';
 import { JwtService } from '@nestjs/jwt';
 import { JwtAuthGuard } from './jwt.guard';
+import { TwoFactorGuard } from './twoFactor.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -54,11 +55,13 @@ export class AuthController {
   }
 
   @Post('send-email')
+  @UseGuards(TwoFactorGuard)
   sendEmail(@Body() req: { uid: number }) {
     return this.authService.sendEmail(req.uid);
   }
 
   @Post('verify')
+  @UseGuards(TwoFactorGuard)
   verifyPasscode(
     @Body() req: { uid: number; passcode: number },
     @Res() res: Response,

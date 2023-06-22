@@ -21,17 +21,20 @@ import { User } from './user.entity';
 import { ReqUserDto } from 'src/dto/reqUser.dto';
 import { UserCreationGuard } from 'src/auth/userCreation.guard';
 import { GetGuardData } from 'src/auth/getGuardData.decorator';
+import { JwtAuthGuard } from 'src/auth/jwt.guard';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get('/:uid')
+  @UseGuards(JwtAuthGuard)
   getUserByID(@Param('uid', ParseIntPipe) uid: number): Promise<ResUserDto> {
     return this.userService.getUserByID(uid);
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard)
   getUserByNick(@Query('nickname') nickname: string): Promise<ResUserDto> {
     return this.userService.getUserByNick(nickname);
   }
@@ -44,11 +47,13 @@ export class UserController {
   }
 
   @Get('/check/nick')
+  @UseGuards(UserCreationGuard)
   checkUniqueNick(@Query('nickname') nickname: string): Promise<boolean> {
     return this.userService.checkUniqueNick(nickname);
   }
 
   @Patch('/:uid')
+  @UseGuards(JwtAuthGuard)
   updateUser(@Param('uid', ParseIntPipe) uid: number, @Body() req: ReqUserDto) {
     return this.userService.updateUser(uid, req);
   }
