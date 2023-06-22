@@ -66,6 +66,18 @@ export class AuthService {
     res.redirect('/Page/Home');
   }
 
+  twofaSignIn(user: User, res: Response): void {
+    const accessToken = this.jwtService.sign({
+      status: TokenStatusEnum.SUCCESS,
+      uid: user.uid,
+    });
+    res.cookie('Auth', accessToken, {
+      httpOnly: true,
+    });
+    res.setHeader('Location', '/Page/Home');
+    res.status(200).end();
+  }
+
   signUp(data, res: Response): void {
     const accessToken = this.jwtService.sign({
       status: TokenStatusEnum.SIGNUP,
@@ -109,13 +121,16 @@ export class AuthService {
     return true;
   }
 
-  async verifyPasscode(uid:number, passcode: number, res: Response) {
+  async verifyPasscode(uid: number, passcode: number, res: Response) {
+    console.log(this.otpMap);
+    console.log(passcode);
     const user = await this.userRepository.findOne({ where: { uid: uid } });
     const answer = this.otpMap.get(uid);
     if (!answer || answer != passcode) {
-      return this.signIn(user, res);
+      console.log('signin');
+      return this.twofaSignIn(user, res);
     }
-    res.redirect('/Page/OTP')
+    res.redirect('/Page/OTP');
     // throw new UnauthorizedException('invalid passcode');
   }
 

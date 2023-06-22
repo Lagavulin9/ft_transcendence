@@ -47,7 +47,6 @@ export class UserController {
   }
 
   @Get('/check/nick')
-  @UseGuards(UserCreationGuard)
   checkUniqueNick(@Query('nickname') nickname: string): Promise<boolean> {
     return this.userService.checkUniqueNick(nickname);
   }

@@ -28,7 +28,7 @@ export class AuthController {
   constructor(
     private authService: AuthService,
     private jwtService: JwtService,
-  ) {};
+  ) {}
   @Get()
   @UseGuards(FtAuthGuard)
   authCheck() {}
@@ -55,22 +55,28 @@ export class AuthController {
 
   @Post('send-email')
   @UseGuards(TwoFactorGuard)
-  sendEmail(@Body() req: { uid: number }) {
-    return this.authService.sendEmail(req.uid);
+  sendEmail(@Req() req: Request) {
+    const token = req.cookies.Auth;
+    const decoded = this.jwtService.verify(token);
+    if (!decoded) {
+      throw new UnauthorizedException('invalid token');
+    }
+    return this.authService.sendEmail(decoded.uid);
   }
 
   @Post('verify')
   @UseGuards(TwoFactorGuard)
   verifyPasscode(
-    @Req() req:Request,
+    @Req() req: Request,
     @Body() passcode: number,
     @Res() res: Response,
   ) {
     const token = req.cookies.Auth;
     const decoded = this.jwtService.verify(token);
-    if (!decoded){
+    if (!decoded) {
       throw new UnauthorizedException('invalid token');
     }
+    console.log(decoded);
     return this.authService.verifyPasscode(decoded.uid, passcode, res);
   }
 }

@@ -28,7 +28,20 @@ export const AuthApi = createApi({
         };
       },
     }),
+    sendMail: bundler.mutation<void, void>({
+      query() {
+        return {
+          url: `http://localhost/api/auth/send-email`,
+          method: "POST",
+        };
+      },
+    }),
   }),
 });
 
-export const { useGetAuthQuery, useLoginMutation, useSignupMutation } = AuthApi;
+export const {
+  useGetAuthQuery,
+  useLoginMutation,
+  useSignupMutation,
+  useSendMailMutation,
+} = AuthApi;

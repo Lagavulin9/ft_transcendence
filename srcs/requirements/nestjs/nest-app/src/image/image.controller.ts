@@ -40,9 +40,11 @@ export class ImageController {
       CreateFileValidationPipe(5000, RegExp('^image\\/(jpeg|png)$')),
     )
     file: Express.Multer.File,
+    @Res() res: Response,
   ) {
+    console.log('file');
     console.log(file);
-    return await this.imageService.getSavedFileURL(file);
+    return await this.imageService.getSavedFileURL(file, res);
   }
 
   /**

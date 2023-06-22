@@ -1,7 +1,7 @@
 import { AppDispatch, RootState } from "@/redux/RootStore";
 import { fetchRoom } from "@/redux/Slice/Room";
 import { GameRoom, GameRoomDto, LogDto } from "@/types/GameDto";
-import { onEvent } from "@/utils/socket";
+import { offEvent, onEvent } from "@/utils/socket";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Counter } from "react95";
@@ -19,16 +19,20 @@ const GameReady = ({ isNormal, gameRoom, setFinish }: GameReadyProps) => {
   const [readyTime, setReadyTime] = useState(0);
   const [isEnd, setIsEnd] = useState(false);
   const [mode, setMode] = useState(true);
+  const [isStart, setIsStart] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
   const [room, setRoom] = useState<GameRoom>({} as GameRoom);
+  let arg: GameRoom;
 
   useEffect(() => {
     const timer = setInterval(() => {
       setReadyTime((prev) => {
-        if (prev >= 100) {
+        if (isStart === true) {
+          return prev;
+        }
+        if (prev >= 10) {
           // test때문에 100초 나중에 10초로 바꿔야함
           clearInterval(timer);
-          setIsEnd(true);
           return prev;
         }
         return prev + 1;
@@ -36,7 +40,7 @@ const GameReady = ({ isNormal, gameRoom, setFinish }: GameReadyProps) => {
     }, 1000);
 
     onEvent("game-start", (data: GameRoomDto) => {
-      const arg: GameRoom = {
+      arg = {
         host: data.host.uid,
         guest: data.guest.uid,
         game_start: true,
@@ -49,6 +53,7 @@ const GameReady = ({ isNormal, gameRoom, setFinish }: GameReadyProps) => {
         })
       );
       setMode(arg.isNormal as boolean);
+      setIsStart(true);
       setIsVisible(true);
     });
 
@@ -64,6 +69,7 @@ const GameReady = ({ isNormal, gameRoom, setFinish }: GameReadyProps) => {
 
     return () => {
       clearInterval(timer);
+      offEvent("game-decline");
     };
   }, [dispatch, gameRoom.guest, gameRoom.host, isNormal]);
 

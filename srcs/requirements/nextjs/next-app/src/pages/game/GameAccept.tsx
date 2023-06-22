@@ -18,6 +18,7 @@ const GameAccept = ({ isNormal, room }: GameAcceptProps) => {
   const [isVisible, setIsVisible] = useState(false);
   const [readyTime, setReadyTime] = useState(0);
   const [isEnd, setIsEnd] = useState(false);
+  const [isStart, setIsStart] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
 
   const onAccept = () => {
@@ -33,12 +34,16 @@ const GameAccept = ({ isNormal, room }: GameAcceptProps) => {
 
   const onDecline = () => {
     emitEvent("game-decline", room);
+    setIsEnd(true);
   };
 
   useEffect(() => {
     const timer = setInterval(() => {
+      if (isStart === true) {
+        return;
+      }
       setReadyTime((prev) => {
-        if (prev >= 100) {
+        if (prev >= 10) {
           // test때문에 100초 나중에 10초로 바꿔야함
           clearInterval(timer);
           emitEvent("game-decline", {
@@ -60,6 +65,8 @@ const GameAccept = ({ isNormal, room }: GameAcceptProps) => {
         })
       );
       setIsVisible(true);
+      clearInterval(timer);
+      setIsStart(true);
     });
   }, [dispatch, room.guest, room.host, room.isNormal]);
 

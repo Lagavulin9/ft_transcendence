@@ -38,7 +38,6 @@ const ChatRoom = () => {
   const [password, setPassword] = useState("");
   const [success, setSuccess] = useState(false);
   const [room, setRoom] = useState<resChatDto>();
-
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const { roomName } = router.query;
@@ -123,7 +122,7 @@ const ChatRoom = () => {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      if (chatRoomData) {
+      if (RoomListLoading) {
         chatRoomRefetch();
       }
     }, 3000);
@@ -171,6 +170,7 @@ const ChatRoom = () => {
       console.log(data);
       setRoom(data);
       setSuccess(true);
+      chatRoomRefetch();
     });
 
     socket.on("wrongpass", () => {
@@ -179,6 +179,13 @@ const ChatRoom = () => {
 
     socket.on("already", () => {
       setSuccess(true);
+    });
+
+    onEvent("usermod", () => {
+      console.log("usermod");
+      if (chatRoomData) {
+        chatRoomRefetch();
+      }
     });
 
     const handleMessage = (data: ResMsgDto) => {
@@ -233,13 +240,6 @@ const ChatRoom = () => {
       target: uid,
       msg: "",
       password: "",
-    });
-
-    await onEvent("usermod", () => {
-      console.log("usermod");
-      if (chatRoomData) {
-        chatRoomRefetch();
-      }
     });
   };
 

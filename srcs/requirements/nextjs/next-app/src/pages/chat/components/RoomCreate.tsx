@@ -48,7 +48,7 @@ const RoomCreate = () => {
       setInput("");
       setPassword("");
     });
-  }, [input, refetch, router]);
+  }, [input, router]);
 
   return (
     <>

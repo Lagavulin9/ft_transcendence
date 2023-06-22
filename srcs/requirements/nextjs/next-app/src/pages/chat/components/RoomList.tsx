@@ -39,9 +39,7 @@ const RoomList = () => {
 
   useEffect(() => {
     const refetchInterval = setInterval(() => {
-      if (chatData) {
-        refetch();
-      }
+      refetch();
     }, 2000);
 
     return () => {

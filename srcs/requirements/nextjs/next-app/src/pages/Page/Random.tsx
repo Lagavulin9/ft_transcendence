@@ -30,11 +30,6 @@ const Random = () => {
     router.back();
   };
 
-  const Match = () => {
-    // TODO : 랜덤 요청
-    // isMatch 바꿔주기
-  };
-
   const Start = () => {
     // TODO: 게임시작 Router(Page/Game)
     router.push(

@@ -34,7 +34,6 @@ const ProfileUpdate = ({ uid, func }: Props) => {
     isFetching: userFetching,
     refetch: userRefetch,
   } = useGetUserQuery(uid);
-  const [imageUpload, { data: imageData }] = useImageUploadMutation();
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -56,17 +55,23 @@ const ProfileUpdate = ({ uid, func }: Props) => {
 
   const handleSubmit = async () => {
     const form = new FormData();
-    console.log(userData);
+    let imageUrl = userData?.profileURL;
     if (fileInputRef.current?.files?.[0]) {
       form.append("file", fileInputRef.current?.files?.[0]);
-      await imageUpload(form);
+      // await imageUpload(form);
+      const res = await fetch("http://localhost/api/image", {
+        method: "POST",
+        body: form,
+      });
+      const data = await res.json();
+      imageUrl = data.imageURL;
     }
 
     if (userData) {
       const req: ReqUserDto = {
         nickname: isCheck === true ? nickname : userData.nickname,
         isOTP: isOtp !== userData.isOTP ? isOtp : userData.isOTP,
-        profileURL: imageData !== undefined ? imageData : userData.profileURL,
+        profileURL: imageUrl,
       };
       await profileUpdate({ uid: uid, user: req });
       func(true);
@@ -107,7 +112,11 @@ const ProfileUpdate = ({ uid, func }: Props) => {
             placeholder="닉네임을 입력하세요..."
             onChange={(e) => setNickname(e.target.value)}
           />
-          <Button onClick={nickNameCheck} style={{ marginRight: "10px" }}>
+          <Button
+            onClick={nickNameCheck}
+            style={{ marginRight: "10px" }}
+            disabled={nickname.length === 0}
+          >
             중복체크
           </Button>
           {isVisible && <H3>{newNicknameMessage}</H3>}

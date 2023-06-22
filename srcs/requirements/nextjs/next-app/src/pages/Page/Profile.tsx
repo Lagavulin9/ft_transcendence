@@ -60,16 +60,6 @@ const Profile = () => {
     };
   }, [isUpdate]);
 
-  if (ProfileFetching) {
-    return (
-      <AppLayout>
-        <MyModal hName="프로필" close={close}>
-          <H3>...로딩중</H3>
-        </MyModal>
-      </AppLayout>
-    );
-  }
-
   if (userData) {
     return (
       <AppLayout>

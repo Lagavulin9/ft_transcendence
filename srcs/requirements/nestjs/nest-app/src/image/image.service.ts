@@ -4,10 +4,9 @@ import { Response } from 'express';
 
 @Injectable()
 export class ImageService {
-
   serveImage(filename: string, res: Response) {
     const filePath = '/app/static/' + filename;
-	console.log(filePath);
+    console.log(filePath);
     const fileExists = fs.existsSync(filePath);
 
     if (fileExists) {
@@ -17,7 +16,7 @@ export class ImageService {
     }
   }
 
-  async getSavedFileURL(img: Express.Multer.File): Promise<string> {
-    return `/api/image/${img.filename}`;
+  async getSavedFileURL(img: Express.Multer.File, res: Response) {
+    res.json({ imageURL: `/api/image/${img.filename}` });
   }
 }

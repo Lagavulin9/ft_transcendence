@@ -280,6 +280,7 @@ export class GameService {
   }
 
   async randomMatch(client: Socket) {
+    console.log(this.Clients.getForwardMap());
     const uid = this.Clients.getKey(client);
     if (this.GameQueue.length) {
       if (this.GameQueue.find((u) => u == uid)) {
@@ -292,6 +293,7 @@ export class GameService {
       newGame.guest = await this.userRepository.findOne({
         where: { uid: uid },
       });
+      console.log(newGame.guest);
       newGame.game_start = false;
       const hostSocket = this.Clients.getValue(newGame.host.uid);
       const guestSocket = this.Clients.getValue(newGame.guest.uid);

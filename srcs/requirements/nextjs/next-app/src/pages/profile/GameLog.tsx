@@ -15,11 +15,7 @@ const GameLog = ({ uid }: GameLogProps) => {
     isFetching: userFetching,
   } = useGetUserQuery(uid);
 
-  if (userFetching) {
-    return <H3>...로딩중</H3>;
-  }
-
-  if (userData?.gameLog === undefined) {
+  if (userData?.gameLog.length === 0) {
     return <H3>로그데이터가 없습니다.</H3>;
   }
 

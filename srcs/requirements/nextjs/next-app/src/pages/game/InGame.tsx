@@ -252,6 +252,9 @@ const InGame = ({ isHost, isNormal, room }: InGameProps) => {
 
   useEffect(() => {
     const timer = setInterval(() => {
+      if (!isHost) {
+        return;
+      }
       setGameTime((prev) => {
         if (prev >= 100 || isEnd) {
           clearInterval(timer);
@@ -351,7 +354,6 @@ const InGame = ({ isHost, isNormal, room }: InGameProps) => {
     isVisible,
     postLogMutation,
     isHost,
-    setFinish,
     isEnd,
   ]);
 
