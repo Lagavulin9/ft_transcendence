@@ -9,7 +9,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { MailerService } from '@nestjs-modules/mailer';
 import * as cookie from 'cookie';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { access } from 'fs';
 import { TokenStatusEnum } from './tokenState.enum';
 import { User } from 'src/user/user.entity';
@@ -49,6 +49,7 @@ export class AuthService {
       httpOnly: true,
     });
     res.redirect('/Page/OTP');
+    // res.redirect('http://localhost/api/auth/test')
   }
 
   signIn(user: User, res: Response): void {
@@ -108,7 +109,7 @@ export class AuthService {
     return true;
   }
 
-  async verifyPasscode(uid: number, passcode: number, res: Response) {
+  async verifyPasscode(uid:number, passcode: number, res: Response) {
     const user = await this.userRepository.findOne({ where: { uid: uid } });
     const answer = this.otpMap.get(uid);
     if (!answer || answer != passcode) {
