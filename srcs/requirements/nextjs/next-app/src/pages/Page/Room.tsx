@@ -140,7 +140,9 @@ const ChatRoom = () => {
     });
 
     socket.on("leave", () => {
-      chatRoomRefetch();
+      if (chatRoomData) {
+        chatRoomRefetch();
+      }
     });
 
     socket.on("kick", (data) => {
@@ -235,7 +237,9 @@ const ChatRoom = () => {
 
     await onEvent("usermod", () => {
       console.log("usermod");
-      chatRoomRefetch();
+      if (chatRoomData) {
+        chatRoomRefetch();
+      }
     });
   };
 

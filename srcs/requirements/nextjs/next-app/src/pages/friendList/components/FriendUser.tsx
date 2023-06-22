@@ -37,13 +37,16 @@ const FriendUser = ({ uId }: User) => {
 
   const blockFriend = async () => {
     await BlockUser({ uid: owner, target: uId });
-    refetch();
   };
 
   useEffect(() => {
     const refetchInterval = setInterval(() => {
-      userRefetch();
-      refetch();
+      if (userData) {
+        userRefetch();
+      }
+      if (friendData) {
+        refetch();
+      }
     }, 1000);
 
     return () => {

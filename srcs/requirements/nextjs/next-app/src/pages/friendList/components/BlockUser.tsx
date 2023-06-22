@@ -33,8 +33,12 @@ const BlockUser = ({ uId }: User) => {
 
   useEffect(() => {
     const refetchInterval = setInterval(() => {
-      userRefetch();
-      refetch();
+      if (userData) {
+        userRefetch();
+      }
+      if (friendData) {
+        refetch();
+      }
     }, 2000);
 
     return () => {

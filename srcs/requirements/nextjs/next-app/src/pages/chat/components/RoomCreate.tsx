@@ -15,12 +15,6 @@ const RoomCreate = () => {
   const [state, setState] = useState("Public");
   const router = useRouter();
   const dispatch = useDispatch();
-  const {
-    data: chatData,
-    error: chatError,
-    isLoading: chatLoading,
-    refetch,
-  } = useGetAllQuery();
 
   const onClickCreate = async () => {
     if (state === "Protected") {
@@ -40,8 +34,6 @@ const RoomCreate = () => {
         password: "",
       });
     }
-
-    await refetch();
   };
 
   useEffect(() => {
